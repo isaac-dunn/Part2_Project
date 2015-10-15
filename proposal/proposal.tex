@@ -1,0 +1,187 @@
+
+\documentclass[12pt,a4paper,twoside]{article}
+\usepackage[pdfborder={0 0 0}]{hyperref}
+\usepackage[margin=25mm]{geometry}
+\usepackage{graphicx}
+\usepackage{amsfonts}
+\newcommand{\M}{\mathcal{M}}
+\begin{document}
+
+\vfil
+
+\centerline{\Large Computer Science Tripos Project Proposal}
+\vspace{0.4in}
+\centerline{\LARGE\bf Symbolic Model Checking}
+\vspace{0.4in}
+\centerline{\large Isaac Dunn, Clare College}
+\vspace{0.3in}
+\centerline{\large 11 October 2015}
+
+\vfil
+
+
+\noindent
+{\bf Project Supervisor:} To Be Confirmed
+\vspace{0.2in}
+
+\noindent
+{\bf Director of Studies:} Prof. Lawrence Paulson
+\vspace{0.2in}
+\noindent
+ 
+\noindent
+{\bf Project Overseers:} Dr. Stephen Clark  \& Prof. Alan Mycroft
+
+
+% Main document
+
+\section*{Introduction}
+
+When computer systems go wrong, the consequences can be disastrous.
+As we rely on computers more and more, concern about such potential
+failures will only increase, particularly in safety or mission critical applications.
+This partially explains the increasing popularity of formal verification
+methods, used alongside more traditional quality
+assurance techniques, to show that (abstractions of)
+hardware and software components meet their specifications. These methods
+have proved capable of finding subtle errors that elude conventional
+simulation and testing; concurrency race conditions, for example,
+are notoriously difficult to detect.
+
+One such method is known as model checking. The system in question
+is described as a finite state machine, which is represented by a model $\M$ for
+some appropriate temporal logic. Its specification is represented
+by a formula $\phi$ in that logic. The verification
+method consists of automatically computing whether the
+model $\M$ satisfies $\phi$.
+
+However, model checking typically suffers from the {\em state
+explosion problem}: the number of states grows
+exponentially with the number of components of the described system.
+To mitigate this problem, McMillan \cite{mcmillan92}
+proposes symbolic model checking: the use of Boolean functions
+to represent sets and relations, thereby avoiding the explicit construction of
+the state graph during the computation deciding $\M \models \phi$.
+The aim of this project is to build a system which implements this technique.
+
+
+\section*{Starting Point}
+
+Although the project will be written from scratch, there will be nothing novel involved---published
+algorithms and techniques will be used to implement the system.
+
+\section*{Substance and Structure of the Project}
+
+The project breaks down into the following three sub-tasks:
+
+\begin{enumerate}
+	\item Implement a module that uses Boolean functions (described
+	by Ordered Binary Decision Diagrams) to represent sets and relations,
+	including various necessary operations on them.
+	
+	\item Implement an algorithm which takes a model $\M$ for Computation
+	Tree Logic (CTL) and a formula $\phi$
+	and computes whether $\M \models \phi$ holds.
+	
+	\item Design a language for the description of systems and their
+	specifications, and a compiler for
+	it which translates system descriptions to an appropriate models $\M$, and
+	translates specifications to appropriate formulae $\phi$.
+\end{enumerate}
+
+\section*{Main Success Criterion}
+
+To demonstrate, through a few well-chosen simple examples, that the project
+is capable of showing that systems do or do not meet their specifications.
+
+\section*{Possible Extensions}
+
+\begin{itemize}
+	\item Support fairness constraints alongside CTL specifications.
+	
+	\item Compare performance with existing optimised symbolic model checkers
+	such as NuSMV \cite{nusmv}.
+	
+	\item Ameliorate performance and quantitatively measure the improvement.
+	
+	\item If $\M \not\models \phi$ then provide a counterexample.
+	
+	\item Support specifications in Linear Time Logic (LTL) as well as CTL.
+	
+	\item Compare performance of the OBDD implementation with a na\"ive one.
+\end{itemize}
+
+\section*{Plan of Work}
+
+\subsubsection*{Michaelmas Week 2}
+
+Decide on an implementation language for the project. Study OBDDs and understand
+how to effectively implement them.
+
+\subsubsection*{Michaelmas Weeks 3--4}
+
+Write, test and debug module that uses OBDDs to efficiently store and operate
+upon sets (of states) and relations between them.
+
+\subsubsection*{Michaelmas Weeks 5--6}
+
+Study and implement the basic CTL model checking algorithm, making use of the
+module written in the previous fortnight.
+
+\subsubsection*{Michaelmas Weeks 7--8}
+
+Use simple handwritten examples to test and debug the model checking algorithm.
+
+\subsubsection*{Christmas Vacation}
+
+Decide upon the syntax and semantics of the language that will be used to
+facilitate the description and specification of systems. Implement a compiler
+for that language which translates descriptions to CTL models and specifications
+to CTL formulae.
+
+\subsubsection*{Lent Weeks 1--2}
+
+Use simple handwritten examples to test and debug the compiler. Write and submit progress report.
+
+\subsubsection*{Lent Weeks 3--4}
+
+Connect compiler to model checking algorithm, and test and debug whole system.
+Main success criterion should be fulfilled by division of Lent term.
+
+\subsubsection*{Lent Weeks 5--8}
+
+Buffer time to catch up with timetable. If unneeded, attempt
+extension tasks. Write preparation chapter of dissertation.
+
+\subsubsection*{Easter Vacation}
+
+Write implementation and evaluation chapters and submit dissertation.
+
+\section*{Resources Required}
+
+For this project, I shall mainly use my own computer,
+an Acer laptop which runs Windows 10, has a 1.8 GHz dual core processor,
+and 6 GB of memory. In the event of its failure, I will transition to using
+the university's MCS machines. To mitigate the risk of loss of data,
+I will make backups to my university filespace each day I work on the project,
+and I will make weekly backups to both Dropbox and OneDrive.
+
+\begin{thebibliography}{9}
+	
+	\bibitem{mcmillan92}
+	\href{http://www.kenmcmil.com/pubs/thesis.pdf}{
+		K. L. McMillan,
+		\emph{Symbolic Model Checking} (PhD thesis),
+		1992.
+	}
+	
+	\bibitem{nusmv}
+	\href{http://nusmv.fbk.eu/NuSMV/papers/cav99/html/index.html}{
+		A. Cimatti, E. M. Clarke, F. Giunchiglia, M. Roveri,
+		\emph{NuSMV: A New Symbolic Model Verifier},
+		Proceedings of the 11th International Conference on Computer Aided Verification,
+		1999.
+	}
+\end{thebibliography}
+
+\end{document}
