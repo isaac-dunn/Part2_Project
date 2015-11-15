@@ -59,7 +59,8 @@ type expr_raw =
    | App_raw of expr_raw * expr_raw
    | Let_raw of var_raw * type_expr * expr_raw * expr_raw
    | Letrec_raw of var_raw * type_expr * var_raw * type_expr * expr_raw * expr_raw
-   | Cas_raw of expr_raw * expr_raw * expr_raw;;
+   | Cas_raw of expr_raw * expr_raw * expr_raw
+   | Error_raw of string;;
 
 (* expressions up to alpha equivalence *)
 type expr = 
@@ -80,7 +81,8 @@ type expr =
    | App of expr * expr
    | Let of type_expr * expr * expr
    | Letrec of type_expr * type_expr * expr * expr
-   | Cas of expr * expr * expr;;
+   | Cas of expr * expr * expr
+   | Error of string;;
 
 let rec pretty_print e = match e with
     Integer n -> print_int n
@@ -110,7 +112,8 @@ let rec pretty_print e = match e with
                                 print_string " => "; pretty_print e1; print_string ") in ";
                                 pretty_print e2; print_string " end"
   | Cas (e1, e2, e3) -> print_string "CAS("; pretty_print e1; print_string ", ";
-                        pretty_print e2; print_string ", "; pretty_print e3; print_string ")";;
+                        pretty_print e2; print_string ", "; pretty_print e3; print_string ")"
+  | Error msg -> print_string ("Error :"^msg);;
 
 (*** SEMANTICS ***)
 
@@ -148,7 +151,8 @@ let rec resolve env expr_raw = match expr_raw with
         Letrec (tx, ty, resolve (y::x::env) e1, resolve (x::env) e2)
   | Cas_raw (e1, e2, e3) -> Cas (resolve env e1,
                                  resolve env e2,
-                                 resolve env e3);;
+                                 resolve env e3)
+  | Error_raw msg -> Error msg;;
 
 (* is_value : expr -> bool *)
 let is_value e = match e with
@@ -191,7 +195,8 @@ let rec subst e n f = match f with
   | Letrec (t1, t2, e1, e2) -> Letrec (t1, t2, subst e (n+2) e1, subst e (n+1) e2)
   | Cas (e1, e2, e3) -> Cas (subst e n e1,
                              subst e n e2,
-                             subst e n e3);;
+                             subst e n e3)
+  | Error msg -> Error msg;;
 
 (* shift n e increments (by 1) all the variable indices >=n in e *)
 let rec shift n e = match e with
@@ -212,7 +217,8 @@ let rec shift n e = match e with
   | App (e1, e2) -> App (shift n e1, shift n e2)
   | Let (t, e1, e2) -> Let (t, shift n e1, shift (n+1) e2)
   | Letrec (t1, t2, e1, e2) -> Letrec (t1, t2, shift (n+2) e1, shift (n+1) e2)
-  | Cas (e1, e2, e3) -> Cas (shift n e1, shift n e2, shift n e3);;
+  | Cas (e1, e2, e3) -> Cas (shift n e1, shift n e2, shift n e3)
+  | Error msg -> Error msg;;
 
 
 (* swap n e swaps the nth and n+1th variable indices in e *)
@@ -234,7 +240,8 @@ let rec swap n e = match e with
   | App (e1, e2) -> App (swap n e1, swap n e2)
   | Let (t, e1, e2) -> Let (t, swap n e1, swap (n+1) e2)
   | Letrec (t1, t2, e1, e2) -> Letrec (t1, t2, swap (n+2) e1, swap (n+1) e2)
-  | Cas (e1, e2, e3) -> Cas (swap n e1, swap n e2, swap n e3);;
+  | Cas (e1, e2, e3) -> Cas (swap n e1, swap n e2, swap n e3)
+  | Error msg -> Error msg;;
 
 (* get_fresh_loc : store -> loc *)
 (* Gives a location unused in the given store *)
@@ -315,9 +322,10 @@ let rec next (e, s, g)  = match e with
                            else (match next (e2, s, g) with
                             Some (f, t, h) -> Some (Cas (Glo l, f, e3), t, h)
                           | None -> None)
-  | Cas (e1, e2, e3) -> match next (e1, s, g) with
+  | Cas (e1, e2, e3) -> (match next (e1, s, g) with
                             Some (f, t, h) -> Some (Cas (f, e2, e3), t, h)
-                          | None -> None;;
+                          | None -> None)
+  | Error msg -> None;;
 
 let rec evaluate (e, s, g) = match next (e, s, g) with
     Some (f, t, h) -> evaluate (f, t, h)
