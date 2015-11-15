@@ -323,11 +323,8 @@ let rec evaluate (e, s, g) = match next (e, s, g) with
     Some (f, t, h) -> evaluate (f, t, h)
   | None -> (e, s, g);;
 
-let e = If (Op (Integer 4, Equals, Op (Integer 54, Minus, Integer 50)), Op (Integer 4, Mult, Integer 554), Integer (-3));;
-let empty _ = None;;
-let (x, s, g) = evaluate (e, empty, empty);;
-pretty_print(e);;
-print_newline();;
-pretty_print(x);;
-print_newline();;
+let rec print_exec(e, s, g) = pretty_print(e); print_newline(); print_newline();  match next (e, s, g) with
+    Some (f, t, h) -> print_exec (f, t, h)
+  | None -> print_string "END\n";;
+
 
