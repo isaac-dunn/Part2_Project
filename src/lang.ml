@@ -177,8 +177,8 @@ let rec subst e n f = match f with
                            subst e n e2,
                            subst e n e3)
   | Assign (e1, e2) -> Assign (subst e n e1, subst e n e2)
-  | Deref e1 -> subst e n e1
-  | Ref e1 -> subst e n e1
+  | Deref e1 -> Deref (subst e n e1)
+  | Ref e1 -> Ref (subst e n e1)
   | Loc l -> Loc l
   | Glo l -> Glo l
   | Skip -> Skip
