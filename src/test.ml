@@ -1,4 +1,4 @@
-(* Unit tests for language forPart II Project *)
+(* Unit tests for language for Part II Project *)
 (* Isaac Dunn 15/11/2015 *)
 
 #use "lang.ml";;
@@ -65,7 +65,7 @@ let test_cases = [
 
 let rec test cases = match cases with
     [] -> print_string "All test cases passed\n"
-  | ((prog, expected)::rest) -> let (e, s, g) =  evaluate (prog, (fun _ -> None), (fun _ -> None)) in
-            if e = expected then test rest else print_exec(prog, (fun _ -> None), (fun _ -> None));;
+  | ((prog, expected)::rest) -> let (e, s, g) =  evaluate (prog, [], []) in
+            if e = expected then test rest else print_exec(prog, [], []);;
 
 test test_cases;;

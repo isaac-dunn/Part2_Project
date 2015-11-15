@@ -165,11 +165,15 @@ let is_value e = match e with
   | _ -> false;;
 
 (* Stores are finite partial maps from locations to values *)
-type store = loc -> expr option;;
+type store = (loc * expr) list;;
+
+let rec get s l = match s with
+    [] -> None
+  | (o, e)::rest -> if o=l then Some e else get rest l;;
 
 (* update : store -> loc -> expr -> store *)
 (* Gives store with given location updated to new value *)
-let update s l v = fun o -> if o=l then Some v else s o;;
+let update s l v = (l, v)::s;;
 
 (* subst : expr -> int -> expr -> expr *)
 (* subst e 0 f gives f with e substituted for the outmost variable *)
@@ -245,7 +249,7 @@ let rec swap n e = match e with
 
 (* get_fresh_loc : store -> loc *)
 (* Gives a location unused in the given store *)
-let get_fresh_loc s = let fl = ref "L0" in while (s !fl != None) do
+let get_fresh_loc s = let fl = ref "L0" in while (get s !fl != None) do
                         fl := !fl ^ string_of_int(Random.int 10) done; !fl;;
 
 (* next : (expr * store * store) -> (expre * store * store) option *)
@@ -280,7 +284,7 @@ let rec next (e, s, g)  = match e with
   | Assign (e1, e2) -> (match next (e1, s, g) with (* e1 not a location so reduce *)
                         Some (f, t, h) -> Some (Assign (f, e2), t, h)
                       | None -> None)
-  | Deref (Loc l) -> (match s l with
+  | Deref (Loc l) -> (match get s l with
                         Some v -> Some (v, s, g)
                       | None -> None)
   | Deref e1 -> (match next (e1, s, g) with
@@ -315,7 +319,7 @@ let rec next (e, s, g)  = match e with
                           | None -> None)
   | Letrec (t1, t2, e1, e2) -> (* Need to adjust de Bruijn indices as new binding contexts for e1 *)
       Some (subst (Fn (t1, Letrec (t1, t2, shift 2 e1, swap 0 e1))) 0 e2, s, g)
-  | Cas (Glo l, e2, e3) -> if is_value e2 then match g l with
+  | Cas (Glo l, e2, e3) -> if is_value e2 then match get g l with
                                 Some v -> if v = e2 then Some (Boolean true, s, update g l e2)
                                              else Some (Boolean false, s, g)
                               | None -> None
