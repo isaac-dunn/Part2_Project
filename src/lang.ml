@@ -293,13 +293,12 @@ let rec next (e, s, g)  = match e with
                       | None -> None)
   | While (e1, e2) -> Some (If (e1, Seq (e2, While (e1, e2)), Skip), s, g)
   | Fn (_, _) -> None
-  | App (e1, e2) -> if is_value e1 then
-                        if is_value e2 then
+  | App (Fn (t1, e1), e2) -> if is_value e2 then
                             Some (subst e2 0 e1, s, g)
-                        else match next (e2, s, g) with
-                            Some (f, t, h) -> Some (App (e1, f), t, h)
-                          | None -> None
-                    else (match next (e1, s, g) with
+                        else (match next (e2, s, g) with
+                            Some (f, t, h) -> Some (App (Fn (t1, e1), f), t, h)
+                          | None -> None)
+  | App (e1, e2) -> (match next (e1, s, g) with
                         Some (f, t, h) -> Some (App (f, e2), t, h)
                       | None -> None)
   | Var _ -> None
