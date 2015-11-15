@@ -113,7 +113,7 @@ let rec pretty_print e = match e with
                                 pretty_print e2; print_string " end"
   | Cas (e1, e2, e3) -> print_string "CAS("; pretty_print e1; print_string ", ";
                         pretty_print e2; print_string ", "; pretty_print e3; print_string ")"
-  | Error msg -> print_string ("Error :"^msg);;
+  | Error msg -> print_string ("Error: "^msg);;
 
 (*** SEMANTICS ***)
 
@@ -154,6 +154,10 @@ let rec resolve env expr_raw = match expr_raw with
                                  resolve env e3)
   | Error_raw msg -> Error msg;;
 
+let is_error e = match e with
+    Error _ -> true
+  | _ -> false;;
+
 (* is_value : expr -> bool *)
 let is_value e = match e with
     Integer _ -> true
@@ -161,11 +165,23 @@ let is_value e = match e with
   | Loc _ -> true
   | Glo _ -> true
   | Skip -> true
+  | Error _ -> true
   | Fn (_, _) -> true
   | _ -> false;;
 
 (* Stores are finite partial maps from locations to values *)
 type store = (loc * expr) list;;
+
+let rec member x xs = match xs with
+    [] -> false
+  | y::ys -> if x=y then true else member x ys;;
+
+let print_store s = 
+    let rec work_through left seen = match left with
+        [] -> ()
+      | (l, e)::es -> (if member l seen then () else (print_string (l^": "); pretty_print e; print_string "; "));
+                        work_through es (l::seen)
+    in work_through s [];;
 
 let rec get s l = match s with
     [] -> None
@@ -252,18 +268,21 @@ let rec swap n e = match e with
 let get_fresh_loc s = let fl = ref "L0" in while (get s !fl != None) do
                         fl := !fl ^ string_of_int(Random.int 10) done; !fl;;
 
-(* next : (expr * store * store) -> (expre * store * store) option *)
+(* A transition is a new expression, and an optional updates for local and global stores *)
+type thread_transition = expr * ((loc * expr) option) * ((loc * expr) option);;
+
+(* next : (expr * store * store) -> thread_transitoin option *)
 (* Given expression, local store, global store, gives next expression if it exists *)
 let rec next (e, s, g)  = match e with
     Integer _ -> None
   | Boolean _ -> None
-  | Op (Integer n, Plus, Integer m) -> Some (Integer (n+m), s, g)
-  | Op (Integer n, Minus, Integer m) -> Some (Integer (n-m), s, g)
-  | Op (Integer n, Mult, Integer m) -> Some (Integer (n*m), s, g)
-  | Op (Integer n, Div, Integer m) -> Some (Integer (n/m), s, g)
-  | Op (Integer n, Mod, Integer m) -> Some (Integer (n mod m), s, g)
-  | Op (Integer n, GT, Integer m) -> Some (Boolean (n > m), s, g)
-  | Op (Integer n, Equals, Integer m) -> Some (Boolean (n = m), s, g)
+  | Op (Integer n, Plus, Integer m) -> Some (Integer (n+m), None, None)
+  | Op (Integer n, Minus, Integer m) -> Some (Integer (n-m), None, None)
+  | Op (Integer n, Mult, Integer m) -> Some (Integer (n*m), None, None)
+  | Op (Integer n, Div, Integer m) -> Some (Integer (n/m), None, None)
+  | Op (Integer n, Mod, Integer m) -> Some (Integer (n mod m), None, None)
+  | Op (Integer n, GT, Integer m) -> Some (Boolean (n > m), None, None)
+  | Op (Integer n, Equals, Integer m) -> Some (Boolean (n = m), None, None)
   | Op (e1, op, e2) -> (if is_value e1 then
                         match next (e2, s, g) with
                             Some (f, t, h) -> Some (Op (e1, op, f), t, h)
@@ -273,11 +292,11 @@ let rec next (e, s, g)  = match e with
                             Some (f, t, h) -> Some (Op (f, op, e2), t, h)
                           | None -> None)
   | If (e1, e2, e3) -> (match e1 with
-                        Boolean b -> if b then Some (e2, s, g) else Some (e3, s, g)
+                        Boolean b -> if b then Some (e2, None, None) else Some (e3, None, None)
                       | _ -> match next (e1, s, g) with
                             Some (f, t, h) -> Some (If (f, e2, e3), t, h)
                           | None -> None)
-  | Assign (Loc l, e2) -> if is_value e2 then Some (Skip, update s l e2, g) else
+  | Assign (Loc l, e2) -> if is_value e2 then Some (Skip, Some (l, e2), None) else
                             (match next (e2, s, g) with
                                 Some (f, t, h) -> Some (Assign (Loc l, f), t, h)
                               | None -> None)
@@ -285,27 +304,27 @@ let rec next (e, s, g)  = match e with
                         Some (f, t, h) -> Some (Assign (f, e2), t, h)
                       | None -> None)
   | Deref (Loc l) -> (match get s l with
-                        Some v -> Some (v, s, g)
+                        Some v -> Some (v, None, None)
                       | None -> None)
   | Deref e1 -> (match next (e1, s, g) with
                     Some (f, t, h) -> Some (Deref f, t, h)
                   | None -> None)
   | Ref e1 -> if is_value e1 then
-                    let fl = get_fresh_loc s in Some (Loc fl, update s fl e1, g)
+                    let fl = get_fresh_loc s in Some (Loc fl, Some (fl, e1), None)
                 else (match next (e1, s, g) with
                         Some (f, t, h) -> Some (Ref f, t, h)
                       | None -> None)
   | Loc _ -> None
   | Glo _ -> None
   | Skip -> None
-  | Seq (Skip, e2) -> Some (e2, s, g)
+  | Seq (Skip, e2) -> Some (e2, None, None)
   | Seq (e1, e2) -> (match next (e1, s, g) with
                         Some (f, t, h) -> Some (Seq (f, e2), t, h)
                       | None -> None)
-  | While (e1, e2) -> Some (If (e1, Seq (e2, While (e1, e2)), Skip), s, g)
+  | While (e1, e2) -> Some (If (e1, Seq (e2, While (e1, e2)), Skip), None, None)
   | Fn (_, _) -> None
   | App (Fn (t1, e1), e2) -> if is_value e2 then
-                            Some (subst e2 0 e1, s, g)
+                            Some (subst e2 0 e1, None, None)
                         else (match next (e2, s, g) with
                             Some (f, t, h) -> Some (App (Fn (t1, e1), f), t, h)
                           | None -> None)
@@ -313,16 +332,20 @@ let rec next (e, s, g)  = match e with
                         Some (f, t, h) -> Some (App (f, e2), t, h)
                       | None -> None)
   | Var _ -> None
-  | Let (t1, e1, e2) -> if is_value e1 then Some (subst e1 0 e2, s, g)
+  | Let (t1, e1, e2) -> if is_value e1 then Some (subst e1 0 e2, None, None)
                         else (match next (e1, s, g) with
                             Some (f, t, h) -> Some (Let (t1, f, e2), t, h)
                           | None -> None)
   | Letrec (t1, t2, e1, e2) -> (* Need to adjust de Bruijn indices as new binding contexts for e1 *)
-      Some (subst (Fn (t1, Letrec (t1, t2, shift 2 e1, swap 0 e1))) 0 e2, s, g)
-  | Cas (Glo l, e2, e3) -> if is_value e2 then match get g l with
-                                Some v -> if v = e2 then Some (Boolean true, s, update g l e2)
-                                             else Some (Boolean false, s, g)
-                              | None -> None
+      Some (subst (Fn (t1, Letrec (t1, t2, shift 2 e1, swap 0 e1))) 0 e2, None, None)
+  | Cas (Glo l, e2, e3) -> if is_value e2 then (* Reduce e1 then e2 then e3 to values *)
+                            (if is_value e3 then (match get g l with
+                                Some v -> if v = e2 then Some (Boolean true, None, Some (l, e3))
+                                             else Some (Boolean false, None, None)
+                              | None -> None)
+                            else (match next (e3, s, g) with
+                             Some (f, t, h) -> Some (Cas (Glo l, e2, f), t, h)
+                           | None -> None))
                            else (match next (e2, s, g) with
                             Some (f, t, h) -> Some (Cas (Glo l, f, e3), t, h)
                           | None -> None)
@@ -332,11 +355,75 @@ let rec next (e, s, g)  = match e with
   | Error msg -> None;;
 
 let rec evaluate (e, s, g) = match next (e, s, g) with
-    Some (f, t, h) -> evaluate (f, t, h)
+    Some (f, t, h) -> (match t with None -> (match h with None -> evaluate (f, s, g)
+                                                       | Some gu -> evaluate (f, s, gu::g))
+                                 | Some su -> (match h with None -> evaluate (f, su::s, g)
+                                                         | Some gu -> evaluate (f, su::s, gu::g)))
   | None -> (e, s, g);;
 
 let rec print_exec(e, s, g) = pretty_print(e); print_newline(); print_newline();  match next (e, s, g) with
-    Some (f, t, h) -> print_exec (f, t, h)
+    Some (f, t, h) -> (match t with None -> (match h with None -> print_exec (f, s, g)
+                                                       | Some gu -> print_exec (f, s, gu::g))
+                                 | Some su -> (match h with None -> print_exec (f, su::s, g)
+                                                         | Some gu -> print_exec (f, su::s, gu::g)))
   | None -> print_string "END\n";;
+
+type thread_state = expr * store;;
+
+(* A program consists of threads and a global store *)
+type program_state = thread_state array * store;;
+
+let print_prog_state (tds, g) =
+    for i = 0 to Array.length tds - 1 do
+        print_string ("Thread " ^ (string_of_int i) ^ "\n");
+        let (e, s) = Array.get tds i in
+            pretty_print e;
+            print_newline();
+            print_store s;
+            print_newline();
+    done; print_string "Global Store\n"; print_store g; print_newline();;
+
+let apply_transition (i, e, su, gu) (tds, g) =
+    let new_tds = Array.copy tds in
+    let (old_e, old_s) = Array.get tds i in
+        (match su with None -> Array.set new_tds i (e, old_s)
+                    | Some news -> Array.set new_tds i (e, news::old_s));
+        (match gu with None -> (new_tds, g)
+                     | Some news -> (new_tds, news::g));;
+
+let rec apply_transitions ts ps = match ts with
+    [] -> ps
+  | t :: rest -> apply_transitions rest (apply_transition t ps);;
+
+let rec print_transitions initial ts = print_prog_state initial; print_newline(); match ts with
+    [] -> ()
+  | u::us -> print_transitions (apply_transition u initial) us;;
+
+let rec explore initial ts =
+    let (tds, g) = apply_transitions (List.rev ts) initial in
+    let exists_transition = ref false in
+    for i = 0 to Array.length tds - 1 do
+        let (e, s) = Array.get tds i in
+        match next (e, s, g) with
+            None -> ()
+          | Some (f, t, h) -> exists_transition := true; if is_error f then (print_string "ERROR\n"; print_transitions initial (List.rev ((i, f, t, h) :: ts)))
+                              else explore initial ((i, f, t, h) :: ts)
+    done; if !exists_transition then ()
+          else (print_string "DEADLOCK\n"; print_transitions initial (List.rev ts));;
+
+let rec error_reachable initial ts =
+    let (tds, g) = apply_transitions (List.rev ts) initial in
+    let error = ref false in
+    for i = 0 to Array.length tds - 1 do
+        let (e, s) = Array.get tds i in
+        match next (e, s, g) with
+            None -> ()
+          | Some (f, t, h) -> error := is_error f || error_reachable initial ((i, f, t, h) :: ts)
+    done; !error;;
+    
+let tds = Array.make 2 (Skip, []);;
+    Array.set tds 0 (If (Cas(Glo "x", Integer 2, Integer 0), Integer 100, Error "Did not get CAS"), []);
+    Array.set tds 1 (Cas(Glo "x", Integer 2, Integer 1), []);
+    print_string (string_of_bool (error_reachable (tds, [("x", Integer 2)]) [])); print_newline();;
 
 
