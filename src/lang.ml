@@ -420,7 +420,22 @@ let rec error_reachable initial ts =
             None -> ()
           | Some (f, t, h) -> error := is_error f || error_reachable initial ((i, f, t, h) :: ts)
     done; !error;;
+
+let rec check_program prog transitions =
+    let (threads, g) = apply_transitions (List.rev transitions) prog in
+    let error = ref false in
+    let is_stuck = ref true in
+    let sticks_at_nonvalue = ref false in
+    for i = 0 to Array.length threads - 1 do
+        let(e, s) = Array.get threads i in
+        match next (e, s, g) with
+            None -> sticks_at_nonvalue := !sticks_at_nonvalue || not (is_value e)
+          | Some (f, t, h) -> let (err, sanv) = check_program prog ((i, f, t, h) :: transitions) in
+                                error := !error || is_error f || err; is_stuck := false;
+                                sticks_at_nonvalue := !sticks_at_nonvalue || sanv
+    done; (!error, !is_stuck);;
     
+
 let tds = Array.make 2 (Skip, []);;
     Array.set tds 0 (If (Cas(Glo "x", Integer 2, Integer 0), Integer 100, Error "Did not get CAS"), []);
     Array.set tds 1 (Cas(Glo "x", Integer 2, Integer 1), []);

@@ -39,6 +39,7 @@ let test_cases = [
     (resolve [] (Let_raw ("f", Func(Int, Int), Fn_raw ("x", Int, Op_raw (Var_raw "x", Plus, Integer_raw 1)),
                     App_raw (Var_raw "f", Integer_raw 7))), Integer 8);
 
+
     (* While *)
     (While (Boolean false, Integer 7), Skip);
     (resolve [] (Let_raw ("x", Ref Int, Ref_raw (Integer_raw 34),
@@ -63,9 +64,44 @@ let test_cases = [
         Integer 24)
 ]
 
-let rec test cases = match cases with
+let rec test_seq cases = match cases with
     [] -> print_string "All test cases passed\n"
   | ((prog, expected)::rest) -> let (e, s, g) =  evaluate (prog, [], []) in
-            if e = expected then test rest else print_exec(prog, [], []);;
+            if e = expected then test_seq rest else print_exec(prog, [], []);;
 
-test test_cases;;
+test_seq test_cases;;
+
+let conc_cases = [
+    (* thread 1, thread 2, global store, error possible *)
+    (If (Cas (Glo "x", Integer 2, Integer 0), Integer 100, Error "Negative CAS"),
+     Cas(Glo "x", Integer 2, Integer 1), [("x", Integer 2)], true);
+
+    (If (Cas (Glo "x", Integer 2, Integer 0), Integer 100, Error "Negative CAS"),
+     Cas(Glo "x", Integer 2, Integer 2), [("x", Integer 2)], false);
+
+    (If (Cas (Glo "x", Integer 2, Integer 0), Integer 100, Error "Negative CAS"),
+     Cas(Glo "x", Integer 1, Integer 1), [("x", Integer 2)], false);
+
+    (If (Cas (Glo "x", Integer 1, Integer 0), Integer 100, Error "Negative CAS"),
+     Cas(Glo "x", Integer 2, Integer 1), [("x", Integer 2)], true);
+
+    (While (Cas (Glo "x", Boolean false, Skip), Error "Unreachable"),
+     While (Cas (Glo "x", Skip, Boolean true), Error "Unreachable"),
+     [("x", Integer 5)], false);
+
+    (While (Cas (Glo "x", Boolean false, Skip), Error "Unreachable"),
+     While (Cas (Glo "x", Skip, Boolean true), Error "Unreachable"),
+     [("x", Skip)], true);
+];;
+
+let rec test_conc cases = match cases with
+    [] -> print_string "All test cases passed\n"
+  | (e1, e2, g, err_reachable)::rest -> 
+        let tds = Array.make 2 (Skip, []) in
+        Array.set tds 0 (e1, []);
+        Array.set tds 1 (e2, []);
+        let (err, sanv) = check_program (tds, g) [] in
+            if (err <> err_reachable) || sanv then explore (tds, g) [] else
+            test_conc rest;;
+
+test_conc conc_cases;;
