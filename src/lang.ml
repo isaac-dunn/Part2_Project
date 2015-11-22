@@ -154,8 +154,17 @@ let rec resolve env expr_raw = match expr_raw with
                                  resolve env e3)
   | Error_raw msg -> Error msg;;
 
-let is_error e = match e with
+let rec is_error e = match e with
     Error _ -> true
+  | Op (e1, _, e2) -> is_error e1 || is_error e2
+  | If (e1, _, _) -> is_error e1
+  | Assign (e1, _) -> is_error e1
+  | Deref e1 -> is_error e1
+  | Ref e1 -> is_error e1
+  | Seq (e1, _) -> is_error e1
+  | While (e1, _) -> is_error e1
+  | App (e1, _) -> is_error e1
+  | Cas (e1, _, _) -> is_error e1
   | _ -> false;;
 
 (* is_value : expr -> bool *)
@@ -165,9 +174,8 @@ let is_value e = match e with
   | Loc _ -> true
   | Glo _ -> true
   | Skip -> true
-  | Error _ -> true
   | Fn (_, _) -> true
-  | _ -> false;;
+  | f -> is_error f;;
 
 (* Stores are finite partial maps from locations to values *)
 type store = (loc * expr) list;;
