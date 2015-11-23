@@ -314,6 +314,9 @@ let rec next (e, s, g)  = match e with
   | Deref (Loc l) -> (match get s l with
                         Some v -> Some (v, None, None)
                       | None -> None)
+  | Deref (Glo l) -> (match get g l with
+                        Some v -> Some (v, None, None)
+                      | None -> None)
   | Deref e1 -> (match next (e1, s, g) with
                     Some (f, t, h) -> Some (Deref f, t, h)
                   | None -> None)

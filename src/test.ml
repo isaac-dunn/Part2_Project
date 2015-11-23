@@ -92,6 +92,14 @@ let conc_cases = [
     (While (Cas (Glo "x", Boolean false, Skip), Error "Unreachable"),
      While (Cas (Glo "x", Skip, Boolean true), Error "Unreachable"),
      [("x", Skip)], true);
+
+    (If (Cas (Glo "x", Deref (Glo "x"), Integer 0), Skip, Error "Cas failed"),
+     If (Cas (Glo "x", Deref (Glo "x"), Integer 1), Skip, Error "Cas failed"),
+     [("x", Integer 2)], true);
+
+    (If (Cas (Glo "x", Deref (Glo "x"), Integer 2), Skip, Error "Cas failed"),
+     If (Cas (Glo "x", Deref (Glo "x"), Integer 2), Skip, Error "Cas failed"),
+     [("x", Integer 2)], false);
 ];;
 
 let rec test_conc cases = match cases with
@@ -101,7 +109,8 @@ let rec test_conc cases = match cases with
         Array.set tds 0 (e1, []);
         Array.set tds 1 (e2, []);
         let (err, sanv) = check_program (tds, g) [] in
-            if (err <> err_reachable) || sanv then explore (tds, g) [] else
+            if (err <> err_reachable) then (print_string "Unexpectd err value\n"; explore (tds, g) []) else
+            if sanv then (print_string "Stuck at non-value\n"; explore (tds, g) []) else
             test_conc rest;;
 
 test_conc conc_cases;;
