@@ -430,7 +430,7 @@ let rec apply_thread_steps ts ps = match ts with
 
 let rec print_thread_steps initial ts = print_prog_state initial; print_newline(); match ts with
     [] -> ()
-  | u::us -> print_thread_steps (apply_thread_steps u initial) us;;
+  | u::us -> print_thread_steps (apply_thread_step u initial) us;;
 
 let rec explore initial ts =
     let (tds, g) = apply_thread_steps (List.rev ts) initial in
@@ -445,7 +445,7 @@ let rec explore initial ts =
           else (print_string "DEADLOCK\n"; print_thread_steps initial (List.rev ts));;
 
 let rec check_program prog transitions =
-    let (threads, g) = apply_transitions (List.rev transitions) prog in
+    let (threads, g) = apply_thread_steps (List.rev transitions) prog in
     let error = ref false in
     let is_stuck = ref true in
     let sticks_at_nonvalue = ref false in
@@ -453,7 +453,7 @@ let rec check_program prog transitions =
         let(e, s) = Array.get threads i in
         match next (e, s, g) with
             None -> sticks_at_nonvalue := !sticks_at_nonvalue || not (is_value e)
-          | Some (f, t, h) -> let (err, sanv) = check_program prog ((i, f, t, h) :: transitions) in
+          | Some (f, t, h, l) -> let (err, sanv) = check_program prog ((i, f, t, h) :: transitions) in
                                 error := !error || is_error f || err; is_stuck := false;
                                 sticks_at_nonvalue := !sticks_at_nonvalue || sanv
     done; (!error, !is_stuck);;
