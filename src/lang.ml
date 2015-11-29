@@ -1,5 +1,5 @@
 (* Language for Part II Project *)
-(* Isaac Dunn 8/11/2015 *)
+(* Isaac Dunn 29/11/2015 *)
 
 open Random;;
 
@@ -416,7 +416,7 @@ let print_prog_state (tds, g) =
             print_newline();
     done; print_string "Global Store\n"; print_store g; print_newline();;
 
-let apply_transition (i, e, su, gu) (tds, g) =
+let apply_thread_step (i, e, su, gu) (tds, g) =
     let new_tds = Array.copy tds in
     let (old_e, old_s) = Array.get tds i in
         (match su with None -> Array.set new_tds i (e, old_s)
@@ -424,35 +424,25 @@ let apply_transition (i, e, su, gu) (tds, g) =
         (match gu with None -> (new_tds, g)
                      | Some news -> (new_tds, news::g));;
 
-let rec apply_transitions ts ps = match ts with
+let rec apply_thread_steps ts ps = match ts with
     [] -> ps
-  | t :: rest -> apply_transitions rest (apply_transition t ps);;
+  | t :: rest -> apply_thread_steps rest (apply_thread_step t ps);;
 
-let rec print_transitions initial ts = print_prog_state initial; print_newline(); match ts with
+let rec print_thread_steps initial ts = print_prog_state initial; print_newline(); match ts with
     [] -> ()
-  | u::us -> print_transitions (apply_transition u initial) us;;
+  | u::us -> print_thread_steps (apply_thread_steps u initial) us;;
 
 let rec explore initial ts =
-    let (tds, g) = apply_transitions (List.rev ts) initial in
+    let (tds, g) = apply_thread_steps (List.rev ts) initial in
     let exists_transition = ref false in
     for i = 0 to Array.length tds - 1 do
         let (e, s) = Array.get tds i in
         match next (e, s, g) with
             None -> ()
-          | Some (f, t, h) -> exists_transition := true; if is_error f then (print_string "ERROR\n"; print_transitions initial (List.rev ((i, f, t, h) :: ts)))
+          | Some (f, t, h, l) -> exists_transition := true; if is_error f then (print_string "ERROR\n"; print_thread_steps initial (List.rev ((i, f, t, h) :: ts)))
                               else explore initial ((i, f, t, h) :: ts)
     done; if !exists_transition then ()
-          else (print_string "DEADLOCK\n"; print_transitions initial (List.rev ts));;
-
-let rec error_reachable initial ts =
-    let (tds, g) = apply_transitions (List.rev ts) initial in
-    let error = ref false in
-    for i = 0 to Array.length tds - 1 do
-        let (e, s) = Array.get tds i in
-        match next (e, s, g) with
-            None -> ()
-          | Some (f, t, h) -> error := is_error f || error_reachable initial ((i, f, t, h) :: ts)
-    done; !error;;
+          else (print_string "DEADLOCK\n"; print_thread_steps initial (List.rev ts));;
 
 let rec check_program prog transitions =
     let (threads, g) = apply_transitions (List.rev transitions) prog in
@@ -468,10 +458,3 @@ let rec check_program prog transitions =
                                 sticks_at_nonvalue := !sticks_at_nonvalue || sanv
     done; (!error, !is_stuck);;
     
-
-let tds = Array.make 2 (Skip, []);;
-    Array.set tds 0 (If (Cas(Glo "x", Integer 2, Integer 0), Integer 100, Error "Did not get CAS"), []);
-    Array.set tds 1 (Cas(Glo "x", Integer 2, Integer 1), []);
-    print_string (string_of_bool (error_reachable (tds, [("x", Integer 2)]) [])); print_newline();;
-
-
