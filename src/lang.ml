@@ -154,6 +154,8 @@ let rec resolve env expr_raw = match expr_raw with
                                  resolve env e3)
   | Error_raw msg -> Error msg;;
 
+(* is_error : expr -> bool *)
+(* is_error e if and only if e is stuck at an error *)
 let rec is_error e = match e with
     Error _ -> true
   | Op (e1, _, e2) -> is_error e1 || is_error e2
@@ -180,17 +182,15 @@ let is_value e = match e with
 (* Stores are finite partial maps from locations to values *)
 type store = (loc * expr) list;;
 
-let rec member x xs = match xs with
-    [] -> false
-  | y::ys -> if x=y then true else member x ys;;
-
 let print_store s = 
     let rec work_through left seen = match left with
         [] -> ()
-      | (l, e)::es -> (if member l seen then () else (print_string (l^": "); pretty_print e; print_string "; "));
+      | (l, e)::es -> (if List.mem l seen then () else (print_string (l^": "); pretty_print e; print_string "; "));
                         work_through es (l::seen)
     in work_through s [];;
 
+(* get : store -> loc *)
+(* get s l looks up the value in location l in store s *)
 let rec get s l = match s with
     [] -> None
   | (o, e)::rest -> if o=l then Some e else get rest l;;
@@ -416,6 +416,8 @@ let print_prog_state (tds, g) =
             print_newline();
     done; print_string "Global Store\n"; print_store g; print_newline();;
 
+(* apply_thread_step : (int * expr * ((loc * expr) option) * ((loc* expr) option)) -> program_state -> program_state *)
+(* Given a thread step and a program state, gives the next program state *)
 let apply_thread_step (i, e, su, gu) (tds, g) =
     let new_tds = Array.copy tds in
     let (old_e, old_s) = Array.get tds i in
@@ -432,6 +434,7 @@ let rec print_thread_steps initial ts = print_prog_state initial; print_newline(
     [] -> ()
   | u::us -> print_thread_steps (apply_thread_step u initial) us;;
 
+(* Checks program state for errors and deadlocks *)
 let rec explore initial ts =
     let (tds, g) = apply_thread_steps (List.rev ts) initial in
     let exists_transition = ref false in
@@ -444,6 +447,7 @@ let rec explore initial ts =
     done; if !exists_transition then ()
           else (print_string "DEADLOCK\n"; print_thread_steps initial (List.rev ts));;
 
+(* Checks program state for errors and sticks at non-values *)
 let rec check_program prog transitions =
     let (threads, g) = apply_thread_steps (List.rev transitions) prog in
     let error = ref false in
