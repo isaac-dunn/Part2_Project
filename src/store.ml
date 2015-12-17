@@ -1,14 +1,16 @@
 (* PL Stores *)
 (* Isaac Dunn 17/12/2015 *)
 
+structure Expr = Expression
+
 (* Stores are finite partial maps from locations to values *)
-type store = (loc * Expression.expr) list
+type store = (loc * Expr.expr) list
 
 let string_of_store s = 
     let rec work_through left seen = match left with
         [] -> ""
       | (l, e)::es -> (if List.mem l seen then "" else (l ^ ": "))
-        ^ (Expression.string_of_expr e) ^ "; "
+        ^ (Expr.string_of_expr e) ^ "; "
         ^ (work_through es (l::seen))
     in work_through s []
 

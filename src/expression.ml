@@ -3,6 +3,8 @@
 
 (*** SYNTAX ***)
 
+structure Type = Type
+
 type loc = string
 
 type oper =

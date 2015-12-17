@@ -1,6 +1,9 @@
 (* Expressions *)
 (* Isaac Dunn 17/12/2015 *)
 
+(** Some kind of type structure *)
+structure Type : Type
+
 (** Expressions with variables *)
 type raw_expr
 
