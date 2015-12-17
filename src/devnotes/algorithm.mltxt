@@ -1,0 +1,36 @@
+input: program
+output: whether an error state is reached
+
+input: threads and global store
+output: whether an error state is reached
+
+let model_check threads g =
+    let num_proc = List.length threads in
+    let num_objs = List.length g in
+    let empty_proc_clocks = array of cvs indexed by proc index in
+    let empty_obj_clocks = array of cvs indexed by obj in
+    let null_object_indices = L which gives 0 for all objs in
+    let backtrack = something global in
+    let rec explore seq proc_clocks obj_clocks last_obj_accesses =
+        let s = apply seq to initial state in
+        for each process p do
+            let i = L(obj touched by next(s, p)) in
+            if i > 0 and i > proc_clocks(p)(process of transition i)
+            then add p to backtrack(state before transition i)
+            else add all enabled transitions to that backtrack point
+        done
+
+        if some process is enabled in s:
+            backtrack(s) = {p}
+            searched = {}
+            while there is a p in backtrack(s) but not searched do
+                add p to searched
+                let seq' = seq extended with next(s, p) in
+                let o = obj touched by next(s, p) in
+                let cv = max(proc_clocks(p), obj_clocks(o))
+                let cv' = cv[p := length of seq']
+                let proc_clocks' = proc_clocks'[p := cv']
+                let obj_clocks' = obj_clocks'[o := cv']
+                let l_o_a' = l_o_a[o := length of seq']
+                explore seq' p_c' o_c' l_o_a'
+            done
