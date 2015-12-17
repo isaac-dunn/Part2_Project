@@ -1,19 +1,18 @@
 (* PL Types *)
 (* Isaac Dunn 17/12/2015 *)
 
-module PL_Type =
-  struct
-    type type_expr =
-         Int
-       | Unit
-       | Bool
-       | Ref of type_expr
-       | Func of type_expr * type_expr
+type type_expr =
+     Int
+   | Unit
+   | Bool
+   | Ref of type_expr
+   | Func of type_expr * type_expr
 
-    let rec string_of_type_expr t = match t with
-        Int -> "int"
-      | Unit -> "unit"
-      | Bool -> "bool"
-      | Ref t -> (string_of_type_expr t) ^ " ref"
-      | Func (t1, t2) -> (string_of_type_expr t1) ^ " -> " ^ (string_of_type_expr t2)
-  end
+let rec string_of_type_expr t = match t with
+    Int -> "int"
+  | Unit -> "unit"
+  | Bool -> "bool"
+  | Ref t -> (string_of_type_expr t) ^ " ref"
+  | Func (t1, t2) -> (string_of_type_expr t1) ^ " -> " ^ (string_of_type_expr t2)
+
+let () = print_string (string_of_type_expr (Func (Unit, Bool)))
