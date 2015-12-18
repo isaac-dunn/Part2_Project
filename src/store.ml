@@ -1,10 +1,12 @@
 (* PL Stores *)
 (* Isaac Dunn 17/12/2015 *)
 
-structure Expr = Expression
+module Expr = Expression
 
 (* Stores are finite partial maps from locations to values *)
-type store = (loc * Expr.expr) list
+type store = (Expr.loc * Expr.expr) list
+
+type store_update = Expr.loc * Expr.expr
 
 let string_of_store s = 
     let rec work_through left seen = match left with
@@ -20,9 +22,13 @@ let rec get s l = match s with
     [] -> None
   | (o, e)::rest -> if o=l then Some e else get rest l
 
-(* update : store -> loc -> expr -> store *)
+(* update : store -> store_update -> store *)
 (* Gives store with given location updated to new value *)
-let update s l v = (l, v)::s
+let update s su = su::s
+
+(* extend : store -> store -> store *)
+(* Updates store with updates given in 2nd arg *)
+let extend old_s new_s  = new_s @ old_s
 
 (* get_fresh_loc : store -> loc *)
 (* Gives a location unused in the given store *)
