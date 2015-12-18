@@ -1,18 +1,20 @@
 (* PL Threads *)
 (* Isaac Dunn 17/12/2015 *)
 
-type thread_step = { new_expr : expr ;
-                     s_update : store_update option ;
-                     g_update : store_update option ;
-                     g_loc    : loc option ;
+module Expr = Expression
+open Expr
+
+type thread_step = { new_expr : Expr.expr ;
+                     s_update : Store.store_update option ;
+                     g_update : Store.store_update option ;
+                     g_loc    : Expr.loc option ;
                    }
 
-type thread_transition = { new_expr : expr ;
-                           s_update : store ;
-                           g_update : store ;
-                           g_loc    : loc ;
+type thread_transition = { next_expr : Expr.expr ;
+                           s_updates : Store.store ;
+                           g_updates : Store.store ;
+                           g_loc     : Expr.loc ;
                          }
-
 
 (* next_step_aux : (expr * store * store) -> thread_step option *)
 (* Given expression, local store, global store, gives next thread step if it exists *)
@@ -46,17 +48,17 @@ let rec next_step_aux (e, s, g)  = match e with
   | Assign (e1, e2) -> (match next_step_aux (e1, s, g) with (* e1 not a location so reduce *)
                         Some (f, t, h, lo) -> Some (Assign (f, e2), t, h, lo)
                       | None -> None)
-  | Deref (Loc l) -> (match get s l with
+  | Deref (Loc l) -> (match Store.get s l with
                         Some v -> Some (v, None, None, None)
                       | None -> None)
-  | Deref (Glo l) -> (match get g l with
+  | Deref (Glo l) -> (match Store.get g l with
                         Some v -> Some (v, None, None, Some l)
                       | None -> None)
   | Deref e1 -> (match next_step_aux (e1, s, g) with
                     Some (f, t, h, lo) -> Some (Deref f, t, h, lo)
                   | None -> None)
   | Ref e1 -> if is_value e1 then
-                    let fl = get_fresh_loc s in Some (Loc fl, Some (fl, e1), None, None)
+                    let fl = Store.get_fresh_loc s in Some (Loc fl, Some (fl, e1), None, None)
                 else (match next_step_aux (e1, s, g) with
                         Some (f, t, h, lo) -> Some (Ref f, t, h, lo)
                       | None -> None)
@@ -70,7 +72,7 @@ let rec next_step_aux (e, s, g)  = match e with
   | While (e1, e2) -> Some (If (e1, Seq (e2, While (e1, e2)), Skip), None, None, None)
   | Fn (_, _) -> None
   | App (Fn (t1, e1), e2) -> if is_value e2 then
-                            Some (subst e2 0 e1, None, None, None)
+                            Some (substitute_outmost e2 e1, None, None, None)
                         else (match next_step_aux (e2, s, g) with
                             Some (f, t, h, lo) -> Some (App (Fn (t1, e1), f), t, h, lo)
                           | None -> None)
@@ -78,14 +80,14 @@ let rec next_step_aux (e, s, g)  = match e with
                         Some (f, t, h, lo) -> Some (App (f, e2), t, h, lo)
                       | None -> None)
   | Var _ -> None
-  | Let (t1, e1, e2) -> if is_value e1 then Some (subst e1 0 e2, None, None, None)
+  | Let (t1, e1, e2) -> if is_value e1 then Some (substitute_outmost e1 e2, None, None, None)
                         else (match next_step_aux (e1, s, g) with
                             Some (f, t, h, lo) -> Some (Let (t1, f, e2), t, h, lo)
                           | None -> None)
   | Letrec (t1, t2, e1, e2) -> (* Need to adjust de Bruijn indices as new binding contexts for e1 *)
-      Some (subst (Fn (t1, Letrec (t1, t2, shift 2 e1, swap 0 e1))) 0 e2, None, None, None)
+      Some (substitute_outmost (Fn (t1, Letrec (t1, t2, shift 2 e1, swap 0 e1))) e2, None, None, None)
   | Cas (Glo l, e2, e3) -> if is_value e2 then (* Reduce e1 then e2 then e3 to values *)
-                            (if is_value e3 then (match get g l with
+                            (if is_value e3 then (match Store.get g l with
                                 Some v -> if v = e2 then Some (Boolean true, None, Some (l, e3), Some l)
                                              else Some (Boolean false, None, None, Some l)
                               | None -> None)
@@ -101,10 +103,10 @@ let rec next_step_aux (e, s, g)  = match e with
   | Error msg -> None
 
 let next_step x = match next_step_aux x with
-    Some (f, t, h, lo) -> Some { next_expr = f
-                                 s_update = t
-                                 g_update = h
-                                 g_loc = lo
+    Some (f, t, h, lo) -> Some { new_expr = f;
+                                 s_update = t;
+                                 g_update = h;
+                                 g_loc = lo;
                                }
   | None -> None
 
@@ -113,21 +115,20 @@ let next_step x = match next_step_aux x with
 * local store update, global store update and global location touched *)
 let rec next_transition_aux (e, s, g) =
     let extract opt = match opt with
-        Some su -> [su] | None -> [] in
-    let extend sto sopt = match sopt with
-        Some su -> su::sto | None -> sto in
-    match next_step_aux (e, s, g) with
+        Some su -> Store.update Store.empty su
+      | None -> Store.empty
+    in match next_step_aux (e, s, g) with
         Some (f, t, h, lo) -> (match lo with
             Some l -> Some (f, extract t, extract h, l)
-          | None -> (match next_transition_aux (f, extend s t, g) with
-                Some (e_res, s_res, g_res, l_res) -> Some (e_res, extend s_res t, g_res, l_res)
+          | None -> (match next_transition_aux (f, Store.extend s (extract t), g) with
+                Some (e_res, s_res, g_res, l_res) -> Some (e_res, Store.extend s_res (extract t), g_res, l_res)
               | None -> None))
       | None -> None
 
 let next_transition x = match next_transition_aux x with
     Some (f, t, h, gl) -> Some { next_expr = f;
-                                 s_update = t;
-                                 g_update = h;
+                                 s_updates = t;
+                                 g_updates = h;
                                  g_loc = gl;
                                }
   | None -> None

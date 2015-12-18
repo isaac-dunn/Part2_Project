@@ -16,6 +16,8 @@ let string_of_store s =
         ^ (work_through es (l::seen))
     in work_through s []
 
+let empty = []
+
 (* get : store -> loc -> expr *)
 (* get s l looks up the value in location l in store s *)
 let rec get s l = match s with

@@ -9,6 +9,9 @@ type store_update = Expression.loc * Expression.expr
 (** Human-readable representation *)
 val string_of_store : store -> string
 
+(** Empty store, defined for no locations *)
+val empty : store
+
 (** Given a store and location, returns value if it exists *)
 val get : store -> Expression.loc -> Expression.expr option
 
