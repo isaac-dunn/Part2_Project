@@ -4,19 +4,19 @@
 module Expr = Expression
 open Expr
 
-type thread_step = { new_expr : Expr.expr ;
-                     s_update : Store.store_update option ;
-                     g_update : Store.store_update option ;
-                     g_loc    : Expr.loc option ;
-                   }
+type step = { new_expr : Expr.expr ;
+              s_update : Store.store_update option ;
+              g_update : Store.store_update option ;
+              g_loc    : Expr.loc option ;
+            }
 
-type thread_transition = { next_expr : Expr.expr ;
-                           s_updates : Store.store ;
-                           g_updates : Store.store ;
-                           g_loc     : Expr.loc ;
-                         }
+type transition = { next_expr : Expr.expr ;
+                    s_updates : Store.store ;
+                    g_updates : Store.store ;
+                    g_loc     : Expr.loc ;
+                  }
 
-(* next_step_aux : (expr * store * store) -> thread_step option *)
+(* next_step_aux : (expr * store * store) -> step option *)
 (* Given expression, local store, global store, gives next thread step if it exists *)
 let rec next_step_aux (e, s, g)  = match e with
     Integer _ -> None
