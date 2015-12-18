@@ -4,6 +4,10 @@
 (** Need some way of referring to locations for stores etc. *)
 type loc = string
 
+val string_of_loc : loc -> string
+
+val random_loc : unit -> loc
+
 type oper =
      Plus
    | Minus

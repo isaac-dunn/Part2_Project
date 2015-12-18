@@ -5,6 +5,13 @@
 
 type loc = string
 
+let string_of_loc l = l
+
+let rand_loc_range = ref 100
+let random_loc () =
+    rand_loc_range := !rand_loc_range + 20;
+    "RL" ^ (string_of_int (Random.int !rand_loc_range))
+
 type oper =
      Plus
    | Minus
