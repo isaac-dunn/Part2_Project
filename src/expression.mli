@@ -1,20 +1,14 @@
 (* Expressions *)
 (* Isaac Dunn 17/12/2015 *)
 
-(** Some kind of type structure *)
-structure Type : Type
-
-(** Expressions with variables *)
-type raw_expr
-
 (** Expressions with de Bruijn indices *)
 type expr
 
+(** Need some way of referring to locations for stores etc. *)
+type loc = string
+
 (** Gives human-readable representation *)
 val string_of_expr : expr -> string
-
-(** Function taking raw expressions to de Bruijn expressions *)
-val convert_from_raw : raw_expr -> expr
 
 (** Returns true iff expression represents error state *)
 val is_error : expr -> bool

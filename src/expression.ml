@@ -3,8 +3,6 @@
 
 (*** SYNTAX ***)
 
-structure Type = Type
-
 type loc = string
 
 type oper =
@@ -40,10 +38,10 @@ type expr_raw =
    | Seq_raw of expr_raw * expr_raw
    | While_raw of expr_raw * expr_raw
    | Var_raw of var_raw
-   | Fn_raw of var_raw * type_expr * expr_raw
+   | Fn_raw of var_raw * Type.type_expr * expr_raw
    | App_raw of expr_raw * expr_raw
-   | Let_raw of var_raw * type_expr * expr_raw * expr_raw
-   | Letrec_raw of var_raw * type_expr * var_raw * type_expr * expr_raw * expr_raw
+   | Let_raw of var_raw * Type.type_expr * expr_raw * expr_raw
+   | Letrec_raw of var_raw * Type.type_expr * var_raw * Type.type_expr * expr_raw * expr_raw
    | Cas_raw of expr_raw * expr_raw * expr_raw
    | Error_raw of string
 
@@ -62,10 +60,10 @@ type expr =
    | Seq of expr * expr
    | While of expr * expr
    | Var of int
-   | Fn of type_expr * expr
+   | Fn of Type.type_expr * expr
    | App of expr * expr
-   | Let of type_expr * expr * expr
-   | Letrec of type_expr * type_expr * expr * expr
+   | Let of Type.type_expr * expr * expr
+   | Letrec of Type.type_expr * Type.type_expr * expr * expr
    | Cas of expr * expr * expr
    | Error of string
 
@@ -87,13 +85,13 @@ let rec string_of_expr e = match e with
   | While (e1, e2) ->  "while " ^ (string_of_expr e1) ^  " do " ^
                         (string_of_expr e2) ^  " done"
   | Var n ->  "V:" ^ string_of_int n
-  | Fn (t, e1) ->  "fn O : " ^ (string_of_type_expr t) ^
+  | Fn (t, e1) ->  "fn O : " ^ (Type.string_of_type_expr t) ^
                     " => " ^ (string_of_expr e1)
   | App (e1, e2) ->  "(" ^ (string_of_expr e1) ^  ") (" ^ (string_of_expr e2) ^  ")"
-  | Let (t1, e1, e2) ->  "let val O : " ^ (string_of_type t1) ^  " = " ^
+  | Let (t1, e1, e2) ->  "let val O : " ^ (Type.string_of_type_expr t1) ^  " = " ^
                          (string_of_expr e1) ^  " in " ^ (string_of_expr e2) ^  " end"
-  | Letrec (t1, t2, e1, e2) -> "let rec O : " ^ (string_of_type t1) ^ " -> " ^
-                                (string_of_type t2) ^  " = (fn O : " ^ (string_of_type t1) ^
+  | Letrec (t1, t2, e1, e2) -> "let rec O : " ^ (Type.string_of_type_expr t1) ^ " -> " ^
+                                (Type.string_of_type_expr t2) ^  " = (fn O : " ^ (Type.string_of_type_expr t1) ^
                                  " => " ^ (string_of_expr e1) ^  ") in " ^
                                 (string_of_expr e2) ^  " end"
   | Cas (e1, e2, e3) ->  "CAS(" ^ (string_of_expr e1) ^  ", " ^
@@ -139,8 +137,7 @@ let rec resolve env expr_raw = match expr_raw with
                                  resolve env e3)
   | Error_raw msg -> Error msg
 
-(** To fulfill signature *)
-let convert_from_raw re e = resolve [] re e
+let convert_from raw re = resolve [] re
 
 (* is_error : expr -> bool *)
 (* is_error e if and only if e is stuck at an error *)
@@ -242,3 +239,4 @@ let rec swap n e = match e with
   | Cas (e1, e2, e3) -> Cas (swap n e1, swap n e2, swap n e3)
   | Error msg -> Error msg
 
+let () = print_string (string_of_expr (Assign (Ref (Integer 3), Skip))); print_newline()
