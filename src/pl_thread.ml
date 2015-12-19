@@ -1,19 +1,19 @@
 (* PL Threads *)
 (* Isaac Dunn 17/12/2015 *)
 
-module Expr = Expression
-open Expr
+module ExImp : Expression = Pl_expression
+module StoreImp : Store = Store.PLStore
 
-type step = { new_expr : Expr.expr ;
-              s_update : Store.store_update option ;
-              g_update : Store.store_update option ;
-              g_loc    : Expr.loc option ;
+type step = { new_expr : ExImp.expr ;
+              s_update : StoreImp.store_update option ;
+              g_update : StoreImp.store_update option ;
+              g_loc    : ExImp.loc option ;
             }
 
-type transition = { next_expr : Expr.expr ;
-                    s_updates : Store.store ;
-                    g_updates : Store.store ;
-                    g_loc     : Expr.loc ;
+type transition = { next_expr : ExImp.expr ;
+                    s_updates : StoreImp.store ;
+                    g_updates : StoreImp.store ;
+                    g_loc     : ExImp.loc ;
                   }
 
 (* next_step_aux : (expr * store * store) -> step option *)
@@ -48,17 +48,17 @@ let rec next_step_aux (e, s, g)  = match e with
   | Assign (e1, e2) -> (match next_step_aux (e1, s, g) with (* e1 not a location so reduce *)
                         Some (f, t, h, lo) -> Some (Assign (f, e2), t, h, lo)
                       | None -> None)
-  | Deref (Loc l) -> (match Store.get s l with
+  | Deref (Loc l) -> (match StoreImp.get s l with
                         Some v -> Some (v, None, None, None)
                       | None -> None)
-  | Deref (Glo l) -> (match Store.get g l with
+  | Deref (Glo l) -> (match StoreImp.get g l with
                         Some v -> Some (v, None, None, Some l)
                       | None -> None)
   | Deref e1 -> (match next_step_aux (e1, s, g) with
                     Some (f, t, h, lo) -> Some (Deref f, t, h, lo)
                   | None -> None)
   | Ref e1 -> if is_value e1 then
-                    let fl = Store.get_fresh_loc s in Some (Loc fl, Some (fl, e1), None, None)
+                    let fl = StoreImp.get_fresh_loc s in Some (Loc fl, Some (fl, e1), None, None)
                 else (match next_step_aux (e1, s, g) with
                         Some (f, t, h, lo) -> Some (Ref f, t, h, lo)
                       | None -> None)
@@ -87,7 +87,7 @@ let rec next_step_aux (e, s, g)  = match e with
   | Letrec (t1, t2, e1, e2) -> (* Need to adjust de Bruijn indices as new binding contexts for e1 *)
       Some (substitute_outmost (Fn (t1, Letrec (t1, t2, shift 2 e1, swap 0 e1))) e2, None, None, None)
   | Cas (Glo l, e2, e3) -> if is_value e2 then (* Reduce e1 then e2 then e3 to values *)
-                            (if is_value e3 then (match Store.get g l with
+                            (if is_value e3 then (match StoreImp.get g l with
                                 Some v -> if v = e2 then Some (Boolean true, None, Some (l, e3), Some l)
                                              else Some (Boolean false, None, None, Some l)
                               | None -> None)
@@ -115,13 +115,13 @@ let next_step x = match next_step_aux x with
 * local store update, global store update and global location touched *)
 let rec next_transition_aux (e, s, g) =
     let extract opt = match opt with
-        Some su -> Store.update Store.empty su
-      | None -> Store.empty
+        Some su -> StoreImp.update StoreImp.empty su
+      | None -> StoreImp.empty
     in match next_step_aux (e, s, g) with
         Some (f, t, h, lo) -> (match lo with
             Some l -> Some (f, extract t, extract h, l)
-          | None -> (match next_transition_aux (f, Store.extend s (extract t), g) with
-                Some (e_res, s_res, g_res, l_res) -> Some (e_res, Store.extend s_res (extract t), g_res, l_res)
+          | None -> (match next_transition_aux (f, StoreImp.extend s (extract t), g) with
+                Some (e_res, s_res, g_res, l_res) -> Some (e_res, StoreImp.extend s_res (extract t), g_res, l_res)
               | None -> None))
       | None -> None
 
