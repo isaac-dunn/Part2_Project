@@ -2,7 +2,7 @@
 (* Isaac Dunn 17/12/2015 *)
 
 module Program (Thr : Interfaces.Thread) = struct
-    module ThrImp : Interfaces.Thread = Thr
+    module ThrImp = Thr
 
     (* A program consists of threads and a global store *)
     type state = (ThrImp.ExpImp.expr * ThrImp.StoreImp.store) array * ThrImp.StoreImp.store
@@ -36,5 +36,7 @@ module Program (Thr : Interfaces.Thread) = struct
             (new_tds, ThrImp.StoreImp.extend g t_tran.ThrImp.g_updates)
 end
 
-module PLProgram : Interfaces.Program = Program (Pl_thread)
+module PLProgram : (Interfaces.Program
+    with module ThrImp = Pl_thread)
+        = Program (Pl_thread)
 

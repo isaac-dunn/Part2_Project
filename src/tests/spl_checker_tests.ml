@@ -1,7 +1,7 @@
 (* Unit tests for language for Part II Project *)
 (* Isaac Dunn 15/11/2015 *)
 
-module C : Interfaces.Checker = Checker.SimplePLChecker
+module C = Checker.SimplePLChecker
 open Pl_expression
 
 let test_cases = [
@@ -38,14 +38,14 @@ let test_cases = [
 
 let run_test (es, g, err_poss) =
     let add_empty_store e = (e, C.ProgImp.ThrImp.StoreImp.empty) in
-    let tds = map add_empty_store es in
+    let tds = Array.map add_empty_store es in
     if C.check (tds, g) [] = err_poss then true (* Success *)
     else (print_string "Below initial state expected ";
           (if err_poss then print_string " expected to have error but none found\n" 
             else print_string " expected not to have error but error found\n");
           print_string (C.ProgImp.string_of_program (tds, g));
-          print_newline ());
-          false (* Failure *)
+          print_newline ();
+          false) (* Failure *)
 
 let all_tests_passed =
     let rec conj l = match l with [] -> true | b::bs -> b && conj bs in

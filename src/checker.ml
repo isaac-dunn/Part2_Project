@@ -1,6 +1,6 @@
 module SimpleChecker (Prog : Interfaces.Program) =
   struct
-    module ProgImp : Interfaces.Program = Prog
+    module ProgImp = Prog
     let print_debug = false
 
     let rec check init_prog t_seq =
@@ -23,4 +23,6 @@ module SimpleChecker (Prog : Interfaces.Program) =
         done; not !err_reached
   end
 
-module SimplePLChecker = SimpleChecker (Program.PLProgram)
+module SimplePLChecker : (Interfaces.Checker
+    with module ProgImp = Program.PLProgram)
+        = SimpleChecker (Program.PLProgram)

@@ -2,7 +2,7 @@
 (* Isaac Dunn 17/12/2015 *)
 
 module ExpImp = Pl_expression
-module StoreImp : (Interfaces.Store with type ExprImp.expr = Pl_expression.expr and type ExprImp.loc = Pl_expression.loc) = Store.PLStore
+module StoreImp = Store.PLStore
 
 open Pl_expression (* Allows e.g. Integer to be accessed *)
 
