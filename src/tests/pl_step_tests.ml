@@ -84,7 +84,7 @@ let all_tests_passed =
     let rec conj l = match l with [] -> true | b::bs -> b && conj bs in
         conj (List.map run_test test_cases)
 
-let () = print_string ("PL Thread Tests All Passed: "
+let () = print_string ("PL Thread Next Step Tests All Passed: "
                        ^ (string_of_bool all_tests_passed));
          print_newline ()
 
