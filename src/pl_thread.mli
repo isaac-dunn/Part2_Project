@@ -1,7 +1,7 @@
-(** Thread Interface *)
+(** PL Thread Interface *)
 
 (** The store specifies not only the store but the expressions *)
-module ExpImp : Interfaces.Expression
+module ExpImp : (Interfaces.Expression with type expr = Pl_expression.expr and type loc = Pl_expression.loc)
 module StoreImp : (Interfaces.Store with type ExprImp.expr = ExpImp.expr and type ExprImp.loc = ExpImp.loc)
 
 (** A thread step is a new expression, optional updates to the stores, and

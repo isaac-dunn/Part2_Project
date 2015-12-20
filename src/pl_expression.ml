@@ -144,7 +144,7 @@ let rec resolve env expr_raw = match expr_raw with
                                  resolve env e3)
   | Error_raw msg -> Error msg
 
-let convert_from raw re = resolve [] re
+let convert_from_raw re = resolve [] re
 
 (* is_error : expr -> bool *)
 (* is_error e if and only if e is stuck at an error *)
