@@ -31,8 +31,6 @@ module type Expression = sig
     val swap : int -> expr -> expr
 end
 
-
-
 (** Store Interface *)
 module type Store = sig 
     module ExprImp : Expression
@@ -63,30 +61,52 @@ end
 
 (** Thread Interface *)
 module type Thread = sig
-    module ExImp : Expression
-    module StoreImp : Store with module ExprImp = ExImp
+    module ExpImp : Expression
+    module StoreImp : Store
 
     (** A thread step is a new expression, optional updates to the stores, and
     * which global location, if any, was accessed *)
-    type step = { new_expr : ExImp.expr ;
+    type step = { new_expr : ExpImp.expr ;
                   s_update : StoreImp.store_update option ;
                   g_update : StoreImp.store_update option ;
-                  g_loc    : ExImp.loc option ;
+                  g_loc    : ExpImp.loc option ;
                 }
 
     (* A transition is a new expression, store updates for local and global stores, and which
     * global location was accessed *)
-    type transition = { next_expr : ExImp.expr ;
+    type transition = { next_expr : ExpImp.expr ;
                         s_updates : StoreImp.store ;
                         g_updates : StoreImp.store ;
-                        g_loc     : ExImp.loc ;
+                        g_loc     : ExpImp.loc ;
                       }
 
     (** Given expression, local store, global store, gives next thread step if it exists *)
-    val next_step : ExImp.expr * StoreImp.store * StoreImp.store -> step option
+    val next_step : ExpImp.expr * StoreImp.store * StoreImp.store -> step option
 
     (* Given expression, local state and global state, gives new expression
     * local store update, global store update and global location touched *)
-    val next_transition : ExImp.expr * StoreImp.store * StoreImp.store -> transition option
+    val next_transition : ExpImp.expr * StoreImp.store * StoreImp.store -> transition option
+end
+
+(* Program Interface *)
+module type Program = sig
+    module ThrImp : Thread
+
+    (** A program consists of threads and a global store *)
+    type state = (ThrImp.ExpImp.expr * ThrImp.StoreImp.store) array * ThrImp.StoreImp.store;;
+
+    (** A thread step with the index of the thread *)
+    type step = int * ThrImp.step
+    (** A thread transition with the index of the thread *)
+    type transition = int * ThrImp.transition
+
+    (** Gives a string representation of a program *)
+    val string_of_program : state -> string
+
+    (* Given a program step and a program state, gives the next program state *)
+    val apply_step : state -> step -> state
+
+    (* Given a program transition and a program state, gives the next program state *)
+    val apply_transition : state -> transition -> state
 end
 

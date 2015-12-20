@@ -42,4 +42,4 @@ module ListStore (Expr : Interfaces.Expression) = struct
         | None -> rl
 end
 
-module PLStore : Interfaces.Store = ListStore (Pl_expression)
+module PLStore : (Interfaces.Store with type ExprImp.expr = Pl_expression.expr and type ExprImp.loc = Pl_expression.loc) = ListStore (Pl_expression)

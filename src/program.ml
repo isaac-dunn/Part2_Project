@@ -1,33 +1,40 @@
 (* PL Program *)
 (* Isaac Dunn 17/12/2015 *)
 
-(* A program consists of threads and a global store *)
-type state = (Expression.expr * Store.store) array * Store.store
+module Program (Thr : Interfaces.Thread) = struct
+    module ThrImp : Interfaces.Thread = Thr
 
-(* A thread step with the index of the thread *)
-type step = int * Thread.step
-(* A thread transition with the index of the thread *)
-type transition = int * Thread.transition
+    (* A program consists of threads and a global store *)
+    type state = (ThrImp.ExpImp.expr * ThrImp.StoreImp.store) array * ThrImp.StoreImp.store
 
-let string_of_program (tds, g) =
-    let acc = ref "" in
-    for i = 0 to Array.length tds - 1 do
-        let (e, s) = Array.get tds i in
-            acc := !acc ^ "Thread " ^ (string_of_int i) ^ "\n"
-                        ^ (Expression.string_of_expr e) ^ "\n"
-                        ^ (Store.string_of_store s) ^ "\n"
-    done; !acc ^ "Global Store\n" ^ (Store.string_of_store g) ^ "\n"
+    (* A thread step with the index of the thread *)
+    type step = int * ThrImp.step
+    (* A thread transition with the index of the thread *)
+    type transition = int * ThrImp.transition
 
-let apply_step (tds, g) (i, t_step) =
-    let new_tds = Array.copy tds in
-    let (old_e, old_s) = Array.get tds i in
-        (match t_step.Thread.s_update with None -> Array.set new_tds i (t_step.Thread.new_expr, old_s)
-                    | Some news -> Array.set new_tds i (t_step.Thread.new_expr, Store.update old_s news));
-        (match t_step.Thread.g_update with None -> (new_tds, g)
-                     | Some news -> (new_tds, Store.update g news));;
+    let string_of_program (tds, g) =
+        let acc = ref "" in
+        for i = 0 to Array.length tds - 1 do
+            let (e, s) = Array.get tds i in
+                acc := !acc ^ "Thread " ^ (string_of_int i) ^ "\n"
+                            ^ (ThrImp.ExpImp.string_of_expr e) ^ "\n"
+                            ^ (ThrImp.StoreImp.string_of_store s) ^ "\n"
+        done; !acc ^ "Global Store\n" ^ (ThrImp.StoreImp.string_of_store g) ^ "\n"
 
-let apply_transition (tds, g) (i, t_tran) =
-    let new_tds = Array.copy tds in
-    let (_, old_s) = Array.get tds i in
-        Array.set new_tds i (t_tran.Thread.next_expr, Store.extend old_s t_tran.Thread.s_updates);    
-        (new_tds, Store.extend g t_tran.Thread.g_updates)
+    let apply_step (tds, g) (i, t_step) =
+        let new_tds = Array.copy tds in
+        let (old_e, old_s) = Array.get tds i in
+            (match t_step.ThrImp.s_update with None -> Array.set new_tds i (t_step.ThrImp.new_expr, old_s)
+                        | Some news -> Array.set new_tds i (t_step.ThrImp.new_expr, ThrImp.StoreImp.update old_s news));
+            (match t_step.ThrImp.g_update with None -> (new_tds, g)
+                         | Some news -> (new_tds, ThrImp.StoreImp.update g news));;
+
+    let apply_transition (tds, g) (i, t_tran) =
+        let new_tds = Array.copy tds in
+        let (_, old_s) = Array.get tds i in
+            Array.set new_tds i (t_tran.ThrImp.next_expr, ThrImp.StoreImp.extend old_s t_tran.ThrImp.s_updates);    
+            (new_tds, ThrImp.StoreImp.extend g t_tran.ThrImp.g_updates)
+end
+
+module PLProg : Interfaces.Program = Program (Pl_thread)
+

@@ -15,4 +15,4 @@ let rec string_of_type_expr t = match t with
   | Ref t -> (string_of_type_expr t) ^ " ref"
   | Func (t1, t2) -> (string_of_type_expr t1) ^ " -> " ^ (string_of_type_expr t2)
 
-let () = print_string (string_of_type_expr (Func (Unit, Bool)))
+let () = print_string (string_of_type_expr (Func (Unit, Bool))); print_newline()

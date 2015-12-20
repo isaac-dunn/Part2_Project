@@ -1,19 +1,21 @@
 (* PL Threads *)
 (* Isaac Dunn 17/12/2015 *)
 
-module ExImp : Expression = Pl_expression
-module StoreImp : Store = Store.PLStore
+module ExpImp = Pl_expression
+module StoreImp : (Interfaces.Store with type ExprImp.expr = Pl_expression.expr and type ExprImp.loc = Pl_expression.loc) = Store.PLStore
 
-type step = { new_expr : ExImp.expr ;
+open Pl_expression (* Allows e.g. Integer to be accessed *)
+
+type step = { new_expr : ExpImp.expr ;
               s_update : StoreImp.store_update option ;
               g_update : StoreImp.store_update option ;
-              g_loc    : ExImp.loc option ;
+              g_loc    : ExpImp.loc option ;
             }
 
-type transition = { next_expr : ExImp.expr ;
+type transition = { next_expr : ExpImp.expr ;
                     s_updates : StoreImp.store ;
                     g_updates : StoreImp.store ;
-                    g_loc     : ExImp.loc ;
+                    g_loc     : ExpImp.loc ;
                   }
 
 (* next_step_aux : (expr * store * store) -> step option *)
