@@ -114,6 +114,7 @@ end
 module type Checker = sig
     module ProgImp : Program
 
-    (** Prints potential errors out if they exist *)
-    val check : ProgImp.state -> ProgImp.transition list -> unit
+    (** True iff no error state is reachable *)
+    val check : ProgImp.state -> ProgImp.transition list -> bool
 end
+
