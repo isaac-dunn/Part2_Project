@@ -6,3 +6,5 @@
 *.cmo
 *.native
 *.pdf
+*.swp
+src/_build/*
