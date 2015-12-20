@@ -4,5 +4,5 @@
 module Program :
     functor (Thr : Interfaces.Thread) -> Interfaces.Program
 
-module PLProg : Interfaces.Program
+module PLProgram : Interfaces.Program
 

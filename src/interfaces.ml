@@ -110,3 +110,10 @@ module type Program = sig
     val apply_transition : state -> transition -> state
 end
 
+(** Checker Interface *)
+module type Checker = sig
+    module ProgImp : Program
+
+    (** Prints potential errors out if they exist *)
+    val check : ProgImp.state -> ProgImp.transition list -> unit
+end

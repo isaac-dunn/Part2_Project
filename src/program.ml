@@ -36,5 +36,5 @@ module Program (Thr : Interfaces.Thread) = struct
             (new_tds, ThrImp.StoreImp.extend g t_tran.ThrImp.g_updates)
 end
 
-module PLProg : Interfaces.Program = Program (Pl_thread)
+module PLProgram : Interfaces.Program = Program (Pl_thread)
 
