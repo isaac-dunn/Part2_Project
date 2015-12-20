@@ -41,8 +41,8 @@ let run_test (es, g, err_poss) =
     let tds = Array.map add_empty_store es in
     if C.check (tds, g) [] = err_poss then true (* Success *)
     else (print_string "Below initial state expected ";
-          (if err_poss then print_string " expected to have error but none found\n" 
-            else print_string " expected not to have error but error found\n");
+          (if err_poss then print_string " to have error but none found\n"
+            else print_string " not to have error but error found\n");
           print_string (C.ProgImp.string_of_program (tds, g));
           print_newline ();
           false) (* Failure *)
