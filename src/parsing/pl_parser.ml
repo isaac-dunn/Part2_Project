@@ -1,6 +1,6 @@
 let print_result str = print_endline (Pl_expression.string_of_expr (
     Pl_expression.convert_from_raw (
-        Pl_parser.parse_expr Pl_lexer.read (Lexing.from_string (str^" eof")))))
+        Pl_raw_parser.parse_expr Pl_lexer.read (Lexing.from_string (str^" eof")))))
 
 (* X for end of parsing *)
 let _ = List.map print_result [
@@ -16,4 +16,5 @@ let _ = List.map print_result [
     "if true then skip else ref 4 := 5; skip";
     "let val Vt:int=6 in fn Vx : int => Vt + 3 * Vx @ 4 ; skip";
     "let val Vt:int=6 in (fn Vx : int => Vt + 3 * Vx @ 4 ; skip)";
+    "ref 0 := 1; ref 0 := 2; ref 0 := 3; cas(Gx, 0, 4); ref 0 := 5";
 ]

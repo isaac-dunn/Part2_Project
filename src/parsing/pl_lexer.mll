@@ -1,5 +1,5 @@
 {
-  open Pl_parser
+  open Pl_raw_parser
   exception SyntaxError of string
 }
 
