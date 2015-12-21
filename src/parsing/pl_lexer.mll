@@ -17,8 +17,42 @@ rule read =
   | "bool" { TBOOL }
   | "rf" { TREF }
   | "->" { TARROW }
-  | "(" { LBRACKET }
-  | ")" { RBRACKET }
+  | "(" { LBKT }
+  | ")" { RBKT }
+  | nat as lxm { INT (int_of_string lxm) }
+  | "true" { TRUE }
+  | "false" { FALSE }
+  | "+" { PLUS }
+  | "-" { MINUS }
+  | "*" { MULT }
+  | "/" { DIV }
+  | "%" { MOD }
+  | ">" { GT }
+  | "=" { EQUALS }
+  | "if" { IF }
+  | "then" { THEN }
+  | "else" { ELSE }
+  | ":=" { ASSIGN }
+  | "!" { DEREF }
+  | "ref" { REF }
+  | "G" id as lxm { GLO (lxm) }
+  | "skip" { SKIP }
+  | ";" { SEMICOLON }
+  | "while" { WHILE }
+  | "do" { DO }
+  | "done" { DONE }
+  | "V" id as lxm { VAR (lxm) }
+  | "fn" { FN }
+  | ":" { COLON }
+  | "=>" { ARROW }
+  | "@" { APP }
+  | "let val" { LETVAL }
+  | "let rec" { LETREC }
+  | "in" { IN }
+  | "cas" { CAS }
+  | "," { COMMA }
+  | "error(" (plain_text as msg) ")" { ERROR (msg) }
+  | "eof" { EOF }
   | _ { raise (SyntaxError ("Unexpected char: " ^ Lexing.lexeme lexbuf)) }
 
 
