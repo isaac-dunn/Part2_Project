@@ -135,8 +135,8 @@ let rec next_transition_aux (e, s, g) =
                 (* There is some recursive result; construct our result *)
                 Some (e_res, s_res, g_res, l_res) ->
                     (* Need to add our local store updates if not overriden *)
-                    Some (e_res, (match t with None -> s_res | Some su ->
-                        StoreImp.update_if_undefined s_res su), g_res, l_res)
+                    Some (e_res, (match t with None -> s_res | Some su -> s_res @ [su]),
+                             g_res, l_res)
                 (* Stuck so no transition *)
               | None -> None))
       (* No next step so no transition *)
