@@ -12,7 +12,6 @@ let rec string_of_type_expr t = match t with
     Int -> "int"
   | Unit -> "unit"
   | Bool -> "bool"
-  | Ref t -> (string_of_type_expr t) ^ " ref"
-  | Func (t1, t2) -> (string_of_type_expr t1) ^ " -> " ^ (string_of_type_expr t2)
+  | Ref t -> (string_of_type_expr t) ^ " rf"
+  | Func (t1, t2) -> "(" ^ (string_of_type_expr t1) ^ " -> " ^ (string_of_type_expr t2) ^ ")"
 
-let () = print_string (string_of_type_expr (Func (Unit, Bool))); print_newline()
