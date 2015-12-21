@@ -1,5 +1,5 @@
 {
-type token = MULT | PLUS | N of int | EOF
+open Toy_parser
 exception SyntaxError of string
 }
 
