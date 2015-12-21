@@ -40,6 +40,7 @@ type expr_raw =
    | Assign_raw of expr_raw * expr_raw
    | Deref_raw of expr_raw
    | Ref_raw of expr_raw
+   | Loc_raw of loc
    | Glo_raw of loc
    | Skip_raw
    | Seq_raw of expr_raw * expr_raw
@@ -127,6 +128,7 @@ let rec resolve env expr_raw = match expr_raw with
   | Assign_raw (e1, e2) -> Assign (resolve env e1, resolve env e2)
   | Deref_raw e -> Deref (resolve env e)
   | Ref_raw e -> Ref (resolve env e)
+  | Loc_raw l -> Loc l
   | Glo_raw l -> Glo l
   | Skip_raw -> Skip
   | Seq_raw (e1, e2) -> Seq (resolve env e1, resolve env e2)

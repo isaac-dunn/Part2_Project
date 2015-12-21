@@ -5,7 +5,7 @@
 %token PLUS MINUS MULT DIV MOD GT EQUALS
 %token IF THEN ELSE
 %token ASSIGN DEREF REF
-%token <string> GLO
+%token <string> LOC GLO
 %token SKIP
 %token SEMICOLON
 %token WHILE DO DONE
@@ -65,6 +65,7 @@ expr:
   | a = expr ASSIGN b = expr { Pl_expression.Assign_raw (a, b) }
   | DEREF expr { Pl_expression.Deref_raw ($2) }
   | REF expr { Pl_expression.Ref_raw ($2) }
+  | LOC { Pl_expression.Loc_raw ($1) }
   | GLO { Pl_expression.Glo_raw ($1) }
   | SKIP { Pl_expression.Skip_raw }
   | a = expr SEMICOLON b = expr { Pl_expression.Seq_raw (a, b) }

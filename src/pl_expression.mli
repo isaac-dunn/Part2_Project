@@ -27,6 +27,7 @@ type expr_raw =
    | Assign_raw of expr_raw * expr_raw
    | Deref_raw of expr_raw
    | Ref_raw of expr_raw
+   | Loc_raw of loc
    | Glo_raw of loc
    | Skip_raw
    | Seq_raw of expr_raw * expr_raw

@@ -35,13 +35,14 @@ rule read =
   | ":=" { ASSIGN }
   | "!" { DEREF }
   | "ref" { REF }
-  | "G" id as lxm { GLO (lxm) }
+  | "L" (id as lxm) { LOC (lxm) }
+  | "G" (id as lxm) { GLO (lxm) }
   | "skip" { SKIP }
   | ";" { SEMICOLON }
   | "while" { WHILE }
   | "do" { DO }
   | "done" { DONE }
-  | "V" id as lxm { VAR (lxm) }
+  | "V" (id as lxm) { VAR (lxm) }
   | "fn" { FN }
   | ":" { COLON }
   | "=>" { ARROW }
