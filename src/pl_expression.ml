@@ -78,23 +78,23 @@ let rec string_of_expr e = match e with
     Integer n -> string_of_int n
   | Boolean true -> "true"
   | Boolean false -> "false"
-  | Op (e1, op, e2) -> (string_of_expr e1) ^ " " ^
-                       (string_of_op op) ^ " " ^ (string_of_expr e2)
+  | Op (e1, op, e2) -> "(" ^ (string_of_expr e1) ^ " " ^
+                       (string_of_op op) ^ " " ^ (string_of_expr e2) ^ ")"
   | If (e1, e2, e3) -> "if " ^ (string_of_expr e1) ^ " then " ^
                         (string_of_expr e2) ^ " else " ^ (string_of_expr e3)
-  | Assign (e1, e2) -> (string_of_expr e1) ^ " := " ^ (string_of_expr e2)
+  | Assign (e1, e2) -> "(" ^ (string_of_expr e1) ^ " := " ^ (string_of_expr e2) ^ ")"
   | Deref e1 -> "!(" ^ (string_of_expr e1) ^ ")"
-  | Ref e1 ->  "ref (" ^ string_of_expr e1 ^ ")"
+  | Ref e1 ->  "(ref " ^ string_of_expr e1 ^ ")"
   | Loc l ->  "Local:"^l
   | Glo l ->  "Global:"^l
   | Skip ->  "skip"
-  | Seq (e1, e2) -> (string_of_expr e1) ^  " ^ " ^ (string_of_expr e2)
+  | Seq (e1, e2) -> "(" ^ (string_of_expr e1) ^  " ; " ^ (string_of_expr e2) ^ ")"
   | While (e1, e2) ->  "while " ^ (string_of_expr e1) ^  " do " ^
                         (string_of_expr e2) ^  " done"
   | Var n ->  "V:" ^ string_of_int n
-  | Fn (t, e1) ->  "fn O : " ^ (Type.string_of_type_expr t) ^
-                    " => " ^ (string_of_expr e1)
-  | App (e1, e2) ->  "(" ^ (string_of_expr e1) ^  ") (" ^ (string_of_expr e2) ^  ")"
+  | Fn (t, e1) -> "(fn O : " ^ (Type.string_of_type_expr t) ^
+                    " => " ^ (string_of_expr e1) ^ ")"
+  | App (e1, e2) ->  "(" ^ (string_of_expr e1) ^  " " ^ (string_of_expr e2) ^  ")"
   | Let (t1, e1, e2) ->  "let val O : " ^ (Type.string_of_type_expr t1) ^  " = " ^
                          (string_of_expr e1) ^  " in " ^ (string_of_expr e2) ^  " end"
   | Letrec (t1, t2, e1, e2) -> "let rec O : " ^ (Type.string_of_type_expr t1) ^ " -> " ^
@@ -103,7 +103,7 @@ let rec string_of_expr e = match e with
                                 (string_of_expr e2) ^  " end"
   | Cas (e1, e2, e3) ->  "CAS(" ^ (string_of_expr e1) ^  ", " ^
                         (string_of_expr e2) ^  ", " ^ (string_of_expr e3) ^  ")"
-  | Error msg ->  "Error: " ^ msg
+  | Error msg ->  "(Error: " ^ msg ^ ")"
 
 (*** SEMANTICS ***)
 
@@ -246,4 +246,3 @@ let rec swap n e = match e with
   | Cas (e1, e2, e3) -> Cas (swap n e1, swap n e2, swap n e3)
   | Error msg -> Error msg
 
-let () = print_string (string_of_expr (Assign (Ref (Integer 3), Skip))); print_newline()
