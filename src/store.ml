@@ -12,8 +12,8 @@ module ListStore (Expr : Interfaces.Expression) = struct
     let string_of_store s = 
         let rec work_through left seen = match left with
             [] -> ""
-          | (l, e)::es -> (if List.mem l seen then "" else (Expr.string_of_loc l ^ ": "))
-            ^ (Expr.string_of_expr e) ^ "; "
+          | (l, e)::es -> (if List.mem l seen then "" else (Expr.string_of_loc l ^ ": ")
+            ^ (Expr.string_of_expr e) ^ "; ")
             ^ (work_through es (l::seen))
         in work_through s []
 
@@ -28,6 +28,10 @@ module ListStore (Expr : Interfaces.Expression) = struct
     (* update : store -> store_update -> store *)
     (* Gives store with given location updated to new value *)
     let update s su = su::s
+
+    let update_if_undefined s (l, v) = match get s l with
+        None -> (l, v):: s
+      | Some _ -> s
 
     (* extend : store -> store -> store *)
     (* Updates store with updates given in 2nd arg *)
