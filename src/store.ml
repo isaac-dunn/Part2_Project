@@ -29,6 +29,13 @@ module ListStore (Expr : Interfaces.Expression) = struct
     (* Gives store with given location updated to new value *)
     let update s su = su::s
 
+    let minimise s =
+        let rec min_aux sto seen = match sto with
+            [] -> []
+          | (l, v)::xs -> if List.mem l seen then min_aux xs seen
+                          else (l, v)::(min_aux xs (l::seen))
+        in min_aux s []
+
     (* extend : store -> store -> store *)
     (* Updates store with updates given in 2nd arg *)
     let extend old_s new_s  = new_s @ old_s
@@ -42,8 +49,4 @@ module ListStore (Expr : Interfaces.Expression) = struct
         | None -> rl
 end
 
-module PLStore : (Interfaces.Store
-    with type ExprImp.expr = Pl_expression.expr
-    and type ExprImp.loc = Pl_expression.loc
-    and type store = (Pl_expression.loc * Pl_expression.expr) list)
-        = ListStore (Pl_expression)
+module PLStore = ListStore (Pl_expression)

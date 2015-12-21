@@ -55,6 +55,9 @@ module type Store = sig
     (** Given a store and a store representing updates gives updated store *)
     val extend : store -> store -> store
 
+    (** Gives minimal equivalent store *)
+    val minimise : store -> store
+
     (** Given store, gives location that maps to nothing in it *)
     val get_fresh_loc : store -> ExprImp.loc
 end

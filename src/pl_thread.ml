@@ -144,8 +144,8 @@ let rec next_transition_aux (e, s, g) =
 
 let next_transition x = match next_transition_aux x with
     Some (f, t, h, gl) -> Some { next_expr = f;
-                                 s_updates = t;
-                                 g_updates = h;
+                                 s_updates = StoreImp.minimise t;
+                                 g_updates = StoreImp.minimise h;
                                  g_loc = gl;
                                }
   | None -> None

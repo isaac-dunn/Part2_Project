@@ -20,6 +20,19 @@ let test_cases = [
           Thr.s_updates = List.rev [("0", Skip); ("1", Skip); ("2", Skip)];
           Thr.g_updates = [("x", Skip)];
           Thr.g_loc = "x"});
+
+    (("cas(Gx, 0, (if 3+2*3=11-2 then (45-6)%5 else 0) + 100)", [], [("x", Integer 0)]),
+    Some {Thr.next_expr = Boolean true;
+          Thr.s_updates = [];
+          Thr.g_updates = [("x", Integer 104)];
+          Thr.g_loc = "x"});
+
+    (("while 108 > !Lx do Lx := !Lx + 1 done; !Go",
+        [("x", Integer 0)], [("o", Skip)]),
+    Some {Thr.next_expr = Skip;
+          Thr.s_updates = [("x", Integer 108)];
+          Thr.g_updates = [];
+          Thr.g_loc = "o"});
 ]
 
 let run_test ((e_string, s, g), exp_next_to) =
