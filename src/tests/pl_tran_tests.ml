@@ -7,26 +7,22 @@ let print_debug = true
 open Pl_expression
 open Type
 
-(* ((e, s, g), next_transition) pairs *)
+(* ((e string, s, g), next_transition) pairs *)
 let test_cases = [
    
-    ((If (Boolean true, Deref (Glo "x"), Skip), [], [("x", Integer 2)]),
+    (("if true then !Gx else skip", [], [("x", Integer 2)]),
     Some {Thr.next_expr = Integer 2;
           Thr.s_updates = []; Thr.g_updates = [];
           Thr.g_loc = "x"});
 
-    ((Seq ( Seq (Assign (Loc "a", Skip),
-                 Assign (Loc "b", Skip)),
-            Seq (Assign (Loc "c", Skip),
-            Seq (Cas(Glo "x", Skip, Skip),
-                 Assign (Loc "d", Skip)))), [], [("x", Skip)]),
-    Some {Thr.next_expr = Seq (Boolean true, Assign (Loc "d", Skip));
+    (("ref 0 := skip; ref 0 := skip; ref 0 := skip; cas(Gx, skip, skip); ref 0 := skip", [], [("x", Skip)]),
+    Some {Thr.next_expr = Seq (Boolean true, Assign (Ref (Integer 0), Skip));
           Thr.s_updates = List.rev [("a", Skip); ("b", Skip); ("c", Skip)];
           Thr.g_updates = [("x", Skip)];
           Thr.g_loc = "x"});
 ]
 
-let run_test ((e, s, g), exp_next_to) =
+let run_test ((e_string, s, g), exp_next_to) =
     (* True iff stores map some locations to same values *)
     (* Necessary as fresh locations are unpredictable *)
     let rec store_vals_match s1 s2 = match s1 with
@@ -40,6 +36,7 @@ let run_test ((e, s, g), exp_next_to) =
         t1.Thr.g_updates = t2.Thr.g_updates &&
         t1.Thr.g_loc = t2.Thr.g_loc &&
         store_vals_match t1.Thr.s_updates t2.Thr.s_updates in
+    let e = Pl_parser.expr_of_string e_string in
     match Thr.next_transition (e, s, g) with
       None -> if exp_next_to = None
                 then (print_endline "Nones"; true)

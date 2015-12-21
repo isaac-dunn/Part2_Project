@@ -1,9 +1,13 @@
-let print_result str = print_endline (Pl_expression.string_of_expr (
-    Pl_expression.convert_from_raw (
-        Pl_raw_parser.parse_expr Pl_lexer.read (Lexing.from_string (str^" eof")))))
+let expr_raw_of_string s = Pl_raw_parser.parse_expr Pl_lexer.read (Lexing.from_string (s^" eof"))
+
+let expr_of_string s =
+    let e = Pl_expression.convert_from_raw (expr_raw_of_string s) in
+        (print_endline s; print_endline (Pl_expression.string_of_expr e); e)
+
+let print_result str = print_endline (Pl_expression.string_of_expr (expr_of_string str))
 
 (* X for end of parsing *)
-let _ = List.map print_result [
+let f () = List.map print_result [
 
     "37"; "true"; "false"; "5 + 6"; "5 * 3"; "9 % 100";
     "if true then 34 else 67"; "45 := true"; "!Gooo";
