@@ -122,15 +122,24 @@ let next_step x = match next_step_aux x with
 (* Given expression, local state and global state, gives new expression
 * local store update, global store update and global location touched *)
 let rec next_transition_aux (e, s, g) =
+    (* If opt is None then empty, else if Some su then just [su] *)
     let extract opt = match opt with
         Some su -> StoreImp.update StoreImp.empty su
       | None -> StoreImp.empty
     in match next_step_aux (e, s, g) with
         Some (f, t, h, lo) -> (match lo with
+            (* Global object touched: transition just this step *)
             Some l -> Some (f, extract t, extract h, l)
+            (* No global object touched: this step plus subsequent ones *)
           | None -> (match next_transition_aux (f, StoreImp.extend s (extract t), g) with
-                Some (e_res, s_res, g_res, l_res) -> Some (e_res, StoreImp.extend s_res (extract t), g_res, l_res)
+                (* There is some recursive result; construct our result *)
+                Some (e_res, s_res, g_res, l_res) ->
+                    (* Need to add our local store updates if not overriden *)
+                    Some (e_res, (match t with None -> s_res | Some su ->
+                        StoreImp.update_if_undefined s_res su), g_res, l_res)
+                (* Stuck so no transition *)
               | None -> None))
+      (* No next step so no transition *)
       | None -> None
 
 let next_transition x = match next_transition_aux x with
