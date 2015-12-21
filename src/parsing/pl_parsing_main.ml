@@ -11,5 +11,9 @@ let _ = List.map print_result [
     "while false do 4 / 0 done"; "fn Vx : int => Vx + 5"; "4 @ 9";
     "let val Vx : bool = true in if Vx then 4 else 5";
     "let rec Vf : bool -> unit = fn Vx : bool => skip in 4";
-    "cas(Goo, 4, 0)"; "if true then error(rubbish fish) else skip"
+    "cas(Goo, 4, 0)"; "if true then error(rubbish fish) else skip";
+    "1 + 2 + 3"; "2 + 2 * 2"; "2 * 2 + 2"; "2 * 3 > 2 + 3";
+    "if true then skip else ref 4 := 5; skip";
+    "let val Vt:int=6 in fn Vx : int => Vt + 3 * Vx @ 4 ; skip";
+    "let val Vt:int=6 in (fn Vx : int => Vt + 3 * Vx @ 4 ; skip)";
 ]
