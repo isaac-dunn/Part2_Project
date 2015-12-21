@@ -18,6 +18,12 @@ type transition = { next_expr : ExpImp.expr ;
                     g_loc     : ExpImp.loc ;
                   }
 
+let string_of_transition t =
+    "next_expr: " ^ (ExpImp.string_of_expr t.next_expr) ^ "\n" ^
+    "s_updates: " ^ (StoreImp.string_of_store t.s_updates) ^ "\n" ^
+    "g_updates: " ^ (StoreImp.string_of_store t.g_updates) ^ "\n" ^
+    "g_loc:     " ^ (ExpImp.string_of_loc t.g_loc) ^ "\n"
+
 (* next_step_aux : (expr * store * store) -> step option *)
 (* Given expression, local store, global store, gives next thread step if it exists *)
 let rec next_step_aux (e, s, g)  = match e with
