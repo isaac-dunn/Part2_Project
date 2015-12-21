@@ -22,12 +22,13 @@
 %left APP (* fn x => 5 @ 4 is (fn x => 5) @ 4 *)
 %right ARROW (* fn x : t => 5 > 7 is => (5 > 7) *)
 
+%right ASSIGN (* a := b + c is a := (b + c) *)
+
 (* Standard arithmetic precedence *)
 %nonassoc GT EQUALS
 %left PLUS MINUS
 %left MULT DIV MOD
 
-%right ASSIGN (* ref a := !d is (ref a) := (!d) *)
 %nonassoc DEREF REF (* !e and ref e bind most tightly *)
 
 %right TARROW (* a -> b -> c is a -> (b -> c) *)
