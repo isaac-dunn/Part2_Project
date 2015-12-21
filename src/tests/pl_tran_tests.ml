@@ -33,6 +33,18 @@ let test_cases = [
           Thr.s_updates = [("x", Integer 108)];
           Thr.g_updates = [];
           Thr.g_loc = "o"});
+
+    (("fn Vx: rf int => (cas(Vx, 0, 1);true) @ Go", [], [("o", Integer 0)]),
+    Some {Thr.next_expr = Seq (Boolean true, Boolean true);
+          Thr.s_updates = [];
+          Thr.g_updates = [("o", Integer 1)];
+          Thr.g_loc = "o"});
+
+    (("fn Vx: rf int => (cas(Vx, 0, 1);true) @ Go", [], [("o", Integer 1)]),
+    Some {Thr.next_expr = Seq (Boolean false, Boolean true);
+          Thr.s_updates = [];
+          Thr.g_updates = [];
+          Thr.g_loc = "o"});
 ]
 
 let run_test ((e_string, s, g), exp_next_to) =
@@ -46,7 +58,7 @@ let run_test ((e_string, s, g), exp_next_to) =
     | Some actual_next_t -> match exp_next_to with
         None -> (print_endline "Expected none but got some"; false)
       | Some exp_next_t ->
-     if actual_next_t = exp_next_t then (print_string "match\n"; true) else
+     if actual_next_t = exp_next_t then true else
     ((if print_debug then
         print_string "Expected next transition of:\n";
         print_string (Thr.string_of_transition exp_next_t);
