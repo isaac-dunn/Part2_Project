@@ -29,10 +29,6 @@ module ListStore (Expr : Interfaces.Expression) = struct
     (* Gives store with given location updated to new value *)
     let update s su = su::s
 
-    let update_if_undefined s (l, v) = match get s l with
-        None -> (l, v):: s
-      | Some _ -> s
-
     (* extend : store -> store -> store *)
     (* Updates store with updates given in 2nd arg *)
     let extend old_s new_s  = new_s @ old_s

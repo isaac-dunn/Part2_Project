@@ -52,9 +52,6 @@ module type Store = sig
     (** Given a store and a new mapping gives old store updated with mapping *)
     val update : store -> store_update -> store
 
-    (** As above but only if location undefined in store *)
-    val update_if_undefined : store -> store_update -> store
-
     (** Given a store and a store representing updates gives updated store *)
     val extend : store -> store -> store
 
