@@ -1,36 +1,24 @@
-class clockvector n = object
-    val vector = Array.make n 0
-    method size = n
-    method get i = Array.get vector i
-    method set i x = Array.set vector i x
-    method print =
-        for i = 0 to n - 1 do print_string ((string_of_int (Array.get vector i)) ^ " ") done
-end;;
+type cv = int array
 
-exception MismatchedVectorLengths;;
+let fresh n = Array.make n 0
 
-let max_cv cv1 cv2 =
-    if cv1#size = cv2#size then
-        let result = new clockvector (cv1#size) in
-        let max (a, b) = if a > b then a else b in
-            for i = 0 to cv1#size - 1 do
-                result#set i (max(cv1#get i, cv2#get i))
-            done; result
-    else raise MismatchedVectorLengths;;
+let size v = Array.length v
 
-let x = new clockvector 3;;
-let y = new clockvector 3;;
-x#print;;
-print_newline();;
-x#set 1 7;;
-x#print;;
-print_newline();;
-y#set 0 4;;
-y#set 1 4;;
-y#print;;
-print_newline();;
-let z = max_cv x y;;
-z#print;;
-print_newline();;
-let omega = new clockvector 0;;
-max_cv x omega;;
+let get v i = Array.get v i
+
+let set v i x = Array.set v i x
+
+let string_of_cv cv =
+    let s_of_el s el = s ^ (string_of_int el) ^ " " in
+        (Array.fold_left s_of_el "[|" cv) ^ "|]"
+
+exception MismatchedSizes
+
+let max cv1 cv2 =
+    if size cv1 = size cv2
+    then
+        let result = fresh (size cv1) in
+        for i = 0 to (size cv1) - 1 do
+            set result i (max (get cv1 i) (get cv2 i))
+        done; result
+    else raise MismatchedSizes
