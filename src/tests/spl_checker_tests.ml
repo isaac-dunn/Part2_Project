@@ -5,47 +5,74 @@ module C = Checker.SimplePLChecker
 open Pl_expression
 
 let test_cases = [
-    (* Initial expressions, global store, error possible *)
-    (* thread 1, thread 2, global store, error possible *)
-    ([|If (Cas (Glo "x", Integer 2, Integer 0), Integer 100, Error "Negative CAS");
-     Cas(Glo "x", Integer 2, Integer 1)|], [("x", Integer 2)], true);
+    (* Initial expression strings, global store, error possible *)
+    ([| "if cas(Gx, 2, 0) then skip else error(not cas)";
+        "cas(Gx, 2, 1)";
+     |], [("x", Integer 2)], true);
 
-    ([|If (Cas (Glo "x", Integer 2, Integer 0), Integer 100, Error "Negative CAS");
-     Cas(Glo "x", Integer 2, Integer 2)|], [("x", Integer 2)], false);
+    ([| "if cas(Gx, 2, 0) then skip else error(not cas)";
+        "cas(Gx, 2, 2)";
+     |], [("x", Integer 2)], false);
 
-    ([|If (Cas (Glo "x", Integer 2, Integer 0), Integer 100, Error "Negative CAS");
-     Cas(Glo "x", Integer 1, Integer 1)|], [("x", Integer 2)], false);
+    ([| "if cas(Gx, 2, 0) then skip else error(not cas)";
+        "cas(Gx, 1, 1)";
+     |], [("x", Integer 2)], false);
 
-    ([|If (Cas (Glo "x", Integer 1, Integer 0), Integer 100, Error "Negative CAS");
-     Cas(Glo "x", Integer 2, Integer 1)|], [("x", Integer 2)], true);
+    ([| "if cas(Gx, 1, 0) then skip else error(not cas)";
+        "cas(Gx, 2, 1)";
+     |], [("x", Integer 2)], true);
 
-    ([|While (Cas (Glo "x", Boolean false, Skip), Error "Unreachable");
-     While (Cas (Glo "x", Skip, Boolean true), Error "Unreachable")|],
-     [("x", Integer 5)], false);
+    ([| "while cas (Gx, false, skip) do error(unreachable) done";
+        "while cas (Gx, skip, true) do error(unreachable) done";
+     |], [("x", Integer 5)], false);
 
-    ([|While (Cas (Glo "x", Boolean false, Skip), Error "Unreachable");
-     While (Cas (Glo "x", Skip, Boolean true), Error "Unreachable")|],
-     [("x", Skip)], true);
+    ([| "while cas (Gx, false, skip) do error(unreachable) done";
+        "while cas (Gx, skip, true) do error(unreachable) done";
+     |], [("x", Skip)], true);
 
-    ([|If (Cas (Glo "x", Deref (Glo "x"), Integer 0), Skip, Error "Cas failed");
-     If (Cas (Glo "x", Deref (Glo "x"), Integer 1), Skip, Error "Cas failed")|],
-     [("x", Integer 2)], true);
+    ([| "if cas(Gx, !Gx, 0) then skip else error(not cas)";
+        "if cas(Gx, !Gx, 1) then skip else error(not cas)";
+     |], [("x", Integer 2)], true);
 
-    ([|If (Cas (Glo "x", Deref (Glo "x"), Integer 2), Skip, Error "Cas failed");
-     If (Cas (Glo "x", Deref (Glo "x"), Integer 2), Skip, Error "Cas failed")|],
-     [("x", Integer 2)], false);
+    ([| "if cas(Gx, !Gx, 2) then skip else error(not cas)";
+        "if cas(Gx, !Gx, 2) then skip else error(not cas)";
+     |], [("x", Integer 2)], false);
+
+    ([| "cas(Gx, !Gx, !Gx + 1)";
+        "cas(Gx, !Gx, !Gx + 1)";
+        "if !Gx > 1 then error(both threads accessed x) else skip";
+     |], [("l", Integer 0); ("x", Integer 0)], true);
+
+    (* Exclude one thread from entering *)
+    ([| "if cas(Gl, 0, 1) then cas(Gx, !Gx, !Gx + 1) else skip";
+        "if cas(Gl, 0, 1) then cas(Gx, !Gx, !Gx + 1) else skip";
+        "if !Gx > 1 then error(both threads accessed x) else skip";
+     |], [("l", Integer 0); ("x", Integer 0)], false);
+
+    (* Only change value if unchanged since read *)
+    ([| "let val Vr : rf int = ref 0 in
+         while if cas(Gx, !Vr, !Vr + 1) then false else true do
+            Vr := !Gx done; cas(Gd0, false, true)";
+        "let val Vr : rf int = ref 0 in
+         while if cas(Gx, !Vr, !Vr + 2) then false else true do
+            Vr := !Gx done; cas(Gd1, false, true)";
+        "if !Gd0 then if !Gd1 then if !Gx = 103 then skip
+            else error(race condition) else skip else skip";
+     |], [("x", Integer 100); ("d0", Boolean false); ("d1", Boolean false)],
+        false);
 ]
 
 let run_test (es, g, err_poss) =
-    let add_empty_store e = (e, C.ProgImp.ThrImp.StoreImp.empty) in
-    let tds = Array.map add_empty_store es in
-    if C.check (tds, g) [] = err_poss then true (* Success *)
-    else (print_string "Below initial state expected ";
-          (if err_poss then print_string " to have error but none found\n"
-            else print_string " not to have error but error found\n");
-          print_string (C.ProgImp.string_of_program (tds, g));
+    let convert e = (Pl_parser.expr_of_string e, C.ProgImp.ThrImp.StoreImp.empty) in
+    let tds = Array.map convert es in
+    if C.check (tds, g) [] = err_poss then (* Failure *)
+         (print_string "Below initial state expected ";
+          (if err_poss then print_string "to have error but none found\n"
+            else print_string "not to have error but error found\n");
+          print_endline (C.ProgImp.string_of_program (tds, g));
           print_newline ();
-          false) (* Failure *)
+          false)
+    else true (* Success *)
 
 let all_tests_passed =
     let rec conj l = match l with [] -> true | b::bs -> b && conj bs in
