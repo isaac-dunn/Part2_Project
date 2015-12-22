@@ -123,3 +123,19 @@ module type Checker = sig
     val check : ProgImp.state -> ProgImp.transition list -> bool
 end
 
+(* Test Module Interface *)
+module type Test = sig
+    module C : Checker
+
+    (** Type of test case *)
+    type case
+
+    (** List of test cases *)
+    val test_cases : case list
+
+    (** True iff test passed *)
+    val run_test : case -> bool
+
+    val all_tests_passed : bool
+end
+

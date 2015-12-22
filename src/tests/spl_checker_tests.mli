@@ -1,10 +1,8 @@
 (* Unit tests for language for Part II Project *)
 (* Isaac Dunn 15/11/2015 *)
 
-module C : Interfaces.Checker
+module PLCorrectnessTest :
+    functor(Chk : Interfaces.Checker with module ProgImp = Program.PLProgram) -> Interfaces.Test
 
-val test_cases : (string array * Store.PLStore.store * bool) list
+module SPLCheckerCorrectnessTest : Interfaces.Test
 
-val run_test : (string array * Store.PLStore.store * bool) -> bool
-
-val all_tests_passed : bool
