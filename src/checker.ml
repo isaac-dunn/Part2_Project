@@ -50,6 +50,8 @@ module SimpleChecker (Prog : Interfaces.Program) =
             ^ (string_of_bool !no_err_reached)
             ^ " depth: " ^ (string_of_int (List.length t_seq)));
         !no_err_reached
+
+    let error_free init_prog = check init_prog []
   end
 
 module SimplePLChecker : (Interfaces.Checker

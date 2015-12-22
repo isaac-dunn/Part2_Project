@@ -86,7 +86,7 @@ module PLCorrectnessTest (Chk :
         C.max_depth := 0; C.calls := 0;
         let convert e = (Pl_parser.expr_of_string e, C.ProgImp.ThrImp.StoreImp.empty) in
         let tds = Array.map convert es in
-        if C.check (tds, g) [] = err_poss then (* Failure *)
+        if C.error_free (tds, g) = err_poss then (* Failure *)
              (print_string "Below initial state expected ";
               (if err_poss then print_string "to have error but none found\n"
                 else print_string "not to have error but error found\n");
