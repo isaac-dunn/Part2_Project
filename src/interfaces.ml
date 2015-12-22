@@ -83,6 +83,8 @@ module type Thread = sig
                         g_loc     : ExpImp.loc ;
                       }
 
+    val string_of_transition : transition -> string
+
     (** Given expression, local store, global store, gives next thread step if it exists *)
     val next_step : ExpImp.expr * StoreImp.store * StoreImp.store -> step option
 
