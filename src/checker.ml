@@ -2,9 +2,14 @@ module SimpleChecker (Prog : Interfaces.Program) =
   struct
     module ProgImp = Prog
     let print_debug = false
+    let max_depth = ref 0
+    let calls = ref 0
 
     (* True iff error-free *)
     let rec check init_prog t_seq =
+        calls := !calls + 1;
+        let depth = List.length t_seq in
+        if depth > !max_depth then max_depth := depth;
         let (tds, g) = List.fold_left ProgImp.apply_transition init_prog t_seq in
         let no_err_reached = ref true in
         for i = 0 to Array.length tds - 1 do

@@ -66,9 +66,24 @@ module PLCorrectnessTest (Chk :
                 else error(race condition) else skip else skip";
          |], [("x", Integer 100); ("d0", Boolean false); ("d1", Boolean false)],
             false);
+
+        (* Large state space; obvious result though *)
+        ([| "while 2 > !Gx do if cas(Gx, !Gx, !Gx+1) then skip else skip done";
+            "while 3 > !Gx do if cas(Gx, !Gx, !Gx+1) then skip else skip done";
+        |], [("x", Integer 0)], false);
+
+        (* Large state space *)
+        ([| "let val Vr : rf int = ref 0 in
+                while 4 > !Vr do if cas(Gx, !Vr, !Vr+1) then Vr := !Gx else Vr := !Gx done"; 
+            "let val Vr : rf int = ref 0 in
+                while 3 > !Vr do if cas(Gx, !Vr, !Vr+1) then Vr := !Gx else Vr := !Gx done"; 
+            "let val Vr : rf int = ref 0 in
+                while 3 > !Vr do if cas(Gx, !Vr, !Vr+1) then Vr := !Gx else Vr := !Gx done"; 
+        |], [("x", Integer 0)], false);
     ]
 
     let run_test (es, g, err_poss) =
+        C.max_depth := 0; C.calls := 0;
         let convert e = (Pl_parser.expr_of_string e, C.ProgImp.ThrImp.StoreImp.empty) in
         let tds = Array.map convert es in
         if C.check (tds, g) [] = err_poss then (* Failure *)
@@ -78,7 +93,9 @@ module PLCorrectnessTest (Chk :
               print_endline (C.ProgImp.string_of_program (tds, g));
               print_newline ();
               false)
-        else true (* Success *)
+        else (print_endline ("Calls: " ^ (string_of_int !C.calls) ^ "\n"
+                            ^"Depth: " ^ (string_of_int !C.max_depth) ^ "\n");
+              true) (* Success *)
 
     let all_tests_passed =
         let rec conj l = match l with [] -> true | b::bs -> b && conj bs in

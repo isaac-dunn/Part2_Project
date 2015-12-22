@@ -119,6 +119,9 @@ end
 module type Checker = sig
     module ProgImp : Program
 
+    val max_depth : int ref
+    val calls : int ref
+
     (** True iff no error state is reachable *)
     val check : ProgImp.state -> ProgImp.transition list -> bool
 end
