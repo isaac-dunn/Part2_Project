@@ -1,5 +1,0 @@
-Types
-Expressions
-Stores
-Threads
-Systems
