@@ -2,6 +2,8 @@ type 'a varray
 
 exception Invalid_argument
 
+val length : 'a varray -> int
+
 val get : 'a varray -> int -> 'a
 
 val set : 'a varray -> int -> 'a -> unit

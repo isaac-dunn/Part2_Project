@@ -3,6 +3,8 @@ type 'a varray = int ref * 'a array ref
 
 exception Invalid_argument
 
+let length (ul, a) = !ul
+
 let get (ul, a) i =
     if i < !ul then Array.get !a i
       else raise Invalid_argument
@@ -18,7 +20,7 @@ let append (ul, a) x =
         Array.set !a !ul x
      else
         (* 1 + len as 2 * 0 = 0 *)
-        a := Array.concat !a (Array.make (1 + Array.length !a) x));
+        a := Array.append !a (Array.make (1 + Array.length !a) x));
     ul := !ul + 1 
 
 let remove_last (ul, a) = ul := !ul - 1
