@@ -66,20 +66,19 @@ module PLCorrectnessTest (Chk :
                 else error(race condition) else skip else skip";
          |], [("x", Integer 100); ("d0", Boolean false); ("d1", Boolean false)],
             false);
-
+(*
         (* Large state space; obvious result though *)
         ([| "while 2 > !Gx do if cas(Gx, !Gx, !Gx+1) then skip else skip done";
-            "while 3 > !Gx do if cas(Gx, !Gx, !Gx+1) then skip else skip done";
+            "while 2 > !Gx do if cas(Gx, !Gx, !Gx+1) then skip else skip done";
         |], [("x", Integer 0)], false);
 
         (* Large state space *)
         ([| "let val Vr : rf int = ref 0 in
-                while 4 > !Vr do if cas(Gx, !Vr, !Vr+1) then Vr := !Gx else Vr := !Gx done"; 
+                while 2 > !Vr do if cas(Gx, !Vr, !Vr+1) then Vr := !Gx else Vr := !Gx done"; 
             "let val Vr : rf int = ref 0 in
-                while 3 > !Vr do if cas(Gx, !Vr, !Vr+1) then Vr := !Gx else Vr := !Gx done"; 
-            "let val Vr : rf int = ref 0 in
-                while 3 > !Vr do if cas(Gx, !Vr, !Vr+1) then Vr := !Gx else Vr := !Gx done"; 
+                while 2 > !Vr do if cas(Gx, !Vr, !Vr+1) then Vr := !Gx else Vr := !Gx done"; 
         |], [("x", Integer 0)], false);
+*)
     ]
 
     let run_test (es, g, err_poss) =
@@ -102,10 +101,14 @@ module PLCorrectnessTest (Chk :
             conj (List.map run_test test_cases)
 
     let print_all_tests_passed () = print_endline ("Checker Correctness Tests All Passed: "
-                            ^ (string_of_bool all_tests_passed))
+                            ^ (string_of_bool all_tests_passed) ^ "\n\n")
 end
 
 module SPLCheckerCorrectnessTest = PLCorrectnessTest (Checker.SimplePLChecker)
 
 let () = SPLCheckerCorrectnessTest.print_all_tests_passed()
+
+module DPORPLCheckerCorrectnessTest = PLCorrectnessTest (Checker.DPORPLChecker)
+
+let () = DPORPLCheckerCorrectnessTest.print_all_tests_passed()
 

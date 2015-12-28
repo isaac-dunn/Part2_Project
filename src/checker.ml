@@ -64,11 +64,6 @@ module DPORChecker (Prog : Interfaces.Program) =
 
     (* Array for backtracking sets *)
     let backtracks = Var_array.empty()
-    (* Array for done sets *)
-    let dones = Var_array.empty()
-    (* Track the one bit of info we're after *)
-    let no_err_reached = ref true
-
 
     (* True iff error-free *)
     let rec check init_prog t_seq proc_cvs obj_cvs last_ti =
@@ -76,6 +71,9 @@ module DPORChecker (Prog : Interfaces.Program) =
         calls := !calls + 1;
         let depth = List.length t_seq in
         if depth > !max_depth then max_depth := depth;
+
+        (* Track the one bit of info we're after *)
+        let no_err_reached = ref true in
 
         (* Used to determine if there is some enabled p *)
         let transition_to_explore = ref None in
@@ -86,9 +84,9 @@ module DPORChecker (Prog : Interfaces.Program) =
         (* for all processes p *)
         for p = 0 to Array.length tds - 1 do
 
-            let (e, s) = Array.get tds i in
-            if print_debug then print_endline ("Depth: " ^ (string_of_int !depth)
-                ^ " Thread: " ^ (string_of_int i)
+            let (e, s) = Array.get tds p in
+            if print_debug then print_endline ("Depth: " ^ (string_of_int depth)
+                ^ " Thread: " ^ (string_of_int p)
                 ^ " Expression: " ^ (T.ExpImp.string_of_expr e));
 
             (* Is there next transition? *)
@@ -112,7 +110,7 @@ module DPORChecker (Prog : Interfaces.Program) =
               (* There is a transition: check if error  *)
             | Some next_t -> 
                 (* There is at least one transition to explore: this one *)
-                transition_to_explore := (p, next_t);
+                transition_to_explore := Some p;
                 if T.ExpImp.is_error next_t.T.next_expr (* TODO determine if necessary *)
                 (* This is error; mark it as such and print debug *)
                 then (no_err_reached := false; if print_debug then (print_string "ERROR\n";
@@ -120,15 +118,15 @@ module DPORChecker (Prog : Interfaces.Program) =
                   print_string (ProgImp.string_of_program stat);
                   ProgImp.apply_transition stat tran
                  in print_string (ProgImp.string_of_program (
-                    List.fold_left print_and_apply init_prog (t_seq @ [(i, next_t)])))))
+                    List.fold_left print_and_apply init_prog (t_seq @ [(p, next_t)])))))
                 (* Not an error; explore subsequent transitions *)
                 else
                   (* let i = L(alpha(next(s,p))) *)
                   let i = last_ti next_t.T.g_loc in
 
                     (* if i =/= 0 and not i <= C(p)(proc(Si)) *)
-                    if i > 0 and
-                       i > ClockVector.get (proc_cvs p) (fst (List.nth t_seq i))
+                    if i > 0 then if
+                       i > Clockvector.get (proc_cvs p) (fst (List.nth t_seq i))
                     then (
                         (* if p in enabled(pre(S, i)) *)
                         (* then add p to backtrack(pre(S, i)) *)
@@ -140,36 +138,66 @@ module DPORChecker (Prog : Interfaces.Program) =
 
         (* if there is some p in enabled(s) *)
         (* As we have no locks, all available transitions are enabled *)
-        match !transition_to_explore with None -> () | Some (p, next_t) ->
+        (match !transition_to_explore with None -> () | Some pi -> (
 
         (* backtrack(s) := {p} *)
-        Var_array.append backtracks [p]; (* TODO remove_last at end *)
+        Var_array.append backtracks [pi];
+
+        let rec find_p bs ds = match bs with
+            [] -> None
+          | x::xs -> if not (List.mem x ds) then Some x else find_p xs ds in
+
+        (* let done = emptyset *)
+        (* while there is some p in backtrack(s) but not done *)
+        let rec whileloop po dones = match po with None -> () | Some p -> ((
+
+        let (e, s) = Array.get tds p in
+        match T.next_transition (e, s, g) with
+            None -> raise (Failure "Should NEVER happen; there is a transition")
+          | Some next_t -> (
 
         (* let S' = S.next(s,p) *)
-        let new_t_seq = t_seq @ [next_t] in
+        let new_t_seq = t_seq @ [(p, next_t)] in
 
         (* let o = alpha(next(s,p)) *) 
-        let o = next_t.g_loc in
+        let o = next_t.T.g_loc in
 
         (* let cv = max(C(p),C(o))[p:=|S'|] *)
-        let cv = Clockvector.set (Clockvector.max (proc_cvs p) (obj_cvs o) ) p (List.length new_t_seq) in
+        let cv = Clockvector.max (proc_cvs p) (obj_cvs o) in
+        Clockvector.set cv p (List.length new_t_seq);
 
         (* let C' = C[p:=cv, o:=cv] *)
         let new_proc_cvs pi = if pi = p then cv else proc_cvs pi in
         let new_obj_cvs oi = if oi = o then cv else obj_cvs oi in
 
         (* let L' = L[o:=|S'|] *)
-        let new_last_ti oi = if oi = o then List.length new_t_seq else last_ti oi in
+        let new_last_ti oi = if oi = o then List.length new_t_seq - 1 (* index *)
+                                       else last_ti oi in
 
         (* Explore(S', C', L') *)
-        check init_prog new_t_seq new_proc_cvs new_obj_cvs new_last_ti;
+        no_err_reached := !no_err_reached && (check init_prog new_t_seq new_proc_cvs new_obj_cvs new_last_ti);
+
+        (* go back to top of while loop if necessary *)
+        (* also contains add p to done *)
+        )); whileloop (find_p (Var_array.get backtracks (Var_array.length backtracks - 1)) dones) (p::dones))
+        (* also contains let done = emptyset *)
+        in whileloop (find_p (Var_array.get backtracks (Var_array.length backtracks - 1)) []) [];
+            Var_array.remove_last backtracks (* Decrement size of array to counter earlier increment *)));
  
-        if print_debug then print_endline ("no_err_reached: "
+        if print_debug then (print_endline ("no_err_reached: "
             ^ (string_of_bool !no_err_reached)
-            ^ " depth: " ^ (string_of_int (List.length t_seq)));
+            ^ " depth: " ^ (string_of_int (List.length t_seq))));
         !no_err_reached
+
+    let error_free (tds, g) =
+        let n = Array.length tds in
+        check (tds, g) [] (fun _ -> Clockvector.fresh n) (fun _ -> Clockvector.fresh n) (fun _ -> 0) 
   end
 
 module SimplePLChecker : (Interfaces.Checker
     with module ProgImp = Program.PLProgram)
         = SimpleChecker (Program.PLProgram)
+
+module DPORPLChecker : (Interfaces.Checker
+    with module ProgImp = Program.PLProgram)
+        = DPORChecker (Program.PLProgram)

@@ -6,3 +6,5 @@ module PLCorrectnessTest :
 
 module SPLCheckerCorrectnessTest : Interfaces.Test
 
+module DPORPLCheckerCorrectnessTest : Interfaces.Test
+
