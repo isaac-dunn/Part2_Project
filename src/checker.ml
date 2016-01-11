@@ -124,8 +124,8 @@ module DPORChecker (Prog : Interfaces.Program) =
                   (* let i = L(alpha(next(s,p))) *)
                   let i = last_ti next_t.T.g_loc in
 
-                    (* if i =/= 0 and not i <= C(p)(proc(Si)) *)
-                    if i > 0 then if
+                    (* if i =/= ~-1 and not i <= C(p)(proc(Si)) *)
+                    if i > ~-1 then if
                        i > Clockvector.get (proc_cvs p) (fst (List.nth t_seq i))
                     then (
                         (* if p in enabled(pre(S, i)) *)
@@ -191,7 +191,7 @@ module DPORChecker (Prog : Interfaces.Program) =
 
     let error_free (tds, g) =
         let n = Array.length tds in
-        check (tds, g) [] (fun _ -> Clockvector.fresh n) (fun _ -> Clockvector.fresh n) (fun _ -> 0) 
+        check (tds, g) [] (fun _ -> Clockvector.fresh n) (fun _ -> Clockvector.fresh n) (fun _ -> ~-1)
   end
 
 module SimplePLChecker : (Interfaces.Checker

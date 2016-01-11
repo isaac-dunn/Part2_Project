@@ -1,6 +1,6 @@
 type cv = int array
 
-let fresh n = Array.make n 0
+let fresh n = Array.make n ~-1
 
 let size v = Array.length v
 
