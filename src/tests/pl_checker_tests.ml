@@ -129,7 +129,7 @@ module PLCorrectnessTest (Chk :
 
         (* Indexer example *)
         ([| "let val Vsize : int = 128 in
-             let val Vmax : int = 6 in
+             let val Vmax : int = 4 in
              let val Vtid : int = 0 in
              let val Vm : rf int = ref 0 in
              let val Vw : rf int = ref 0 in
@@ -146,7 +146,7 @@ module PLCorrectnessTest (Chk :
             done";
 
             "let val Vsize : int = 128 in
-             let val Vmax : int = 6 in
+             let val Vmax : int = 4 in
              let val Vtid : int = 1 in
              let val Vm : rf int = ref 0 in
              let val Vw : rf int = ref 0 in
