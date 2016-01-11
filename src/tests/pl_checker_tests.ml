@@ -12,6 +12,10 @@ module PLCorrectnessTest (Chk :
 
     let test_cases = [
         (* Initial expression strings, global store, error possible *)
+        ([| "cas(Gx, 2, 0)";
+            "cas(Gx, 2, 1)";
+         |], [("x", Integer 2)], false);
+
         ([| "if cas(Gx, 2, 0) then skip else error(not cas)";
             "cas(Gx, 2, 1)";
          |], [("x", Integer 2)], true);
