@@ -48,7 +48,7 @@ module SimpleChecker (Prog : Interfaces.Program) =
         done;
         if print_debug then print_endline ("no_err_reached: "
             ^ (string_of_bool !no_err_reached)
-            ^ " depth: " ^ (string_of_int (List.length t_seq)));
+            ^ " depth: " ^ (string_of_int depth));
         !no_err_reached
 
     let error_free init_prog = check init_prog []
@@ -145,7 +145,7 @@ module DPORChecker (Prog : Interfaces.Program) =
 
         let rec find_p bs ds = match bs with
             [] -> None
-          | x::xs -> if not (List.mem x ds) then Some x else find_p xs ds in
+          | x::xs -> if List.mem x ds then find_p xs ds else Some x in
 
         (* let done = emptyset *)
         (* while there is some p in backtrack(s) but not done *)
