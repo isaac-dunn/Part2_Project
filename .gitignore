@@ -7,4 +7,6 @@
 *.native
 *.pdf
 *.swp
+*.rs
+*.byte
 _build/
