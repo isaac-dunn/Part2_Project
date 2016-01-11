@@ -179,7 +179,7 @@ module DPORChecker (Prog : Interfaces.Program) =
 
         (* go back to top of while loop if necessary *)
         (* also contains add p to done *)
-        )); whileloop (find_p (Var_array.get backtracks (Var_array.length backtracks - 1)) dones) (p::dones))
+        )); whileloop (find_p (Var_array.get backtracks (Var_array.length backtracks - 1)) (p::dones)) (p::dones))
         (* also contains let done = emptyset *)
         in whileloop (find_p (Var_array.get backtracks (Var_array.length backtracks - 1)) []) [];
             Var_array.remove_last backtracks (* Decrement size of array to counter earlier increment *)));
