@@ -43,8 +43,7 @@ module SimpleChecker (Prog : Interfaces.Program) =
                  in print_string (ProgImp.string_of_program (
                     List.fold_left print_and_apply init_prog (t_seq @ [(i, t_tran)])))))
                 (* Not an error; explore subsequent transitions *)
-                else if !no_err_reached
-                    then no_err_reached := check init_prog (t_seq @ [(i, t_tran)])
+                else no_err_reached := !no_error_reached && check init_prog (t_seq @ [(i, t_tran)])
         done;
         if print_debug then print_endline ("no_err_reached: "
             ^ (string_of_bool !no_err_reached)
