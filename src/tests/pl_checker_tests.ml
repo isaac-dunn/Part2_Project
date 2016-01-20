@@ -280,6 +280,7 @@ module PLCorrectnessTest (Chk :
         C.max_depth := 0; C.calls := 0;
         let convert e = (Pl_parser.expr_of_string e, C.ProgImp.ThrImp.StoreImp.empty) in
         let tds = Array.map convert es in
+        let init_time = Sys.time() in
         if C.error_free (tds, g) = err_poss then (* Failure *)
              (print_string "Below initial state expected ";
               (if err_poss then print_string "to have error but none found\n"
@@ -288,6 +289,8 @@ module PLCorrectnessTest (Chk :
               print_newline ();
               false)
         else (print_endline ("Calls: " ^ (string_of_int !C.calls) ^ "\n"
+                            ^" Time: " ^ (string_of_float
+                                (Sys.time() -. init_time)) ^ "\n"
                             ^"Depth: " ^ (string_of_int !C.max_depth) ^ "\n");
               true) (* Success *)
 
