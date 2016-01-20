@@ -164,6 +164,116 @@ module PLCorrectnessTest (Chk :
 
         |], ("table", Pl_parser.expr_of_string int_to_loc_expr_str)::
                 (array_store 128), false);
+
+        (* Thread 0 accesses even array indices; thread 1 accesses odd *)
+        ([| "let val Vsize : int = 128 in
+             let val Vmax : int = 4 in
+             let val Vtid : int = 0 in
+             let val Vi : rf int = ref 0 in
+             while Vmax > !Vi do
+                if cas(!Gtable @ (Vtid + 2 * !Vi), 0, 1)
+                then Vi := !Vi + 1
+                else error(array element already reached)
+             done";
+
+            "let val Vsize : int = 128 in
+             let val Vmax : int = 4 in
+             let val Vtid : int = 1 in
+             let val Vi : rf int = ref 0 in
+             while Vmax > !Vi do
+                if cas(!Gtable @ (Vtid + 2 * !Vi), 0, 1)
+                then Vi := !Vi + 1
+                else error(array element already reached)
+             done";
+
+         |], ("table", Pl_parser.expr_of_string int_to_loc_expr_str)::
+                (array_store 128), false);
+
+        (* Thread 0 accesses 0,3,6,9; thread 1 accesses 1,5,9; error at 9 *)
+        ([| "let val Vsize : int = 128 in
+             let val Vmax : int = 4 in
+             let val Vtid : int = 0 in
+             let val Vi : rf int = ref 0 in
+             while Vmax > !Vi do
+                if cas(!Gtable @ (Vtid + 3 * !Vi), 0, 1)
+                then Vi := !Vi + 1
+                else error(array element already reached)
+             done";
+
+            "let val Vsize : int = 128 in
+             let val Vmax : int = 4 in
+             let val Vtid : int = 1 in
+             let val Vi : rf int = ref 0 in
+             while Vmax > !Vi do
+                if cas(!Gtable @ (Vtid + 4 * !Vi), 0, 1)
+                then Vi := !Vi + 1
+                else Vi := !Vi + 1
+             done";
+
+         |], ("table", Pl_parser.expr_of_string int_to_loc_expr_str)::
+                (array_store 128), true);
+
+        (* first set array values in thread 0, then check them in thread 1 *)
+        ([| "let val Vsize : int = 3 in
+             let val Vi : rf int = ref 0 in
+             while Vsize > !Vi do
+                if cas(!Gtable @ !Vi, 0, (!Vi % 4) + 1)
+                then Vi := !Vi + 1
+                else error(array should be initially zero)
+             done; if cas(Gready, false, true) then skip
+                    else error(should only be ready now not before)";
+
+            "let val Vlimit : int = 8 in
+             let val Vcounter : rf int = ref 0 in (
+             while if !Gready then false else Vlimit > !Vcounter
+                do Vcounter := !Vcounter + 1 done;
+             let val Vsize : int = 3 in
+             let val Vi : rf int = ref 0 in
+             while Vsize > !Vi do
+                if cas(!Gtable @ !Vi, (!Vi % 4) + 1, 0)
+                then Vi := !Vi + 1
+                else if Vlimit > !Vcounter then error(wrong value in table)
+                     else Vi := !Vi + 1
+            done)";
+
+         |], ("table", Pl_parser.expr_of_string int_to_loc_expr_str)::
+               (("ready", Boolean false)::(array_store 8)), false);
+
+        (* Producer/Consumer *)
+        ([| "let val Vsize : int = 8 in
+             let val Vi : rf int = ref 0 in
+             let val Vlimit : int = 2 in
+             let val Vctr : rf int = ref 0 in
+             let val Vhash : int -> int =
+                fn Vx : int => ((((12773*Vx)%179)*7)%100)+1 in
+             while Vlimit > !Vctr do
+                if !(!Gtable @ !Vi) = 0
+                then if cas(!Gtable @ (!Vi+1), 0, Vhash @ (!Vi+1))
+                     then if cas(!Gtable @ !Vi, 0, 1)
+                        then Vctr := !Vctr + 1; Vi := (!Vi + 2) % Vsize
+                        else error(marker should still be zero)
+                     else error(supposed to be empty slot)
+                else Vctr := !Vctr + 1
+             done";
+
+            "let val Vsize : int = 8 in
+             let val Vi : rf int = ref 0 in
+             let val Vlimit : int = 2 in
+             let val Vctr : rf int = ref 0 in
+             while Vlimit > !Vctr do
+                if !(!Gtable @ !Vi) = 1
+                then let val Vn : int = !(!Gtable @ (!Vi+1)) in
+                   if Vn = 0 then error(supposed to be full slot)
+                   else if cas(!Gtable @ (!Vi+1), Vn, 0)
+                        then if cas(!Gtable @ !Vi, 1, 0)
+                             then Vctr := !Vctr + 1; Vi := (!Vi + 2) % Vsize
+                             else error(marker should still be one)
+                        else error(value changed since read)
+                else Vctr := !Vctr + 1
+             done";
+
+         |], ("table", Pl_parser.expr_of_string int_to_loc_expr_str)::
+               (array_store 8), false);
     ]
 
     let run_test (es, g, err_poss) =
