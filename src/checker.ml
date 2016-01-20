@@ -1,7 +1,6 @@
 module SimpleChecker (Prog : Interfaces.Program) =
   struct
     module ProgImp = Prog
-    let print_debug = false
     let max_depth = ref 0
     let calls = ref 0
 
@@ -14,19 +13,14 @@ module SimpleChecker (Prog : Interfaces.Program) =
         let no_err_reached = ref true in
         for i = 0 to Array.length tds - 1 do
             let (e, s) = Array.get tds i in
-            if print_debug then print_endline ("Depth: " ^ (string_of_int (List.length t_seq))
-                ^ " Thread: " ^ (string_of_int i)
-                ^ " Expression: " ^ (ProgImp.ThrImp.ExpImp.string_of_expr e));
             match ProgImp.ThrImp.next_transition (e, s, g) with
               (* No futher transitions: check if this thread reaches a local error *)
               None ->
                 let rec check_local (ex, st) =
                     if ProgImp.ThrImp.ExpImp.is_error ex
-                    then (no_err_reached := false; if print_debug then
-                            print_endline ("Local error reached: " ^
-                                (ProgImp.ThrImp.ExpImp.string_of_expr ex)))
+                    then no_err_reached := false
                     else match ProgImp.ThrImp.next_step (ex, st, g) with
-                        None -> if print_debug then print_endline "No local errors" (* No errors *)
+                        None -> () (* No errors *)
                       | Some t_step -> check_local (t_step.ProgImp.ThrImp.new_expr,
                                         (match t_step.ProgImp.ThrImp.s_update with
                                           None -> st
@@ -35,19 +29,11 @@ module SimpleChecker (Prog : Interfaces.Program) =
               (* There is a transition: check if error; explore from the new state *)
             | Some t_tran -> 
                 if ProgImp.ThrImp.ExpImp.is_error t_tran.ProgImp.ThrImp.next_expr
-                (* This is error; mark it as such and print debug *)
-                then (no_err_reached := false; if print_debug then (print_string "ERROR\n";
-                 let print_and_apply stat tran =
-                  print_string (ProgImp.string_of_program stat);
-                  ProgImp.apply_transition stat tran
-                 in print_string (ProgImp.string_of_program (
-                    List.fold_left print_and_apply init_prog (t_seq @ [(i, t_tran)])))))
+                (* This is error; mark it as such *)
+                then no_err_reached := false
                 (* Not an error; explore subsequent transitions *)
                 else no_err_reached := !no_err_reached && check init_prog (t_seq @ [(i, t_tran)])
         done;
-        if print_debug then print_endline ("no_err_reached: "
-            ^ (string_of_bool !no_err_reached)
-            ^ " depth: " ^ (string_of_int depth));
         !no_err_reached
 
     let error_free init_prog = check init_prog []
@@ -57,7 +43,6 @@ module DPORChecker (Prog : Interfaces.Program) =
   struct
     module ProgImp = Prog
     module T = ProgImp.ThrImp
-    let print_debug = false
     let max_depth = ref 0
     let calls = ref 0
 
@@ -84,9 +69,6 @@ module DPORChecker (Prog : Interfaces.Program) =
         for p = 0 to Array.length tds - 1 do
 
             let (e, s) = Array.get tds p in
-            if print_debug then print_endline ("Depth: " ^ (string_of_int depth)
-                ^ " Thread: " ^ (string_of_int p)
-                ^ " Expression: " ^ (T.ExpImp.string_of_expr e));
 
             (* Is there next transition? *)
             match ProgImp.ThrImp.next_transition (e, s, g) with
@@ -95,11 +77,9 @@ module DPORChecker (Prog : Interfaces.Program) =
               None ->
                 let rec check_local (ex, st) =
                     if T.ExpImp.is_error ex
-                    then (no_err_reached := false; if print_debug then
-                            print_endline ("Local error reached: " ^
-                                (T.ExpImp.string_of_expr ex)))
+                    then no_err_reached := false
                     else match T.next_step (ex, st, g) with
-                        None -> if print_debug then print_endline "No local errors" (* No errors *)
+                        None -> () (* No errors *)
                       | Some t_step -> check_local (t_step.T.new_expr,
                                         (match t_step.T.s_update with
                                           None -> st
@@ -111,13 +91,8 @@ module DPORChecker (Prog : Interfaces.Program) =
                 (* There is at least one transition to explore: this one *)
                 transition_to_explore := Some p;
                 if T.ExpImp.is_error next_t.T.next_expr (* TODO determine if necessary *)
-                (* This is error; mark it as such and print debug *)
-                then (no_err_reached := false; if print_debug then (print_string "ERROR\n";
-                 let print_and_apply stat tran =
-                  print_string (ProgImp.string_of_program stat);
-                  ProgImp.apply_transition stat tran
-                 in print_string (ProgImp.string_of_program (
-                    List.fold_left print_and_apply init_prog (t_seq @ [(p, next_t)])))))
+                (* This is error; mark it as such *)
+                then no_err_reached := false
                 (* Not an error; explore subsequent transitions *)
                 else
                   (* let i = L(alpha(next(s,p))) *)
@@ -183,9 +158,6 @@ module DPORChecker (Prog : Interfaces.Program) =
         in whileloop (find_p (Var_array.get backtracks (Var_array.length backtracks - 1)) []) [];
             Var_array.remove_last backtracks (* Decrement size of array to counter earlier increment *)));
  
-        if print_debug then (print_endline ("no_err_reached: "
-            ^ (string_of_bool !no_err_reached)
-            ^ " depth: " ^ (string_of_int (List.length t_seq))));
         !no_err_reached
 
     let error_free (tds, g) =
