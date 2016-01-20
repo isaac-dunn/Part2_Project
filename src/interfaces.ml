@@ -139,6 +139,6 @@ module type Test = sig
     (** True iff test passed *)
     val run_test : case -> bool
 
-    val all_tests_passed : bool
+    val all_tests_passed : unit -> bool
 end
 
