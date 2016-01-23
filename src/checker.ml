@@ -90,23 +90,18 @@ module DPORChecker (Prog : Interfaces.Program) =
             | Some next_t -> 
                 (* There is at least one transition to explore: this one *)
                 transition_to_explore := Some p;
-                if T.ExpImp.is_error next_t.T.next_expr (* TODO determine if necessary *)
-                (* This is error; mark it as such *)
-                then no_err_reached := false
-                (* Not an error; explore subsequent transitions *)
-                else
-                  (* let i = L(alpha(next(s,p))) *)
-                  let i = last_ti next_t.T.g_loc in
+                (* let i = L(alpha(next(s,p))) *)
+                let i = last_ti next_t.T.g_loc in
 
-                    (* if i =/= ~-1 and not i <= C(p)(proc(Si)) *)
-                    if i > ~-1 then if
-                       i > Clockvector.get (proc_cvs p) (fst (List.nth t_seq i))
-                    then (
-                        (* if p in enabled(pre(S, i)) *)
-                        (* then add p to backtrack(pre(S, i)) *)
-                        Var_array.set backtracks i (p::(Var_array.get backtracks i))
-                        (* else add enabled(pre(S,i)) to backtrack(pre(S,i)) *)
-                        (* As we have no locks, all transitions are always enabled *)
+                (* if i =/= ~-1 and not i <= C(p)(proc(Si)) *)
+                if i > ~-1 then if
+                   i > Clockvector.get (proc_cvs p) (fst (List.nth t_seq i))
+                then (
+                    (* if p in enabled(pre(S, i)) *)
+                    (* then add p to backtrack(pre(S, i)) *)
+                    Var_array.set backtracks i (p::(Var_array.get backtracks i))
+                    (* else add enabled(pre(S,i)) to backtrack(pre(S,i)) *)
+                    (* As we have no locks, all transitions are always enabled *)
                     )
         done;
 
