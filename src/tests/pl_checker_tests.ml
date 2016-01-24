@@ -338,6 +338,33 @@ module PLCorrectnessTest (Chk :
              ("t1finished", Boolean false); ("t2finished", Boolean false)],
                 false);
 
+        (* Another example showing off DPOR *)
+        ([| "let val Vtable : int -> rf int = !Gtable in
+             let val Vsize : int = !Gsize in
+             let val Vpi : rf int = ref 0 in
+             while Vsize > Vpi do
+                if cas(Vtable @ !Vpi, !(Vtable @ !Vpi), 2)
+                then (Vpi = !Vpi + !(Vtable @ (!Vpi + 1));
+                      if !Vpi > 0 then if !(Vtable @ (!Vpi-1)) = 2
+                                    then skip else error(should be two)
+                                  else skip)
+                else error(the value unexpectedly changed)
+            done";
+
+            "let val Vtable : int -> rf int = !Gtable in
+             let val Vsize : int = !Gsize in
+             let val Vpi : rf int = ref 1 in
+             while Vsize > Vpi do
+                if cas(Vtable @ !Vpi, !(Vtable @ !Vpi), 2)
+                then (Vpi = !Vpi + !(Vtable @ (!Vpi - 1));
+                      if !Vpi > 1 then if !(Vtable @ (!Vpi-3)) = 2
+                                    then skip else error(should be two)
+                                  else skip)
+                else error(the value unexpectedly changed)
+            done";
+
+         |], ("table", Pl_parser.expr_of_string int_to_loc_expr_str)::
+             ("size", Integer 100)::(array_store 100), false);
     ]
 
     let run_test (es, g, err_poss) =
