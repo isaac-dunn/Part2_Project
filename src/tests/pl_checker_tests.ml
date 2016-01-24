@@ -274,6 +274,36 @@ module PLCorrectnessTest (Chk :
 
          |], ("table", Pl_parser.expr_of_string int_to_loc_expr_str)::
                (array_store 8), false);
+
+        (* Set array values, and check they aren't set to values they aren't set to *)
+       ([| "let val Vtable : int -> rf int = !Gtable in
+            let val Vsize : int = !Gsize in
+            let val Vmod : int = !Gmod in
+            let val Vtid : int = 1 in
+            let val Vi : rf int = ref 0 in
+            while Vsize > !Vi do
+                if cas(Vtable @ !Vi, 0, Vtid)
+                then Vi := !Vi + 1
+                else if !(Vtable @ !Vi) % Vmod = 0
+                     then error(should never be zero)
+                     else Vi := !Vi + 1
+            done";
+
+           "let val Vtable : int -> rf int = !Gtable in
+            let val Vsize : int = !Gsize in
+            let val Vmod : int = !Gmod in
+            let val Vtid : int = 2 in
+            let val Vi : rf int = ref 0 in
+            while Vsize > !Vi do
+                if cas(Vtable @ !Vi, 0, Vtid)
+                then Vi := !Vi + 1
+                else if !(Vtable @ !Vi) % Vmod = 0
+                     then error(should never be zero)
+                     else Vi := !Vi + 1
+            done";
+
+         |], ("table", Pl_parser.expr_of_string int_to_loc_expr_str)::
+             ("size", Integer 4)::("mod", Integer 4)::(array_store 8), false);
     ]
 
     let run_test (es, g, err_poss) =
