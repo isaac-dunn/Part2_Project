@@ -304,6 +304,40 @@ module PLCorrectnessTest (Chk :
 
          |], ("table", Pl_parser.expr_of_string int_to_loc_expr_str)::
              ("size", Integer 4)::("mod", Integer 4)::(array_store 8), false);
+
+        (* Beer in fridge example from Part IB Conc. Systems *)
+        ([| "if !Gbeer then skip
+             else if cas(Gbeer, false, true) then skip
+                  else error(someone put beer in the fridge before me)";
+            "if !Gbeer then skip
+             else if cas(Gbeer, false, true) then skip
+                  else error(someone put beer in the fridge before me)";
+        |], [("beer", Boolean false)], true);
+
+        (* Solution to beer problem *)
+        ([| "if !Gbeer then skip else
+             ((if cas(Gnote, false, true)
+             then if cas(Gbeer, false, true)
+                  then skip
+                  else error(someone bought beer before I did)
+             else skip); cas(Gt1finished, false, true))";
+
+            "if !Gbeer then skip else
+             ((if cas(Gnote, false, true)
+             then if cas(Gbeer, false, true)
+                  then skip
+                  else error(someone bought beer before I did)
+             else skip); cas(Gt2finished, false, true))";
+
+            "if !Gt1finished then if !Gt2finished
+                then if !Gbeer then skip
+                               else error(no beer at end)
+                else skip else skip";
+
+        |], [("beer", Boolean false); ("note", Boolean false);
+             ("t1finished", Boolean false); ("t2finished", Boolean false)],
+                false);
+
     ]
 
     let run_test (es, g, err_poss) =
