@@ -363,6 +363,51 @@ module PLCorrectnessTest (Chk :
 
          |], ("table", Pl_parser.expr_of_string int_to_loc_expr_str)::
              ("size", Integer 3)::(array_store 100), false);
+
+        ([| "let val Vsize : int = !Gsize in
+             let val Vtid : int = 1 in
+             let val Vi : rf int = ref 0 in
+             while Vsize > !Vi do
+                if cas(!Gtable @ !Vi, 0, 1)
+                then if cas(!Gtable @ (!Vi + 1), 0, Vtid)
+                     then if cas(!Gtable @ !Vi, 1, 2)
+                          then Vi := !Vi + 2
+                          else error(flag should be set to 1)
+                     else error(value should be unset)
+                else if !(!Gtable @ !Vi) = 2
+                  then
+                     let val Vread : int = !(!Gtable @ (!Vi + 1)) in
+                     if Vread = 0
+                     then error(should be set by some thread)
+                     else if Vread = Vtid
+                     then error(should be set by another thread)
+                     else Vi := !Vi + 2
+                  else Vi := !Vi + 2
+             done";
+
+            "let val Vsize : int = !Gsize in
+             let val Vtid : int = 2 in
+             let val Vi : rf int = ref 0 in
+             while Vsize > !Vi do
+                if cas(!Gtable @ !Vi, 0, 1)
+                then if cas(!Gtable @ (!Vi + 1), 0, Vtid)
+                     then if cas(!Gtable @ !Vi, 1, 2)
+                          then Vi := !Vi + 2
+                          else error(flag should be set to 1)
+                     else error(value should be unset)
+                else if !(!Gtable @ !Vi) = 2
+                  then
+                     let val Vread : int = !(!Gtable @ (!Vi + 1)) in
+                     if Vread = 0
+                     then error(should be set by some thread)
+                     else if Vread = Vtid
+                     then error(should be set by another thread)
+                     else Vi := !Vi + 2
+                  else Vi := !Vi + 2
+             done";
+
+         |], ("table", Pl_parser.expr_of_string int_to_loc_expr_str)::
+             ("size", Integer 2)::(array_store 8), false);
     ]
 
     let run_test (es, g, err_poss) =
