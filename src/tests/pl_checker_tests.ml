@@ -408,6 +408,37 @@ module PLCorrectnessTest (Chk :
 
          |], ("table", Pl_parser.expr_of_string int_to_loc_expr_str)::
              ("size", Integer 2)::(array_store 8), false);
+
+        ([| "let val Vsize : int = !Gsize in
+             let val Vtable : int -> rf int = !Gtable in
+             let val Vi : rf int = ref 1 in
+             while Vsize > !Vi do
+                if cas(Vtable @ !Vi, 0, 1) then
+                    Vi := !Vi + !Gincrement
+                else error(should not be set)
+            done";
+
+            "let val Vsize : int = !Gsize in
+             let val Vtable : int -> rf int = !Gtable in
+             let val Vi : rf int = ref 2 in
+             while Vsize > !Vi do
+                if cas(Vtable @ !Vi, 0, 1) then
+                    Vi := !Vi + !Gincrement
+                else error(should not be set)
+             done";
+
+            "let val Vsize : int = !Gsize in
+             let val Vtable : int -> rf int = !Gtable in
+             let val Vi : rf int = ref 3 in
+             while Vsize > !Vi do
+                if cas(Vtable @ !Vi, 0, 1) then
+                    Vi := !Vi + !Gincrement
+                else error(should not be set)
+             done";
+
+         |], ("table", Pl_parser.expr_of_string int_to_loc_expr_str)::
+             ("increment", Integer 3)::("size", Integer 4)::
+             (array_store 100), false);
     ]
 
     let run_test (es, g, err_poss) =
