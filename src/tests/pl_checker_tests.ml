@@ -15,9 +15,9 @@ module PLCorrectnessTest (Chk :
             else  (string_of_int n,
                     Integer 0)::(array_store (n-1)) in
         let int_to_loc_str n =
-            let itls_aux m = if m > n then "error(index out of bounds)"
+            let rec itls_aux m = if m > n then "error(index out of bounds)"
                     else "if x=" ^ (string_of_int m) ^ " then G" ^
-                            (string_of_int m) ^ "else " ^ (itls_aux (m+1))
+                            (string_of_int m) ^ " else " ^ (itls_aux (m+1))
             in "fn x => " ^ (itls_aux 0) in
 
     [
@@ -126,7 +126,7 @@ module PLCorrectnessTest (Chk :
                 done
             done";
 
-        |], ("table", Pl_parser.expr_of_string int_to_loc_str 128)::
+        |], ("table", Pl_parser.expr_of_string (int_to_loc_str 128))::
                 (array_store 128), false);
 
         (* Test 14 *)
@@ -151,7 +151,7 @@ module PLCorrectnessTest (Chk :
                 else error(array element already reached)
              done";
 
-         |], ("table", Pl_parser.expr_of_string int_to_loc_str 128)::
+         |], ("table", Pl_parser.expr_of_string (int_to_loc_str 128))::
                 (array_store 128), false);
 
         (* Test 15 *)
@@ -176,7 +176,7 @@ module PLCorrectnessTest (Chk :
                 else i := !i + 1
              done";
 
-         |], ("table", Pl_parser.expr_of_string int_to_loc_str 128)::
+         |], ("table", Pl_parser.expr_of_string (int_to_loc_str 128))::
                 (array_store 128), true);
 
         (* Test 16 *)
@@ -203,7 +203,7 @@ module PLCorrectnessTest (Chk :
                      else i := !i + 1
             done)";
 
-         |], ("table", Pl_parser.expr_of_string int_to_loc_str 8)::
+         |], ("table", Pl_parser.expr_of_string (int_to_loc_str 8))::
                (("ready", Boolean false)::(array_store 8)), false);
 
         (* Test 17 *)
@@ -240,7 +240,7 @@ module PLCorrectnessTest (Chk :
                 else ctr := !ctr + 1
              done";
 
-         |], ("table", Pl_parser.expr_of_string int_to_loc_str 8)::
+         |], ("table", Pl_parser.expr_of_string (int_to_loc_str 8))::
                (array_store 8), false);
 
         (* Test 18 *)
@@ -271,7 +271,7 @@ module PLCorrectnessTest (Chk :
                      else i := !i + 1
             done";
 
-         |], ("table", Pl_parser.expr_of_string int_to_loc_str 8)::
+         |], ("table", Pl_parser.expr_of_string (int_to_loc_str 8))::
              ("size", Integer 4)::("mod", Integer 4)::(array_store 8), false);
 
         (* Beer in fridge example from Part IB Conc. Systems *)
@@ -332,7 +332,7 @@ module PLCorrectnessTest (Chk :
                      else pi := !pi + 1
             done";
 
-         |], ("table", Pl_parser.expr_of_string int_to_loc_str 100)::
+         |], ("table", Pl_parser.expr_of_string (int_to_loc_str 100))::
              ("size", Integer 3)::(array_store 100), false);
 
         (* Test 22 *)
@@ -378,7 +378,7 @@ module PLCorrectnessTest (Chk :
                   else i := !i + 2
              done";
 
-         |], ("table", Pl_parser.expr_of_string int_to_loc_str 8)::
+         |], ("table", Pl_parser.expr_of_string (int_to_loc_str 8))::
              ("size", Integer 2)::(array_store 8), false);
 
         (* Test 23 *)
@@ -409,7 +409,7 @@ module PLCorrectnessTest (Chk :
                 else error(should not be set)
              done";
 
-         |], ("table", Pl_parser.expr_of_string int_to_loc_str 100)::
+         |], ("table", Pl_parser.expr_of_string (int_to_loc_str 100))::
              ("increment", Integer 3)::("size", Integer 4)::
              (array_store 100), false);
     ]
