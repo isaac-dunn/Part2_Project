@@ -94,11 +94,11 @@ let rec string_of_expr e = match e with
   | While (e1, e2) ->  "while " ^ (string_of_expr e1) ^  " do " ^
                         (string_of_expr e2) ^  " done"
   | Var n ->  "V:" ^ string_of_int n
-  | Fn (t, e1) -> "(fn O => " ^ (string_of_expr e1) ^ ")"
+  | Fn (e1) -> "(fn O => " ^ (string_of_expr e1) ^ ")"
   | App (e1, e2) ->  "(" ^ (string_of_expr e1) ^ " " ^ (string_of_expr e2) ^ ")"
-  | Let (t1, e1, e2) ->  "let val O = " ^ (string_of_expr e1) ^
+  | Let (e1, e2) ->  "let val O = " ^ (string_of_expr e1) ^
         " in " ^ (string_of_expr e2) ^  " end"
-  | Letrec (t1, t2, e1, e2) -> "let rec O = (fn O => " ^ (string_of_expr e1)
+  | Letrec (e1, e2) -> "let rec O = (fn O => " ^ (string_of_expr e1)
                                  ^  ") in " ^ (string_of_expr e2) ^  " end"
   | Cas (e1, e2, e3) ->  "CAS(" ^ (string_of_expr e1) ^  ", " ^
                         (string_of_expr e2) ^  ", " ^ (string_of_expr e3) ^  ")"
@@ -168,7 +168,7 @@ let is_value e = match e with
   | Loc _ -> true
   | Glo _ -> true
   | Skip -> true
-  | Fn (_, _) -> true
+  | Fn (_) -> true
   | f -> is_error f
 
 (* subst : expr -> int -> expr -> expr *)

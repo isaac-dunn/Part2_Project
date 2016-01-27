@@ -33,10 +33,10 @@ type expr_raw =
    | Seq_raw of expr_raw * expr_raw
    | While_raw of expr_raw * expr_raw
    | Var_raw of var_raw
-   | Fn_raw of var_raw * Type.type_expr * expr_raw
+   | Fn_raw of var_raw * expr_raw
    | App_raw of expr_raw * expr_raw
-   | Let_raw of var_raw * Type.type_expr * expr_raw * expr_raw
-   | Letrec_raw of var_raw * Type.type_expr * var_raw * Type.type_expr * expr_raw * expr_raw
+   | Let_raw of var_raw * expr_raw * expr_raw
+   | Letrec_raw of var_raw * var_raw * expr_raw * expr_raw
    | Cas_raw of expr_raw * expr_raw * expr_raw
    | Error_raw of string
 
@@ -55,10 +55,10 @@ type expr =
    | Seq of expr * expr
    | While of expr * expr
    | Var of int
-   | Fn of Type.type_expr * expr
+   | Fn of expr
    | App of expr * expr
-   | Let of Type.type_expr * expr * expr
-   | Letrec of Type.type_expr * Type.type_expr * expr * expr
+   | Let of expr * expr
+   | Letrec of expr * expr
    | Cas of expr * expr * expr
    | Error of string
 
