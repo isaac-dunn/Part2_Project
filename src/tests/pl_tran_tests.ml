@@ -34,13 +34,13 @@ let test_cases = [
           Thr.g_updates = [];
           Thr.g_loc = "o"});
 
-    (("fn Vx: rf int => (cas(Vx, 0, 1);true) @ Go", [], [("o", Integer 0)]),
+    (("fn x => (cas(x, 0, 1);true) @ Go", [], [("o", Integer 0)]),
     Some {Thr.next_expr = Seq (Boolean true, Boolean true);
           Thr.s_updates = [];
           Thr.g_updates = [("o", Integer 1)];
           Thr.g_loc = "o"});
 
-    (("fn Vx: rf int => (cas(Vx, 0, 1);true) @ Go", [], [("o", Integer 1)]),
+    (("fn x => (cas(x, 0, 1);true) @ Go", [], [("o", Integer 1)]),
     Some {Thr.next_expr = Seq (Boolean false, Boolean true);
           Thr.s_updates = [];
           Thr.g_updates = [];
