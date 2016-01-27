@@ -6,7 +6,7 @@
 let nat = ['0' - '9']+
 let white = [' ' '\t' '\n' '\r']+
 (* Digits allowed at beginning as will always be prefixed by L, G or V *)
-let id = ['a'-'z' 'A'-'Z' '_' '0'-'9']+
+let id = ['a' - 'z'] ['a'-'z' 'A'-'Z' '_' '0'-'9']*
 let plain_text = ['a'-'z' 'A'-'Z' '_' ' ' '0'-'9']+
 
 rule read =
@@ -37,7 +37,6 @@ rule read =
   | "while" { WHILE }
   | "do" { DO }
   | "done" { DONE }
-  | "V" (id as lxm) { VAR (lxm) }
   | "fn" { FN }
   | "=>" { ARROW }
   | "@" { APP }
@@ -48,6 +47,7 @@ rule read =
   | "," { COMMA }
   | "error(" (plain_text as msg) ")" { ERROR (msg) }
   | "eof" { EOF }
+  | (id as lxm) { VAR (lxm) }
   | _ { raise (SyntaxError ("Unexpected char \"" ^ Lexing.lexeme lexbuf ^
         "\" at position " ^ (string_of_int (Lexing.lexeme_start lexbuf)))) }
 
