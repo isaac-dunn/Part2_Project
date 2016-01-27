@@ -14,6 +14,7 @@
 %token LET REC IN
 %token CAS COMMA
 %token <string> ERROR
+%token HASHBREAK COLON
 %token EOF
 
 %nonassoc ELSE IN (* ... else a @ b is else (a @ b), likewise for in *)
@@ -31,9 +32,21 @@
 %nonassoc DEREF REF (* !e and ref e bind most tightly *)
 
 %type <Pl_expression.expr_raw> expr parse_expr
-%start parse_expr
+%type <(string * Pl_expression.expr_raw) list * (Pl_expression.expr_raw list)> parse_program
+%start parse_expr parse_program
 
 %%
+
+parse_program:
+  | g_store thread_list { ($1, $2) }
+
+g_store:
+  | HASHBREAK { [] }
+  | v = VAR COLON e = expr gs = g_store { (v, e)::gs }
+
+thread_list:
+  | e = expr EOF { [e] }
+  | e = expr HASHBREAK tl = thread_list { e::tl }
 
 parse_expr:
   | e = expr EOF { e }

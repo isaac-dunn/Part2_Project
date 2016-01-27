@@ -2,6 +2,30 @@ let expr_raw_of_string s = Pl_raw_parser.parse_expr Pl_lexer.read (Lexing.from_s
 
 let expr_of_string s = Pl_expression.convert_from_raw (expr_raw_of_string s)
 
+let print_position outx lexbuf =
+  let pos = lexbuf.Lexing.lex_curr_p in
+  Printf.fprintf outx "%s:%d:%d" pos.Lexing.pos_fname
+    pos.Lexing.pos_lnum (pos.Lexing.pos_cnum - pos.Lexing.pos_bol + 1)
+
+let program_of_lexbuf lexbuf =
+    let (g_raw, es_raw) =
+        try Pl_raw_parser.parse_program Pl_lexer.read lexbuf with
+        | Pl_lexer.SyntaxError msg ->
+            Printf.fprintf stderr "%a: %s\n" print_position lexbuf msg; exit(-1)
+        | Pl_raw_parser.Error ->
+            Printf.fprintf stderr "%a: syntax error\n" print_position lexbuf; exit (-1)
+    in let g = List.rev_map
+        (fun (s, e) -> (s, Pl_expression.convert_from_raw e)) g_raw
+    in let convert e_str = (Pl_expression.convert_from_raw e_str, Store.PLStore.empty)
+    in let tds = Array.of_list (List.rev_map convert es_raw)
+    in (tds, g)
+
+let program_of_string s =
+    program_of_lexbuf (Lexing.from_string (s^" eof"))
+
+let program_of_channel ic =
+    program_of_lexbuf (Lexing.from_channel ic)
+
 let print_result str = print_endline (Pl_expression.string_of_expr (expr_of_string str))
 
 (* X for end of parsing *)

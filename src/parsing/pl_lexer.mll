@@ -46,6 +46,8 @@ rule read =
   | "cas" { CAS }
   | "," { COMMA }
   | "error(" (plain_text as msg) ")" { ERROR (msg) }
+  | ":" { COLON }
+  | "###" "#"* { HASHBREAK }
   | "eof" { EOF }
   | (id as lxm) { VAR (lxm) }
   | _ { raise (SyntaxError ("Unexpected char \"" ^ Lexing.lexeme lexbuf ^
