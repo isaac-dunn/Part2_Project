@@ -14,52 +14,53 @@ module PLCorrectnessTest (Chk :
         let rec array_store n = if n = 0 then [("0", Integer 0)]
             else  (string_of_int n,
                     Integer 0)::(array_store (n-1)) in
-        let int_to_loc_expr_str = "fn Vx : int =>
-            if Vx=0 then G0 else if Vx=1 then G1 else if Vx=2 then G2 else
-            if Vx=3 then G3 else if Vx=4 then G4 else if Vx=5 then G5 else
-            if Vx=6 then G6 else if Vx=7 then G7 else if Vx=8 then G8 else
-            if Vx=9 then G9 else if Vx=10 then G10 else if Vx=11 then G11 else
-            if Vx=12 then G12 else if Vx=13 then G13 else if Vx=14 then G14 else
-            if Vx=15 then G15 else if Vx=16 then G16 else if Vx=17 then G17 else
-            if Vx=18 then G18 else if Vx=19 then G19 else if Vx=20 then G20 else
-            if Vx=21 then G21 else if Vx=22 then G22 else if Vx=23 then G23 else
-            if Vx=24 then G24 else if Vx=25 then G25 else if Vx=26 then G26 else
-            if Vx=27 then G27 else if Vx=28 then G28 else if Vx=29 then G29 else
-            if Vx=30 then G30 else if Vx=31 then G31 else if Vx=32 then G32 else
-            if Vx=33 then G33 else if Vx=34 then G34 else if Vx=35 then G35 else
-            if Vx=36 then G36 else if Vx=37 then G37 else if Vx=38 then G38 else
-            if Vx=39 then G39 else if Vx=40 then G40 else if Vx=41 then G41 else
-            if Vx=42 then G42 else if Vx=43 then G43 else if Vx=44 then G44 else
-            if Vx=45 then G45 else if Vx=46 then G46 else if Vx=47 then G47 else
-            if Vx=48 then G48 else if Vx=49 then G49 else if Vx=50 then G50 else
-            if Vx=51 then G51 else if Vx=52 then G52 else if Vx=53 then G53 else
-            if Vx=54 then G54 else if Vx=55 then G55 else if Vx=56 then G56 else
-            if Vx=57 then G57 else if Vx=58 then G58 else if Vx=59 then G59 else
-            if Vx=60 then G60 else if Vx=61 then G61 else if Vx=62 then G62 else
-            if Vx=63 then G63 else if Vx=64 then G64 else if Vx=65 then G65 else
-            if Vx=66 then G66 else if Vx=67 then G67 else if Vx=68 then G68 else
-            if Vx=69 then G69 else if Vx=70 then G70 else if Vx=71 then G71 else
-            if Vx=72 then G72 else if Vx=73 then G73 else if Vx=74 then G74 else
-            if Vx=75 then G75 else if Vx=76 then G76 else if Vx=77 then G77 else
-            if Vx=78 then G78 else if Vx=79 then G79 else if Vx=80 then G80 else
-            if Vx=81 then G81 else if Vx=82 then G82 else if Vx=83 then G83 else
-            if Vx=84 then G84 else if Vx=85 then G85 else if Vx=86 then G86 else
-            if Vx=87 then G87 else if Vx=88 then G88 else if Vx=89 then G89 else
-            if Vx=90 then G90 else if Vx=91 then G91 else if Vx=92 then G92 else
-            if Vx=93 then G93 else if Vx=94 then G94 else if Vx=95 then G95 else
-            if Vx=96 then G96 else if Vx=97 then G97 else if Vx=98 then G98 else
-            if Vx=99 then G99 else if Vx=100 then G100 else if Vx=101 then G101 else
-            if Vx=102 then G102 else if Vx=103 then G103 else if Vx=104 then G104 else
-            if Vx=105 then G105 else if Vx=106 then G106 else if Vx=107 then G107 else
-            if Vx=108 then G108 else if Vx=109 then G109 else if Vx=110 then G110 else
-            if Vx=111 then G111 else if Vx=112 then G112 else if Vx=113 then G113 else
-            if Vx=114 then G114 else if Vx=115 then G115 else if Vx=116 then G116 else
-            if Vx=117 then G117 else if Vx=118 then G118 else if Vx=119 then G119 else
-            if Vx=120 then G120 else if Vx=121 then G121 else if Vx=122 then G122 else
-            if Vx=123 then G123 else if Vx=124 then G124 else if Vx=125 then G125 else
-            if Vx=126 then G126 else if Vx=127 then G127 else error(out of bounds)" in
+        let int_to_loc_expr_str = "fn x =>
+            if x=0 then G0 else if x=1 then G1 else if x=2 then G2 else
+            if x=3 then G3 else if x=4 then G4 else if x=5 then G5 else
+            if x=6 then G6 else if x=7 then G7 else if x=8 then G8 else
+            if x=9 then G9 else if x=10 then G10 else if x=11 then G11 else
+            if x=12 then G12 else if x=13 then G13 else if x=14 then G14 else
+            if x=15 then G15 else if x=16 then G16 else if x=17 then G17 else
+            if x=18 then G18 else if x=19 then G19 else if x=20 then G20 else
+            if x=21 then G21 else if x=22 then G22 else if x=23 then G23 else
+            if x=24 then G24 else if x=25 then G25 else if x=26 then G26 else
+            if x=27 then G27 else if x=28 then G28 else if x=29 then G29 else
+            if x=30 then G30 else if x=31 then G31 else if x=32 then G32 else
+            if x=33 then G33 else if x=34 then G34 else if x=35 then G35 else
+            if x=36 then G36 else if x=37 then G37 else if x=38 then G38 else
+            if x=39 then G39 else if x=40 then G40 else if x=41 then G41 else
+            if x=42 then G42 else if x=43 then G43 else if x=44 then G44 else
+            if x=45 then G45 else if x=46 then G46 else if x=47 then G47 else
+            if x=48 then G48 else if x=49 then G49 else if x=50 then G50 else
+            if x=51 then G51 else if x=52 then G52 else if x=53 then G53 else
+            if x=54 then G54 else if x=55 then G55 else if x=56 then G56 else
+            if x=57 then G57 else if x=58 then G58 else if x=59 then G59 else
+            if x=60 then G60 else if x=61 then G61 else if x=62 then G62 else
+            if x=63 then G63 else if x=64 then G64 else if x=65 then G65 else
+            if x=66 then G66 else if x=67 then G67 else if x=68 then G68 else
+            if x=69 then G69 else if x=70 then G70 else if x=71 then G71 else
+            if x=72 then G72 else if x=73 then G73 else if x=74 then G74 else
+            if x=75 then G75 else if x=76 then G76 else if x=77 then G77 else
+            if x=78 then G78 else if x=79 then G79 else if x=80 then G80 else
+            if x=81 then G81 else if x=82 then G82 else if x=83 then G83 else
+            if x=84 then G84 else if x=85 then G85 else if x=86 then G86 else
+            if x=87 then G87 else if x=88 then G88 else if x=89 then G89 else
+            if x=90 then G90 else if x=91 then G91 else if x=92 then G92 else
+            if x=93 then G93 else if x=94 then G94 else if x=95 then G95 else
+            if x=96 then G96 else if x=97 then G97 else if x=98 then G98 else
+            if x=99 then G99 else if x=100 then G100 else if x=101 then G101 else
+            if x=102 then G102 else if x=103 then G103 else if x=104 then G104 else
+            if x=105 then G105 else if x=106 then G106 else if x=107 then G107 else
+            if x=108 then G108 else if x=109 then G109 else if x=110 then G110 else
+            if x=111 then G111 else if x=112 then G112 else if x=113 then G113 else
+            if x=114 then G114 else if x=115 then G115 else if x=116 then G116 else
+            if x=117 then G117 else if x=118 then G118 else if x=119 then G119 else
+            if x=120 then G120 else if x=121 then G121 else if x=122 then G122 else
+            if x=123 then G123 else if x=124 then G124 else if x=125 then G125 else
+            if x=126 then G126 else if x=127 then G127 else error(out of bounds)" in
 
     [
+        (* Test 0 *)
         (* Initial expression strings, global store, error possible *)
         ([| "cas(Gx, 2, 0)";
             "cas(Gx, 2, 1)";
@@ -93,6 +94,7 @@ module PLCorrectnessTest (Chk :
             "if cas(Gx, !Gx, 1) then skip else error(not cas)";
          |], [("x", Integer 2)], true);
 
+        (* Test 8 *)
         ([| "if cas(Gx, !Gx, 2) then skip else error(not cas)";
             "if cas(Gx, !Gx, 2) then skip else error(not cas)";
          |], [("x", Integer 2)], false);
@@ -109,197 +111,203 @@ module PLCorrectnessTest (Chk :
          |], [("l", Integer 0); ("x", Integer 0)], false);
 
         (* Only change value if unchanged since read *)
-        ([| "let val Vr : rf int = ref 0 in
-             while if cas(Gx, !Vr, !Vr + 1) then false else true do
-                Vr := !Gx done; cas(Gd0, false, true)";
-            "let val Vr : rf int = ref 0 in
-             while if cas(Gx, !Vr, !Vr + 2) then false else true do
-                Vr := !Gx done; cas(Gd1, false, true)";
+        ([| "let r = ref 0 in
+             while if cas(Gx, !r, !r + 1) then false else true do
+                r := !Gx done; cas(Gd0, false, true)";
+            "let r = ref 0 in
+             while if cas(Gx, !r, !r + 2) then false else true do
+                r := !Gx done; cas(Gd1, false, true)";
             "if !Gd0 then if !Gd1 then if !Gx = 103 then skip
                 else error(race condition) else skip else skip";
          |], [("x", Integer 100); ("d0", Boolean false); ("d1", Boolean false)],
             false);
 
+        (* Test 12 *)
         (* Large state space *)
-        ([| "let val Vr : rf int = ref 0 in
-                while 2 > !Vr do if cas(Gx, !Vr, !Vr+1) then Vr := !Gx else Vr := !Gx done"; 
-            "let val Vr : rf int = ref 0 in
-                while 2 > !Vr do if cas(Gx, !Vr, !Vr+1) then Vr := !Gx else Vr := !Gx done"; 
+        ([| "let r = ref 0 in
+                while 2 > !r do if cas(Gx, !r, !r+1) then r := !Gx else r := !Gx done"; 
+            "let r= ref 0 in
+                while 2 > !r do if cas(Gx, !r, !r+1) then r := !Gx else r := !Gx done"; 
         |], [("x", Integer 0)], false);
 
         (* Indexer example *)
-        ([| "let val Vsize : int = 128 in
-             let val Vmax : int = 4 in
-             let val Vtid : int = 0 in
-             let val Vm : rf int = ref 0 in
-             let val Vw : rf int = ref 0 in
-             let val Vh : rf int = ref 0 in
-             let val Vhash : int -> int = fn Vx : int => (Vx * 7) % Vsize in
-             let val Vgetmsg : unit -> int = fn Vu : unit => !Vm * 11 + Vtid in
-             while Vmax > !Vm do
-                Vm := !Vm + 1;
-                Vw := (Vgetmsg @ skip);
-                Vh := (Vhash @ !Vw);
-                while (if cas(!Gtable @ !Vh, 0, !Vw) then false else true) do
-                    Vh := (!Vh + 1) % Vsize
+        ([| "let size= 128 in
+             let max = 4 in
+             let tid = 0 in
+             let m = ref 0 in
+             let w = ref 0 in
+             let h = ref 0 in
+             let hash = fn x => (x * 7) % size in
+             let getmsg = fn u => !m * 11 + tid in
+             while max > !m do
+                m := !m + 1;
+                w := (getmsg @ skip);
+                h := (hash @ !w);
+                while (if cas(!Gtable @ !h, 0, !w) then false else true) do
+                    h := (!h + 1) % size
                 done
             done";
 
-            "let val Vsize : int = 128 in
-             let val Vmax : int = 4 in
-             let val Vtid : int = 1 in
-             let val Vm : rf int = ref 0 in
-             let val Vw : rf int = ref 0 in
-             let val Vh : rf int = ref 0 in
-             let val Vhash : int -> int = fn Vx : int => (Vx * 7) % Vsize in
-             let val Vgetmsg : unit -> int = fn Vu : unit => !Vm * 11 + Vtid in
-             while Vmax > !Vm do
-                Vm := !Vm + 1;
-                Vw := (Vgetmsg @ skip);
-                Vh := (Vhash @ !Vw);
-                while (if cas(!Gtable @ !Vh, 0, !Vw) then false else true) do
-                    Vh := (!Vh + 1) % Vsize
+            "let size = 128 in
+             let max = 4 in
+             let tid = 1 in
+             let m = ref 0 in
+             let w = ref 0 in
+             let h = ref 0 in
+             let hash = fn x => (x * 7) % size in
+             let getmsg = fn u => !m * 11 + tid in
+             while max > !m do
+                m := !m + 1;
+                w := (getmsg @ skip);
+                h := (hash @ !w);
+                while (if cas(!Gtable @ !h, 0, !w) then false else true) do
+                    h := (!h + 1) % size
                 done
             done";
 
         |], ("table", Pl_parser.expr_of_string int_to_loc_expr_str)::
                 (array_store 128), false);
 
+        (* Test 14 *)
         (* Thread 0 accesses even array indices; thread 1 accesses odd *)
-        ([| "let val Vsize : int = 128 in
-             let val Vmax : int = 4 in
-             let val Vtid : int = 0 in
-             let val Vi : rf int = ref 0 in
-             while Vmax > !Vi do
-                if cas(!Gtable @ (Vtid + 2 * !Vi), 0, 1)
-                then Vi := !Vi + 1
+        ([| "let size = 128 in
+             let max = 4 in
+             let tid = 0 in
+             let i = ref 0 in
+             while max > !i do
+                if cas(!Gtable @ (tid + 2 * !i), 0, 1)
+                then i := !i + 1
                 else error(array element already reached)
              done";
 
-            "let val Vsize : int = 128 in
-             let val Vmax : int = 4 in
-             let val Vtid : int = 1 in
-             let val Vi : rf int = ref 0 in
-             while Vmax > !Vi do
-                if cas(!Gtable @ (Vtid + 2 * !Vi), 0, 1)
-                then Vi := !Vi + 1
+            "let size = 128 in
+             let max = 4 in
+             let tid = 1 in
+             let i = ref 0 in
+             while max > !i do
+                if cas(!Gtable @ (tid + 2 * !i), 0, 1)
+                then i := !i + 1
                 else error(array element already reached)
              done";
 
          |], ("table", Pl_parser.expr_of_string int_to_loc_expr_str)::
                 (array_store 128), false);
 
+        (* Test 15 *)
         (* Thread 0 accesses 0,3,6,9; thread 1 accesses 1,5,9; error at 9 *)
-        ([| "let val Vsize : int = 128 in
-             let val Vmax : int = 4 in
-             let val Vtid : int = 0 in
-             let val Vi : rf int = ref 0 in
-             while Vmax > !Vi do
-                if cas(!Gtable @ (Vtid + 3 * !Vi), 0, 1)
-                then Vi := !Vi + 1
+        ([| "let size = 128 in
+             let max = 4 in
+             let tid = 0 in
+             let i = ref 0 in
+             while max > !i do
+                if cas(!Gtable @ (tid + 3 * !i), 0, 1)
+                then i := !i + 1
                 else error(array element already reached)
              done";
 
-            "let val Vsize : int = 128 in
-             let val Vmax : int = 4 in
-             let val Vtid : int = 1 in
-             let val Vi : rf int = ref 0 in
-             while Vmax > !Vi do
-                if cas(!Gtable @ (Vtid + 4 * !Vi), 0, 1)
-                then Vi := !Vi + 1
-                else Vi := !Vi + 1
+            "let size = 128 in
+             let max = 4 in
+             let tid = 1 in
+             let i = ref 0 in
+             while max > !i do
+                if cas(!Gtable @ (tid + 4 * !i), 0, 1)
+                then i := !i + 1
+                else i := !i + 1
              done";
 
          |], ("table", Pl_parser.expr_of_string int_to_loc_expr_str)::
                 (array_store 128), true);
 
+        (* Test 16 *)
         (* first set array values in thread 0, then check them in thread 1 *)
-        ([| "let val Vsize : int = 3 in
-             let val Vi : rf int = ref 0 in
-             while Vsize > !Vi do
-                if cas(!Gtable @ !Vi, 0, (!Vi % 4) + 1)
-                then Vi := !Vi + 1
+        ([| "let size = 3 in
+             let i = ref 0 in
+             while size > !i do
+                if cas(!Gtable @ !i, 0, (!i % 4) + 1)
+                then i := !i + 1
                 else error(array should be initially zero)
              done; if cas(Gready, false, true) then skip
                     else error(should only be ready now not before)";
 
-            "let val Vlimit : int = 8 in
-             let val Vcounter : rf int = ref 0 in (
-             while if !Gready then false else Vlimit > !Vcounter
-                do Vcounter := !Vcounter + 1 done;
-             let val Vsize : int = 3 in
-             let val Vi : rf int = ref 0 in
-             while Vsize > !Vi do
-                if cas(!Gtable @ !Vi, (!Vi % 4) + 1, 0)
-                then Vi := !Vi + 1
-                else if Vlimit > !Vcounter then error(wrong value in table)
-                     else Vi := !Vi + 1
+            "let limit = 8 in
+             let counter = ref 0 in (
+             while if !Gready then false else limit > !counter
+                do counter := !counter + 1 done;
+             let size = 3 in
+             let i = ref 0 in
+             while size > !i do
+                if cas(!Gtable @ !i, (!i % 4) + 1, 0)
+                then i := !i + 1
+                else if limit > !counter then error(wrong value in table)
+                     else i := !i + 1
             done)";
 
          |], ("table", Pl_parser.expr_of_string int_to_loc_expr_str)::
                (("ready", Boolean false)::(array_store 8)), false);
 
+        (* Test 17 *)
         (* Producer/Consumer *)
-        ([| "let val Vsize : int = 8 in
-             let val Vi : rf int = ref 0 in
-             let val Vlimit : int = 2 in
-             let val Vctr : rf int = ref 0 in
-             let val Vhash : int -> int =
-                fn Vx : int => ((((12773*Vx)%179)*7)%100)+1 in
-             while Vlimit > !Vctr do
-                if !(!Gtable @ !Vi) = 0
-                then if cas(!Gtable @ (!Vi+1), 0, Vhash @ (!Vi+1))
-                     then if cas(!Gtable @ !Vi, 0, 1)
-                        then Vctr := !Vctr + 1; Vi := (!Vi + 2) % Vsize
+        ([| "let size = 8 in
+             let i = ref 0 in
+             let limit = 2 in
+             let ctr = ref 0 in
+             let hash =
+                fn x => ((((12773*x)%179)*7)%100)+1 in
+             while limit > !ctr do
+                if !(!Gtable @ !i) = 0
+                then if cas(!Gtable @ (!i+1), 0, hash @ (!i+1))
+                     then if cas(!Gtable @ !i, 0, 1)
+                        then ctr := !ctr + 1; i := (!i + 2) % size
                         else error(marker should still be zero)
                      else error(supposed to be empty slot)
-                else Vctr := !Vctr + 1
+                else ctr := !ctr + 1
              done";
 
-            "let val Vsize : int = 8 in
-             let val Vi : rf int = ref 0 in
-             let val Vlimit : int = 2 in
-             let val Vctr : rf int = ref 0 in
-             while Vlimit > !Vctr do
-                if !(!Gtable @ !Vi) = 1
-                then let val Vn : int = !(!Gtable @ (!Vi+1)) in
-                   if Vn = 0 then error(supposed to be full slot)
-                   else if cas(!Gtable @ (!Vi+1), Vn, 0)
-                        then if cas(!Gtable @ !Vi, 1, 0)
-                             then Vctr := !Vctr + 1; Vi := (!Vi + 2) % Vsize
+            "let size = 8 in
+             let i = ref 0 in
+             let limit = 2 in
+             let ctr = ref 0 in
+             while limit > !ctr do
+                if !(!Gtable @ !i) = 1
+                then let n = !(!Gtable @ (!i+1)) in
+                   if n = 0 then error(supposed to be full slot)
+                   else if cas(!Gtable @ (!i+1), n, 0)
+                        then if cas(!Gtable @ !i, 1, 0)
+                             then ctr := !ctr + 1; i := (!i + 2) % size
                              else error(marker should still be one)
                         else error(value changed since read)
-                else Vctr := !Vctr + 1
+                else ctr := !ctr + 1
              done";
 
          |], ("table", Pl_parser.expr_of_string int_to_loc_expr_str)::
                (array_store 8), false);
 
+        (* Test 18 *)
         (* Set array values, and check they aren't set to values they aren't set to *)
-       ([| "let val Vtable : int -> rf int = !Gtable in
-            let val Vsize : int = !Gsize in
-            let val Vmod : int = !Gmod in
-            let val Vtid : int = 1 in
-            let val Vi : rf int = ref 0 in
-            while Vsize > !Vi do
-                if cas(Vtable @ !Vi, 0, Vtid)
-                then Vi := !Vi + 1
-                else if !(Vtable @ !Vi) % Vmod = 0
+       ([| "let table = !Gtable in
+            let size = !Gsize in
+            let mod = !Gmod in
+            let tid = 1 in
+            let i = ref 0 in
+            while size > !i do
+                if cas(table @ !i, 0, tid)
+                then i := !i + 1
+                else if !(table @ !i) % mod = 0
                      then error(should never be zero)
-                     else Vi := !Vi + 1
+                     else i := !i + 1
             done";
 
-           "let val Vtable : int -> rf int = !Gtable in
-            let val Vsize : int = !Gsize in
-            let val Vmod : int = !Gmod in
-            let val Vtid : int = 2 in
-            let val Vi : rf int = ref 0 in
-            while Vsize > !Vi do
-                if cas(Vtable @ !Vi, 0, Vtid)
-                then Vi := !Vi + 1
-                else if !(Vtable @ !Vi) % Vmod = 0
+           "let table = !Gtable in
+            let size = !Gsize in
+            let mod = !Gmod in
+            let tid = 2 in
+            let i = ref 0 in
+            while size > !i do
+                if cas(table @ !i, 0, tid)
+                then i := !i + 1
+                else if !(table @ !i) % mod = 0
                      then error(should never be zero)
-                     else Vi := !Vi + 1
+                     else i := !i + 1
             done";
 
          |], ("table", Pl_parser.expr_of_string int_to_loc_expr_str)::
@@ -314,6 +322,7 @@ module PLCorrectnessTest (Chk :
                   else error(someone put beer in the fridge before me)";
         |], [("beer", Boolean false)], true);
 
+        (* Test 20 *)
         (* Solution to beer problem *)
         ([| "if !Gbeer then skip else
              ((if cas(Gnote, false, true)
@@ -338,101 +347,104 @@ module PLCorrectnessTest (Chk :
              ("t1finished", Boolean false); ("t2finished", Boolean false)],
                 false);
 
+        (* Test 21 *)
         (* Another example showing off DPOR *)
-        ([| "let val Vsize : int = !Gsize in
-             let val Vtid : int = 0 in
-             let val Vpi : rf int = ref 0 in
-             while Vsize > !Vpi do
-                if cas(!Gtable @ !Vpi, 0, 2)
-                then Vpi := !Vpi + 1
-                else if !(!Gtable @ !Vpi) = Vtid
+        ([| "let size = !Gsize in
+             let tid = 0 in
+             let pi = ref 0 in
+             while size > !pi do
+                if cas(!Gtable @ !pi, 0, 2)
+                then pi := !pi + 1
+                else if !(!Gtable @ !pi) = tid
                      then error(set by another thread)
-                     else Vpi := !Vpi + 1
+                     else pi := !pi + 1
             done";
 
-            "let val Vsize : int = !Gsize in
-             let val Vtid : int = 1 in
-             let val Vpi : rf int = ref 0 in
-             while Vsize > !Vpi do
-                if cas(!Gtable @ !Vpi, 0, 2)
-                then Vpi := !Vpi + 1
-                else if !(!Gtable @ !Vpi) = Vtid
+            "let size = !Gsize in
+             let tid = 1 in
+             let pi = ref 0 in
+             while size > !pi do
+                if cas(!Gtable @ !pi, 0, 2)
+                then pi := !pi + 1
+                else if !(!Gtable @ !pi) = tid
                      then error(set by another thread)
-                     else Vpi := !Vpi + 1
+                     else pi := !pi + 1
             done";
 
          |], ("table", Pl_parser.expr_of_string int_to_loc_expr_str)::
              ("size", Integer 3)::(array_store 100), false);
 
-        ([| "let val Vsize : int = !Gsize in
-             let val Vtid : int = 1 in
-             let val Vi : rf int = ref 0 in
-             while Vsize > !Vi do
-                if cas(!Gtable @ !Vi, 0, 1)
-                then if cas(!Gtable @ (!Vi + 1), 0, Vtid)
-                     then if cas(!Gtable @ !Vi, 1, 2)
-                          then Vi := !Vi + 2
+        (* Test 22 *)
+        ([| "let size = !Gsize in
+             let tid = 1 in
+             let i = ref 0 in
+             while size > !i do
+                if cas(!Gtable @ !i, 0, 1)
+                then if cas(!Gtable @ (!i + 1), 0, tid)
+                     then if cas(!Gtable @ !i, 1, 2)
+                          then i := !i + 2
                           else error(flag should be set to 1)
                      else error(value should be unset)
-                else if !(!Gtable @ !Vi) = 2
+                else if !(!Gtable @ !i) = 2
                   then
-                     let val Vread : int = !(!Gtable @ (!Vi + 1)) in
-                     if Vread = 0
+                     let read = !(!Gtable @ (!i + 1)) in
+                     if read = 0
                      then error(should be set by some thread)
-                     else if Vread = Vtid
+                     else if read = tid
                      then error(should be set by another thread)
-                     else Vi := !Vi + 2
-                  else Vi := !Vi + 2
+                     else i := !i + 2
+                  else i := !i + 2
              done";
 
-            "let val Vsize : int = !Gsize in
-             let val Vtid : int = 2 in
-             let val Vi : rf int = ref 0 in
-             while Vsize > !Vi do
-                if cas(!Gtable @ !Vi, 0, 1)
-                then if cas(!Gtable @ (!Vi + 1), 0, Vtid)
-                     then if cas(!Gtable @ !Vi, 1, 2)
-                          then Vi := !Vi + 2
+            "let size = !Gsize in
+             let tid = 2 in
+             let i = ref 0 in
+             while size > !i do
+                if cas(!Gtable @ !i, 0, 1)
+                then if cas(!Gtable @ (!i + 1), 0, tid)
+                     then if cas(!Gtable @ !i, 1, 2)
+                          then i := !i + 2
                           else error(flag should be set to 1)
                      else error(value should be unset)
-                else if !(!Gtable @ !Vi) = 2
+                else if !(!Gtable @ !i) = 2
                   then
-                     let val Vread : int = !(!Gtable @ (!Vi + 1)) in
-                     if Vread = 0
+                     let read = !(!Gtable @ (!i + 1)) in
+                     if read = 0
                      then error(should be set by some thread)
-                     else if Vread = Vtid
+                     else if read = tid
                      then error(should be set by another thread)
-                     else Vi := !Vi + 2
-                  else Vi := !Vi + 2
+                     else i := !i + 2
+                  else i := !i + 2
              done";
 
          |], ("table", Pl_parser.expr_of_string int_to_loc_expr_str)::
              ("size", Integer 2)::(array_store 8), false);
 
-        ([| "let val Vsize : int = !Gsize in
-             let val Vtable : int -> rf int = !Gtable in
-             let val Vi : rf int = ref 1 in
-             while Vsize > !Vi do
-                if cas(Vtable @ !Vi, 0, 1) then
-                    Vi := !Vi + !Gincrement
+        (* Test 23 *)
+        ([| "let size = !Gsize in
+             let table = !Gtable in
+             let i = ref 1 in
+             while size > !i do
+                if cas(table @ !i, 0, 1) then
+                    i := !i + !Gincrement
                 else error(should not be set)
             done";
 
-            "let val Vsize : int = !Gsize in
-             let val Vtable : int -> rf int = !Gtable in
-             let val Vi : rf int = ref 2 in
-             while Vsize > !Vi do
-                if cas(Vtable @ !Vi, 0, 1) then
-                    Vi := !Vi + !Gincrement
+            "let size = !Gsize in
+             let table = !Gtable in
+             let i = ref 2 in
+             while size > !i do
+                if cas(table @ !i, 0, 1) then
+                    i := !i + !Gincrement
                 else error(should not be set)
              done";
 
-            "let val Vsize : int = !Gsize in
-             let val Vtable : int -> rf int = !Gtable in
-             let val Vi : rf int = ref 3 in
-             while Vsize > !Vi do
-                if cas(Vtable @ !Vi, 0, 1) then
-                    Vi := !Vi + !Gincrement
+            "let size = !Gsize in
+             let table = !Gtable in
+             let i = ref 3 in
+             while size > !i do
+                if cas(table @ !i, 0, 1) then
+                    i := !i + !Gincrement
                 else error(should not be set)
              done";
 
@@ -461,7 +473,9 @@ module PLCorrectnessTest (Chk :
 
     let all_tests_passed () =
         let rec conj l = match l with [] -> true | b::bs -> b && conj bs in
-            conj (List.map run_test test_cases)
+            conj (List.mapi (fun index ->
+                print_endline ("Index: " ^ (string_of_int index)); run_test)
+                    test_cases)
 
     let print_all_tests_passed () = print_endline ("Checker Correctness Tests All Passed: "
                             ^ (string_of_bool (all_tests_passed ())) ^ "\n\n")
