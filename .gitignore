@@ -9,4 +9,6 @@
 *.swp
 *.rs
 *.byte
+*.png
+*.gv
 _build/
