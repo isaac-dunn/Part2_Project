@@ -25,8 +25,8 @@ let test_cases = [
     ("skip; 4", "4");
 
     (* Let *)
-    ("let Vx = 9 in Vx", "9");
-    ("let Vw = 10 in let Vu = 8 in Vw - Vu", "2");
+    ("let x = 9 in x", "9");
+    ("let w = 10 in let u = 8 in w - u", "2");
 
     (* Skip *)
     ("skip", "skip");
@@ -34,21 +34,21 @@ let test_cases = [
     (* References *)
     ("!(ref 9)", "9");
     ("(ref 6) := 4", "skip");
-    ("let Vx = ref 6 in Vx := !Vx + 7; !Vx", "13");
+    ("let x = ref 6 in x := !x + 7; !x", "13");
 
     (* Functions *)
-    ("(fn Vx => Vx * 3) @ 9", "27");
-    ("let Vf = fn Vx => 1 + Vx in Vf @ 7", "8");
+    ("(fn x => x * 3) @ 9", "27");
+    ("let f = fn x => 1 + x in f @ 7", "8");
 
     (* While *)
     ("while false do skip done", "skip");
-    ("let Vx = ref false in while false do Vx := true done; !Vx", "false");
-    ("let Vx = ref 34 in while !Vx > 10 do Vx := !Vx - 10 done; !Vx", "4");
+    ("let x = ref false in while false do x := true done; !x", "false");
+    ("let x = ref 34 in while !x > 10 do x := !x - 10 done; !x", "4");
 
     (* Let rec *)
-    ("let rec Vf = fn Vx => Vx - 1 in Vf @ 5", "4");
-    ("let rec Vg = fn Vy => if 32 > Vy then Vy else Vg @ (Vy/2) in Vg @ 100", "25");
-    ("let rec Vfact = fn Vz => if Vz = 0 then 1 else Vz * (Vfact @ (Vz-1)) in Vfact @ 5", "120");
+    ("let rec f = fn x => x - 1 in f @ 5", "4");
+    ("let rec g = fn y => if 32 > y then y else g @ (y/2) in g @ 100", "25");
+    ("let rec fact = fn z => if z = 0 then 1 else z * (fact @ (z-1)) in fact @ 5", "120");
 
     (* Error *)
     ("error(oh dear)", "error(oh dear)");
