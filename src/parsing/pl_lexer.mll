@@ -12,11 +12,6 @@ let plain_text = ['a'-'z' 'A'-'Z' '_' ' ' '0'-'9']+
 rule read =
   parse
   | white { read lexbuf }
-  | "int" { TINT }
-  | "unit" { TUNIT }
-  | "bool" { TBOOL }
-  | "rf" { TREF }
-  | "->" { TARROW }
   | "(" { LBKT }
   | ")" { RBKT }
   | nat as lxm { INT (int_of_string lxm) }
@@ -44,11 +39,10 @@ rule read =
   | "done" { DONE }
   | "V" (id as lxm) { VAR (lxm) }
   | "fn" { FN }
-  | ":" { COLON }
   | "=>" { ARROW }
   | "@" { APP }
-  | "let val" { LETVAL }
-  | "let rec" { LETREC }
+  | "let" { LET }
+  | "rec" { REC }
   | "in" { IN }
   | "cas" { CAS }
   | "," { COMMA }
