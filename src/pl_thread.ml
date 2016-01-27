@@ -78,22 +78,22 @@ let rec next_step_aux (e, s, g)  = match e with
                         Some (f, t, h, lo) -> Some (Seq (f, e2), t, h, lo)
                       | None -> None)
   | While (e1, e2) -> Some (If (e1, Seq (e2, While (e1, e2)), Skip), None, None, None)
-  | Fn (_, _) -> None
-  | App (Fn (t1, e1), e2) -> if is_value e2 then
+  | Fn (_) -> None
+  | App (Fn (e1), e2) -> if is_value e2 then
                             Some (substitute_outmost e2 e1, None, None, None)
                         else (match next_step_aux (e2, s, g) with
-                            Some (f, t, h, lo) -> Some (App (Fn (t1, e1), f), t, h, lo)
+                            Some (f, t, h, lo) -> Some (App (Fn (e1), f), t, h, lo)
                           | None -> None)
   | App (e1, e2) -> (match next_step_aux (e1, s, g) with
                         Some (f, t, h, lo) -> Some (App (f, e2), t, h, lo)
                       | None -> None)
   | Var _ -> None
-  | Let (t1, e1, e2) -> if is_value e1 then Some (substitute_outmost e1 e2, None, None, None)
+  | Let (e1, e2) -> if is_value e1 then Some (substitute_outmost e1 e2, None, None, None)
                         else (match next_step_aux (e1, s, g) with
-                            Some (f, t, h, lo) -> Some (Let (t1, f, e2), t, h, lo)
+                            Some (f, t, h, lo) -> Some (Let (f, e2), t, h, lo)
                           | None -> None)
-  | Letrec (t1, t2, e1, e2) -> (* Need to adjust de Bruijn indices as new binding contexts for e1 *)
-      Some (substitute_outmost (Fn (t1, Letrec (t1, t2, shift 2 e1, swap 0 e1))) e2, None, None, None)
+  | Letrec (e1, e2) -> (* Need to adjust de Bruijn indices as new binding contexts for e1 *)
+      Some (substitute_outmost (Fn (Letrec (shift 2 e1, swap 0 e1))) e2, None, None, None)
   | Cas (Glo l, e2, e3) -> if is_value e2 then (* Reduce e1 then e2 then e3 to values *)
                             (if is_value e3 then (match StoreImp.get g l with
                                 Some v -> if v = e2 then Some (Boolean true, None, Some (l, e3), Some l)
