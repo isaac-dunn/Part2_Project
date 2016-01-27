@@ -48,8 +48,6 @@ rule read =
   | "," { COMMA }
   | "error(" (plain_text as msg) ")" { ERROR (msg) }
   | "eof" { EOF }
-  | _ { raise (SyntaxError ("Unexpected char: " ^ Lexing.lexeme lexbuf ^ 
-        " at position " ^ (string_of_int (Lexing.lexeme_start lexbuf).pos_bol) ^
-        " on line " ^ (string_of_int (Lexing.lexeme_start lexbuf).pos_lnum)) }
-
+  | _ { raise (SyntaxError ("Unexpected char \"" ^ Lexing.lexeme lexbuf ^
+        "\" at position " ^ (string_of_int (Lexing.lexeme_start lexbuf)))) }
 
