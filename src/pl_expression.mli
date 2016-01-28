@@ -42,6 +42,9 @@ type expr_raw =
    | Let_raw of var_raw * expr_raw * expr_raw
    | Letrec_raw of var_raw * var_raw * expr_raw * expr_raw
    | Cas_raw of expr_raw * expr_raw * expr_raw
+   | Spinlock_raw of loc
+   | Lock_raw of expr_raw
+   | Unlock_raw of expr_raw
    | Error_raw of string
 
 (** Expressions with de Bruijn indices *)
@@ -65,6 +68,9 @@ type expr =
    | Let of expr * expr
    | Letrec of expr * expr
    | Cas of expr * expr * expr
+   | Spinlock of loc
+   | Lock of expr
+   | Unlock of expr
    | Error of string
 
 val convert_from_raw : expr_raw -> expr
