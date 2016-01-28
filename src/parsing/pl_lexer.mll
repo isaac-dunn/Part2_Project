@@ -36,6 +36,7 @@ rule read =
   | "ref" { REF }
   | "L" (id as lxm) { LOC (lxm) }
   | "G" (id as lxm) { GLO (lxm) }
+  | "SL" (id as lxm) { SPINLOCK (lxm) }
   | "skip" { SKIP }
   | ";" { SEMICOLON }
   | "while" { WHILE }
@@ -48,6 +49,8 @@ rule read =
   | "rec" { REC }
   | "in" { IN }
   | "cas" { CAS }
+  | "lock" { LOCK }
+  | "unlock" { UNLOCK }
   | "," { COMMA }
   | "error(" (plain_text as msg) ")" { ERROR (msg) }
   | ":" { COLON }

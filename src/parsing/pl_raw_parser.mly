@@ -5,7 +5,7 @@
 %token NOT AND OR
 %token IF THEN ELSE
 %token ASSIGN DEREF REF
-%token <string> LOC GLO
+%token <string> LOC GLO SPINLOCK
 %token SKIP
 %token SEMICOLON
 %token WHILE DO DONE
@@ -14,6 +14,7 @@
 %token APP
 %token LET REC IN
 %token CAS COMMA
+%token LOCK UNLOCK
 %token <string> ERROR
 %token HASHBREAK COLON
 %token EOF
@@ -27,11 +28,10 @@
 
 (* Standard operator precedence *)
 %nonassoc GT LT EQUALS AND OR
-%nonassoc NOT
 %left PLUS MINUS
 %left MULT DIV MOD
 
-%nonassoc DEREF REF (* !e and ref e bind most tightly *)
+%nonassoc NOT DEREF REF LOCK UNLOCK (* These bind most tightly *)
 
 %type <Pl_expression.expr_raw> expr parse_expr
 %type <(string * Pl_expression.expr_raw) list * (Pl_expression.expr_raw list)> parse_program
@@ -98,6 +98,9 @@ expr:
   | LET REC vx = VAR EQUALS
         FN vy = VAR ARROW e = expr IN f = expr
             { Pl_expression.Letrec_raw (vx, vy, e, f) }
+  | SPINLOCK { Pl_expression.Spinlock_raw ($1) }
+  | LOCK e = expr { Pl_expression.Lock_raw e }
+  | UNLOCK e = expr { Pl_expression.Unlock_raw e }
   | CAS LBKT e1 = expr COMMA e2 = expr COMMA e3 = expr RBKT
         { Pl_expression.Cas_raw (e1, e2, e3) }
   | ERROR { Pl_expression.Error_raw ($1) }
