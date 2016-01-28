@@ -15,13 +15,17 @@ type oper =
    | Div
    | Mod
    | GT
+   | LT
    | Equals
+   | And
+   | Or
 
 type var_raw = string
 
 type expr_raw =
      Integer_raw of int
    | Boolean_raw of bool
+   | Not_raw of expr_raw
    | Op_raw of expr_raw * oper * expr_raw
    | If_raw of expr_raw * expr_raw * expr_raw
    | Assign_raw of expr_raw * expr_raw
@@ -44,6 +48,7 @@ type expr_raw =
 type expr =
      Integer of int
    | Boolean of bool
+   | Not of expr
    | Op of expr * oper * expr
    | If of expr * expr * expr
    | Assign of expr * expr

@@ -128,7 +128,7 @@ exception Resolve of string
 let rec resolve env expr_raw = match expr_raw with
     Integer_raw n -> Integer n
   | Boolean_raw b -> Boolean b
-  | Not_raw e -> Not_raw (resolve env e)
+  | Not_raw e -> Not (resolve env e)
   | Op_raw (e1, op, e2) -> Op (resolve env e1, op, resolve env e2)
   | If_raw (e1, e2, e3) -> If (resolve env e1,
                                resolve env e2,

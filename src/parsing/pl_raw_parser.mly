@@ -77,9 +77,9 @@ expr:
   | a = expr EQUALS b = expr
      { Pl_expression.Op_raw (a, Pl_expression.Equals, b) }
   | a = expr AND b = expr
-     { Pl_expression.Op_raw (a, Pl_expression.AND, b) }
+     { Pl_expression.Op_raw (a, Pl_expression.And, b) }
   | a = expr OR b = expr
-     { Pl_expression.Op_raw (a, Pl_expression.OR, b) }
+     { Pl_expression.Op_raw (a, Pl_expression.Or, b) }
   | IF b = expr THEN x = expr ELSE y = expr { Pl_expression.If_raw (b, x, y) }
   | a = expr ASSIGN b = expr { Pl_expression.Assign_raw (a, b) }
   | DEREF expr { Pl_expression.Deref_raw ($2) }

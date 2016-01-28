@@ -29,8 +29,8 @@ let string_of_transition t =
 let rec next_step_aux (e, s, g)  = match e with
     Integer _ -> None
   | Boolean _ -> None
-  | Not (Boolean b) -> Boolean (not b)
-  | Not e1 -> (match next_step_aux e1 with
+  | Not (Boolean b) -> Some (Boolean (not b), None, None, None)
+  | Not e1 -> (match next_step_aux (e1, s, g) with
                 Some (f, t, h, lo) -> Some(Not f, t, h, lo)
               | None -> None)
   | Op (Integer n, Plus, Integer m) -> Some (Integer (n+m), None, None, None)
