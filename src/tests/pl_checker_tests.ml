@@ -27,30 +27,37 @@ module PLCorrectnessTest (Chk :
             "cas(Gx, 2, 1)";
          |], [("x", Integer 2)], false);
 
+        (* Test 1 *)
         ([| "if cas(Gx, 2, 0) then skip else error(not cas)";
             "cas(Gx, 2, 1)";
          |], [("x", Integer 2)], true);
 
+        (* Test 2 *)
         ([| "if cas(Gx, 2, 0) then skip else error(not cas)";
             "cas(Gx, 2, 2)";
          |], [("x", Integer 2)], false);
 
+        (* Test 3 *)
         ([| "if cas(Gx, 2, 0) then skip else error(not cas)";
             "cas(Gx, 1, 1)";
          |], [("x", Integer 2)], false);
 
+        (* Test 4 *)
         ([| "if cas(Gx, 1, 0) then skip else error(not cas)";
             "cas(Gx, 2, 1)";
          |], [("x", Integer 2)], true);
 
+        (* Test 5 *)
         ([| "while cas (Gx, false, skip) do error(unreachable) done";
             "while cas (Gx, skip, true) do error(unreachable) done";
          |], [("x", Integer 5)], false);
 
+        (* Test 6 *)
         ([| "while cas (Gx, false, skip) do error(unreachable) done";
             "while cas (Gx, skip, true) do error(unreachable) done";
          |], [("x", Skip)], true);
 
+        (* Test 7 *)
         ([| "if cas(Gx, !Gx, 0) then skip else error(not cas)";
             "if cas(Gx, !Gx, 1) then skip else error(not cas)";
          |], [("x", Integer 2)], true);
@@ -60,17 +67,20 @@ module PLCorrectnessTest (Chk :
             "if cas(Gx, !Gx, 2) then skip else error(not cas)";
          |], [("x", Integer 2)], false);
 
+        (* Test 9 *)
         ([| "cas(Gx, !Gx, !Gx + 1)";
             "cas(Gx, !Gx, !Gx + 1)";
             "if !Gx > 1 then error(both threads accessed x) else skip";
          |], [("l", Integer 0); ("x", Integer 0)], true);
 
+        (* Test 10 *)
         (* Exclude one thread from entering *)
         ([| "if cas(Gl, 0, 1) then cas(Gx, !Gx, !Gx + 1) else skip";
             "if cas(Gl, 0, 1) then cas(Gx, !Gx, !Gx + 1) else skip";
             "if !Gx > 1 then error(both threads accessed x) else skip";
          |], [("l", Integer 0); ("x", Integer 0)], false);
 
+        (* Test 11 *)
         (* Only change value if unchanged since read *)
         ([| "let r = ref 0 in
              while if cas(Gx, !r, !r + 1) then false else true do
@@ -91,6 +101,7 @@ module PLCorrectnessTest (Chk :
                 while 2 > !r do if cas(Gx, !r, !r+1) then r := !Gx else r := !Gx done"; 
         |], [("x", Integer 0)], false);
 
+        (* Test 13 *)
         (* Indexer example *)
         ([| "let size= 128 in
              let max = 4 in
@@ -274,6 +285,7 @@ module PLCorrectnessTest (Chk :
          |], ("table", Pl_parser.expr_of_string (int_to_loc_str 8))::
              ("size", Integer 4)::("mod", Integer 4)::(array_store 8), false);
 
+        (* Test 19 *)
         (* Beer in fridge example from Part IB Conc. Systems *)
         ([| "if !Gbeer then skip
              else if cas(Gbeer, false, true) then skip
