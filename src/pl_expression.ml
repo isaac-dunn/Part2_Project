@@ -19,7 +19,10 @@ type oper =
    | Div
    | Mod
    | GT
+   | LT
    | Equals
+   | And
+   | Or
 
 let string_of_op o = match o with
      Plus -> "+"
@@ -28,13 +31,17 @@ let string_of_op o = match o with
    | Div -> "/"
    | Mod -> "mod"
    | GT -> ">"
+   | LT -> "<"
    | Equals -> "="
+   | And -> "&"
+   | Or -> "|"
 
 type var_raw = string
 
 type expr_raw =
      Integer_raw of int
    | Boolean_raw of bool
+   | Not_raw of expr_raw
    | Op_raw of expr_raw * oper * expr_raw
    | If_raw of expr_raw * expr_raw * expr_raw
    | Assign_raw of expr_raw * expr_raw
@@ -57,6 +64,7 @@ type expr_raw =
 type expr = 
      Integer of int
    | Boolean of bool
+   | Not of expr
    | Op of expr * oper * expr
    | If of expr * expr * expr
    | Assign of expr * expr
@@ -79,6 +87,7 @@ let rec string_of_expr e = match e with
     Integer n -> string_of_int n
   | Boolean true -> "true"
   | Boolean false -> "false"
+  | Not e1 -> "¬(" ^ (string_of_expr e1) ^ ")"
   | Op (e1, op, e2) -> "(" ^ (string_of_expr e1) ^ " " ^
                        (string_of_op op) ^ " " ^ (string_of_expr e2) ^ ")"
   | If (e1, e2, e3) -> "if " ^ (string_of_expr e1) ^ " then " ^
@@ -119,6 +128,7 @@ exception Resolve of string
 let rec resolve env expr_raw = match expr_raw with
     Integer_raw n -> Integer n
   | Boolean_raw b -> Boolean b
+  | Not_raw e -> Not_raw (resolve env e)
   | Op_raw (e1, op, e2) -> Op (resolve env e1, op, resolve env e2)
   | If_raw (e1, e2, e3) -> If (resolve env e1,
                                resolve env e2,
@@ -150,6 +160,7 @@ let convert_from_raw re = resolve [] re
 (* is_error e if and only if e is stuck at an error *)
 let rec is_error e = match e with
     Error _ -> true
+  | Not e1 -> is_error e1
   | Op (e1, _, e2) -> is_error e1 || is_error e2
   | If (e1, _, _) -> is_error e1
   | Assign (e1, _) -> is_error e1
@@ -176,6 +187,7 @@ let is_value e = match e with
 let rec subst e n f = match f with
     Integer m -> Integer m
   | Boolean b -> Boolean b
+  | Not e1 -> Not (subst e n e1)
   | Op (e1, op, e2) -> Op (subst e n e1, op, subst e n e2)
   | If (e1, e2, e3) -> If (subst e n e1,
                            subst e n e2,
@@ -205,6 +217,7 @@ let substitute_outmost e f = subst e 0 f
 let rec shift n e = match e with
     Integer m  -> Integer m
   | Boolean b -> Boolean b
+  | Not e1 -> Not (shift n e1)
   | Op (e1,opr,e2) -> Op (shift n e1, opr, shift n e2)
   | If (e1,e2,e3) -> If (shift n e1, shift n e2, shift n e3)
   | Assign (e1, e2) -> Assign (shift n e1, shift n e2)
@@ -228,6 +241,7 @@ let rec shift n e = match e with
 let rec swap n e = match e with
     Integer m -> Integer m
   | Boolean b -> Boolean b
+  | Not e1 -> Not (swap n e1)
   | Op (e1, op, e2) -> Op (swap n e1, op, swap n e2)
   | If (e1, e2, e3) -> If (swap n e1, swap n e2, swap n e3)
   | Assign (e1, e2) -> Assign (swap n e1, swap n e2)

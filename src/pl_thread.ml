@@ -29,13 +29,21 @@ let string_of_transition t =
 let rec next_step_aux (e, s, g)  = match e with
     Integer _ -> None
   | Boolean _ -> None
+  | Not (Boolean b) -> Boolean (not b)
+  | Not e1 -> (match next_step_aux e1 with
+                Some (f, t, h, lo) -> Some(Not f, t, h, lo)
+              | None -> None)
   | Op (Integer n, Plus, Integer m) -> Some (Integer (n+m), None, None, None)
   | Op (Integer n, Minus, Integer m) -> Some (Integer (n-m), None, None, None)
   | Op (Integer n, Mult, Integer m) -> Some (Integer (n*m), None, None, None)
   | Op (Integer n, Div, Integer m) -> Some (Integer (n/m), None, None, None)
   | Op (Integer n, Mod, Integer m) -> Some (Integer (n mod m), None, None, None)
   | Op (Integer n, GT, Integer m) -> Some (Boolean (n > m), None, None, None)
+  | Op (Integer n, LT, Integer m) -> Some (Boolean (n < m), None, None, None)
   | Op (Integer n, Equals, Integer m) -> Some (Boolean (n = m), None, None, None)
+  | Op (Boolean x, Equals, Boolean y) -> Some (Boolean (x = y), None, None, None)
+  | Op (Boolean x, And, Boolean y) -> Some (Boolean (x && y), None, None, None)
+  | Op (Boolean x, Or, Boolean y) -> Some (Boolean (x || y), None, None, None)
   | Op (e1, op, e2) -> (if is_value e1 then
                         match next_step_aux (e2, s, g) with
                             Some (f, t, h, lo) -> Some (Op (e1, op, f), t, h, lo)
