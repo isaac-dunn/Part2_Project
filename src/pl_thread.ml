@@ -116,6 +116,16 @@ let rec next_step_aux (e, s, g)  = match e with
   | Cas (e1, e2, e3) -> (match next_step_aux (e1, s, g) with
                             Some (f, t, h, lo) -> Some (Cas (f, e2, e3), t, h, lo)
                           | None -> None)
+  | Spinlock _ -> None
+  | Lock (Spinlock l) -> (match StoreImp.get g l with
+                            Some v -> if v = (Boolean true) then None (*TODO check*)
+                                      else if v = (Boolean false) then
+                                        Some (Skip, None, Some (l, Boolean true), Some l)
+                                      else raise (Failure "A lock has a non-Boolean value; oh dear")
+                          | None -> Some (Skip, None, Some (l, Boolean true), Some l))
+  | Unlock (Spinlock l) -> if StoreImp.get g l = Some (Boolean true) then
+                            Some (Skip, None, Some (l, Boolean false), Some l)
+                         else raise (Failure "Cannot unlock with value not (Boolean true)")
   | Error msg -> None
 
 let next_step x = match next_step_aux x with

@@ -58,6 +58,9 @@ type expr_raw =
    | Let_raw of var_raw * expr_raw * expr_raw
    | Letrec_raw of var_raw * var_raw * expr_raw * expr_raw
    | Cas_raw of expr_raw * expr_raw * expr_raw
+   | Spinlock_raw of loc
+   | Lock_raw of expr_raw
+   | Unlock_raw of expr_raw
    | Error_raw of string
 
 (* expressions up to alpha equivalence *)
@@ -81,6 +84,9 @@ type expr =
    | Let of expr * expr
    | Letrec of expr * expr
    | Cas of expr * expr * expr
+   | Spinlock of loc
+   | Lock of expr
+   | Unlock of expr
    | Error of string
 
 let rec string_of_expr e = match e with
@@ -111,6 +117,9 @@ let rec string_of_expr e = match e with
                                  ^  ") in " ^ (string_of_expr e2) ^  " end"
   | Cas (e1, e2, e3) ->  "CAS(" ^ (string_of_expr e1) ^  ", " ^
                         (string_of_expr e2) ^  ", " ^ (string_of_expr e3) ^  ")"
+  | Spinlock l -> "Spinlock:"^l
+  | Lock e1 -> "lock(" ^ (string_of_expr e1) ^ ")"
+  | Unlock e1 -> "unlock(" ^ (string_of_expr e1) ^ ")"
   | Error msg ->  "(Error: " ^ msg ^ ")"
 
 (*** SEMANTICS ***)
@@ -152,6 +161,9 @@ let rec resolve env expr_raw = match expr_raw with
   | Cas_raw (e1, e2, e3) -> Cas (resolve env e1,
                                  resolve env e2,
                                  resolve env e3)
+  | Spinlock_raw l -> Spinlock l
+  | Lock_raw e1 -> Lock (resolve env e1)
+  | Unlock_raw e1 -> Unlock (resolve env e1)
   | Error_raw msg -> Error msg
 
 let convert_from_raw re = resolve [] re
@@ -170,6 +182,8 @@ let rec is_error e = match e with
   | While (e1, _) -> is_error e1
   | App (e1, _) -> is_error e1
   | Cas (e1, _, _) -> is_error e1
+  | Lock e1 -> is_error e1
+  | Unlock e1 -> is_error e1
   | _ -> false
 
 (* is_value : expr -> bool *)
@@ -180,6 +194,7 @@ let is_value e = match e with
   | Glo _ -> true
   | Skip -> true
   | Fn (_) -> true
+  | Spinlock _ -> true
   | f -> is_error f
 
 (* subst : expr -> int -> expr -> expr *)
@@ -208,6 +223,9 @@ let rec subst e n f = match f with
   | Cas (e1, e2, e3) -> Cas (subst e n e1,
                              subst e n e2,
                              subst e n e3)
+  | Spinlock l -> Spinlock l
+  | Lock e1 -> Lock (subst e n e1)
+  | Unlock e1 -> Lock (subst e n e1)
   | Error msg -> Error msg
 
 (* To fulfill signature *)
@@ -234,6 +252,9 @@ let rec shift n e = match e with
   | Let (e1, e2) -> Let (shift n e1, shift (n+1) e2)
   | Letrec (e1, e2) -> Letrec (shift (n+2) e1, shift (n+1) e2)
   | Cas (e1, e2, e3) -> Cas (shift n e1, shift n e2, shift n e3)
+  | Spinlock l -> Spinlock l
+  | Lock e1 -> Lock (shift n e1)
+  | Unlock e1 -> Unlock (shift n e1)
   | Error msg -> Error msg
 
 
@@ -258,5 +279,8 @@ let rec swap n e = match e with
   | Let (e1, e2) -> Let (swap n e1, swap (n+1) e2)
   | Letrec (e1, e2) -> Letrec (swap (n+2) e1, swap (n+1) e2)
   | Cas (e1, e2, e3) -> Cas (swap n e1, swap n e2, swap n e3)
+  | Spinlock l -> Spinlock l
+  | Lock e1 -> Lock (swap n e1)
+  | Unlock e1 -> Unlock (swap n e1)
   | Error msg -> Error msg
 
