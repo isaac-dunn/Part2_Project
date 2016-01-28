@@ -15,7 +15,19 @@ let test_cases = [
     ("23 / 7", "3");
     ("23 % 7", "2");
     ("23 > 7", "true");
+    ("23 < 7", "false");
     ("23 = 7", "false");
+
+    (* Boolean operations *)
+    ("¬true", "false");
+    ("¬ false", "true");
+    ("true & true", "true");
+    ("true & false", "false");
+    ("true | false", "true");
+    ("false | false", "false");
+    ("true = true", "true");
+    ("true = false", "false");
+    ("false = false", "true");
 
     (* If then else *)
     ("if true then 1 else 2", "1");
