@@ -17,13 +17,17 @@ rule read =
   | nat as lxm { INT (int_of_string lxm) }
   | "true" { TRUE }
   | "false" { FALSE }
+  | "¬" { NOT }
   | "+" { PLUS }
   | "-" { MINUS }
   | "*" { MULT }
   | "/" { DIV }
   | "%" { MOD }
   | ">" { GT }
+  | "<" { LT }
   | "=" { EQUALS }
+  | "&" { AND }
+  | "|" { OR }
   | "if" { IF }
   | "then" { THEN }
   | "else" { ELSE }

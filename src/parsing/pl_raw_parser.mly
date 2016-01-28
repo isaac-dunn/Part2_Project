@@ -1,7 +1,8 @@
 %token LBKT RBKT
 %token <int> INT
 %token TRUE FALSE
-%token PLUS MINUS MULT DIV MOD GT EQUALS
+%token PLUS MINUS MULT DIV MOD LT GT EQUALS
+%token NOT AND OR
 %token IF THEN ELSE
 %token ASSIGN DEREF REF
 %token <string> LOC GLO
@@ -24,8 +25,9 @@
 
 %right ASSIGN (* a := b + c is a := (b + c) *)
 
-(* Standard arithmetic precedence *)
-%nonassoc GT EQUALS
+(* Standard operator precedence *)
+%nonassoc GT LT EQUALS AND OR
+%nonassoc NOT
 %left PLUS MINUS
 %left MULT DIV MOD
 
@@ -57,6 +59,7 @@ expr:
   | MINUS INT { Pl_expression.Integer_raw (-$2) }
   | TRUE { Pl_expression.Boolean_raw true }
   | FALSE { Pl_expression.Boolean_raw false }
+  | NOT e = expr { Pl_expression.Not_raw e }
   | a = expr PLUS b = expr
      { Pl_expression.Op_raw (a, Pl_expression.Plus, b) }
   | a = expr MINUS b = expr
@@ -69,8 +72,14 @@ expr:
      { Pl_expression.Op_raw (a, Pl_expression.Mod, b) }
   | a = expr GT b = expr
      { Pl_expression.Op_raw (a, Pl_expression.GT, b) }
+  | a = expr LT b = expr
+     { Pl_expression.Op_raw (a, Pl_expression.LT, b) }
   | a = expr EQUALS b = expr
      { Pl_expression.Op_raw (a, Pl_expression.Equals, b) }
+  | a = expr AND b = expr
+     { Pl_expression.Op_raw (a, Pl_expression.AND, b) }
+  | a = expr OR b = expr
+     { Pl_expression.Op_raw (a, Pl_expression.OR, b) }
   | IF b = expr THEN x = expr ELSE y = expr { Pl_expression.If_raw (b, x, y) }
   | a = expr ASSIGN b = expr { Pl_expression.Assign_raw (a, b) }
   | DEREF expr { Pl_expression.Deref_raw ($2) }
