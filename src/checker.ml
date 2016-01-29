@@ -62,8 +62,14 @@ module DPORChecker (Prog : Interfaces.Program) =
         (* Used to determine if there is some enabled p *)
         let transition_to_explore = ref None in
 
+        let pre i =
+            let rec pre_aux tran_list index state =
+                if index = i then state else
+                    (pre_aux (List.tl tran_list) (index+1)
+                        (ProgImp.apply_transition state (List.hd tran_list)))
+            in pre_aux t_seq 0 init_prog in
         (* let s = last(S) *)
-        let (tds, g) = List.fold_left ProgImp.apply_transition init_prog t_seq in
+        let (tds, g) = pre depth in
 
         (* for all processes p *)
         for p = 0 to Array.length tds - 1 do
@@ -97,11 +103,20 @@ module DPORChecker (Prog : Interfaces.Program) =
                 if i > ~-1 then if
                    i > Clockvector.get (proc_cvs p) (fst (List.nth t_seq i))
                 then (
+                    let prei = pre i in
+                    let enabled p' (tds', g') =
+                        let (e', s') = Array.get tds' p' in
+                        match ProgImp.ThrImp.next_transition (e', s', g') with
+                        Some _ -> true | None -> false
                     (* if p in enabled(pre(S, i)) *)
+                    in if enabled p prei
                     (* then add p to backtrack(pre(S, i)) *)
-                    Var_array.set backtracks i (p::(Var_array.get backtracks i))
+                    then Var_array.set backtracks i (p::(Var_array.get backtracks i))
                     (* else add enabled(pre(S,i)) to backtrack(pre(S,i)) *)
-                    (* As we have no locks, all transitions are always enabled *)
+                    else let rec ntoz n = if n = 0 then [0] else n::(ntoz (n-1))
+                         in let en_in_prei q = enabled q prei
+                         in Var_array.set backtracks i (List.filter en_in_prei
+                                (ntoz (Array.length tds - 1)))
                     )
         done;
 
