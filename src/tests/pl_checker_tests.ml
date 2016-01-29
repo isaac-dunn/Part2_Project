@@ -424,6 +424,77 @@ module PLCorrectnessTest (Chk :
          |], ("table", Pl_parser.expr_of_string (int_to_loc_str 100))::
              ("increment", Integer 3)::("size", Integer 4)::
              (array_store 100), false);
+
+
+        (* Test 24 *)
+        (* Spinlocks *)
+        ([| "lock SL0;
+             let read = !Gx in
+             if cas(Gx, read, read + 1)
+                then unlock SL0
+                else error(value unexpectedly changed)";
+
+            "lock SL0;
+             let read = !Gx in
+             if cas(Gx, read, read + 1)
+                then unlock SL0
+                else error(value unexpectedly changed)";
+        |], [("x", Integer 0)], false);
+
+        (* Test 25 *)
+        ([| "lock SL0;
+             let read = !Gx in
+             if cas(Gx, read, read + 1)
+                then unlock SL0
+                else error(value unexpectedly changed)";
+
+            "let read = !Gx in
+             if cas(Gx, read, read + 1)
+                then skip
+                else error(value unexpectedly changed)";
+        |], [("x", Integer 0)], true);
+
+        (* Test 26 *)
+        ([| "lock SL0;
+             if cas(Gx, false, true)
+             then if cas(Gx, true, false)
+                  then unlock SL0
+                  else error(value unexpectedly changed)
+             else error(value should always be false)";
+            "lock SL0;
+             if cas(Gx, false, true)
+             then if cas(Gx, true, false)
+                  then unlock SL0
+                  else error(value unexpectedly changed)
+             else error(value should always be false)";
+            "lock SL0;
+             if cas(Gx, false, true)
+             then if cas(Gx, true, false)
+                  then unlock SL0
+                  else error(value unexpectedly changed)
+             else error(value should always be false)";
+        |], [("x", Boolean false)], false);
+
+        (* Test 27 *)
+        ([| "if cas(Gx, false, true)
+             then if cas(Gx, true, false)
+                  then skip
+                  else error(value unexpectedly changed)
+             else error(value should always be false)";
+            "lock SL0;
+             if cas(Gx, false, true)
+             then if cas(Gx, true, false)
+                  then unlock SL0
+                  else error(value unexpectedly changed)
+             else error(value should always be false)";
+            "lock SL0;
+             if cas(Gx, false, true)
+             then if cas(Gx, true, false)
+                  then unlock SL0
+                  else error(value unexpectedly changed)
+             else error(value should always be false)";
+        |], [("x", Boolean false)], true);
+
     ]
 
     let run_test (es, g, err_poss) =
