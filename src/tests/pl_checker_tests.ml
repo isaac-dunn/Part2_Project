@@ -495,6 +495,49 @@ module PLCorrectnessTest (Chk :
              else error(value should always be false)";
         |], [("x", Boolean false)], true);
 
+        (* Test 28 *)
+        ([| "let lf = fn i =>
+                if i = 0 then SLl0 else
+                if i = 1 then SLl1 else
+                if i = 2 then SLl2 else error(out of bounds)
+             in let ri = ref 0 in
+             let rtot = ref 0 in
+             while !ri < 3 do
+                lock (lf @ !ri);
+                rtot := !rtot + !(!Gtable @ !ri);
+                ri := !ri + 1
+             done;
+             if ¬(!rtot % 3 = 0) then error(locking gone wrong)
+             else while !ri > 0 do
+                ri := !ri - 1;
+                let location = (!Gtable @ !ri) in
+                let vl = !location in
+                if ¬cas(location, vl, vl) then error(unexpected change)
+                else unlock (lf @ !ri)
+            done";
+
+            "let lf = fn i =>
+                if i = 0 then SLl0 else
+                if i = 1 then SLl1 else
+                if i = 2 then SLl2 else error(out of bounds)
+             in let ri = ref 0 in
+             let rtot = ref 0 in
+             while !ri < 3 do
+                lock (lf @ !ri);
+                rtot := !rtot + !(!Gtable @ !ri);
+                ri := !ri + 1
+             done;
+             if ¬(!rtot % 3 = 0) then error(locking gone wrong)
+             else while !ri > 0 do
+                ri := !ri - 1;
+                let location = (!Gtable @ !ri) in
+                let vl = !location in
+                if ¬cas(location, vl, vl) then error(unexpected change)
+                else unlock (lf @ !ri)
+            done";
+         |], ("table", Pl_parser.expr_of_string (int_to_loc_str 4))::
+             (array_store 4), false);
+
     ]
 
     let run_test (es, g, err_poss) =
