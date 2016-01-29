@@ -10,7 +10,8 @@ module SimpleChecker (Prog : Interfaces.Program) =
         let depth = List.length t_seq in
         if depth > !max_depth then max_depth := depth;
         let (tds, g) = List.fold_left ProgImp.apply_transition init_prog t_seq in
-        let no_err_reached = ref true in
+        let error_free = ref true in
+        let deadlock_free = ref true in
         for i = 0 to Array.length tds - 1 do
             let (e, s) = Array.get tds i in
             match ProgImp.ThrImp.next_transition (e, s, g) with
@@ -18,25 +19,24 @@ module SimpleChecker (Prog : Interfaces.Program) =
               None ->
                 let rec check_local (ex, st) =
                     if ProgImp.ThrImp.ExpImp.is_error ex
-                    then no_err_reached := false
+                    then error_free := false
                     else match ProgImp.ThrImp.next_step (ex, st, g) with
-                        None -> () (* No errors *)
+                        None -> if not (ProgImp.ThrImp.ExpImp.is_value ex)
+                                then deadlock_free := false
                       | Some t_step -> check_local (t_step.ProgImp.ThrImp.new_expr,
                                         (match t_step.ProgImp.ThrImp.s_update with
                                           None -> st
                                         | Some su -> ProgImp.ThrImp.StoreImp.update st su))
-                in if !no_err_reached then check_local (e, s)
+                in check_local (e, s)
               (* There is a transition: check if error; explore from the new state *)
             | Some t_tran -> 
-                if ProgImp.ThrImp.ExpImp.is_error t_tran.ProgImp.ThrImp.next_expr
-                (* This is error; mark it as such *)
-                then no_err_reached := false
-                (* Not an error; explore subsequent transitions *)
-                else no_err_reached := !no_err_reached && check init_prog (t_seq @ [(i, t_tran)])
+                let (ef, df) = check init_prog (t_seq @ [(i, t_tran)])
+                in error_free := !error_free && ef;
+                   deadlock_free := !deadlock_free && df
         done;
-        !no_err_reached
+        (!error_free, !deadlock_free)
 
-    let error_free init_prog = check init_prog []
+    let error_and_deadlock_free init_prog = check init_prog []
   end
 
 module DPORChecker (Prog : Interfaces.Program) =
@@ -159,7 +159,7 @@ module DPORChecker (Prog : Interfaces.Program) =
                                        else last_ti oi in
 
         (* Explore(S', C', L') *)
-        no_err_reached := !no_err_reached && (check init_prog new_t_seq new_proc_cvs new_obj_cvs new_last_ti);
+        no_err_reached := !no_err_reached && fst (check init_prog new_t_seq new_proc_cvs new_obj_cvs new_last_ti);
 
         (* go back to top of while loop if necessary *)
         (* also contains add p to done *)
@@ -168,9 +168,9 @@ module DPORChecker (Prog : Interfaces.Program) =
         in whileloop (find_p (Var_array.get backtracks (Var_array.length backtracks - 1)) []) [];
             Var_array.remove_last backtracks (* Decrement size of array to counter earlier increment *)));
  
-        !no_err_reached
+        (!no_err_reached, true)
 
-    let error_free (tds, g) =
+    let error_and_deadlock_free (tds, g) =
         let n = Array.length tds in
         check (tds, g) [] (fun _ -> Clockvector.fresh n) (fun _ -> Clockvector.fresh n) (fun _ -> ~-1)
   end

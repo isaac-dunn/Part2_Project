@@ -545,14 +545,17 @@ module PLCorrectnessTest (Chk :
         let convert e = (Pl_parser.expr_of_string e, C.ProgImp.ThrImp.StoreImp.empty) in
         let tds = Array.map convert es in
         let init_time = Sys.time() in
-        if C.error_free (tds, g) = err_poss then (* Failure *)
+        let (ef, df) = C.error_and_deadlock_free (tds, g) in
+        if false (* C.error_free (tds, g) = err_poss *) then (* Failure *)
              (print_string "Below initial state expected ";
               (if err_poss then print_string "to have error but none found\n"
                 else print_string "not to have error but error found\n");
               print_endline (C.ProgImp.string_of_program (tds, g));
               print_newline ();
               false)
-        else (print_endline ("Calls: " ^ (string_of_int !C.calls) ^ "\n"
+        else (print_endline ("Error: " ^ (string_of_bool ef) ^ "\n"
+                            ^"DLock: " ^ (string_of_bool df) ^ "\n"
+                            ^"Calls: " ^ (string_of_int !C.calls) ^ "\n"
                             ^" Time: " ^ (string_of_float
                                 (Sys.time() -. init_time)) ^ "\n"
                             ^"Depth: " ^ (string_of_int !C.max_depth) ^ "\n");

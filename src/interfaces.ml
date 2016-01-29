@@ -123,7 +123,7 @@ module type Checker = sig
     val calls : int ref
 
     (** True iff no error state is reachable *)
-    val error_free : ProgImp.state -> bool
+    val error_and_deadlock_free : ProgImp.state -> bool * bool
 end
 
 (* Test Module Interface *)
