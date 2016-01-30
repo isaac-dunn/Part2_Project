@@ -8,7 +8,7 @@ module PLCorrectnessTest (Chk :
 
     module C = Chk
 
-    type case = (string array * C.ProgImp.ThrImp.StoreImp.store * bool)
+    type case = (string array * C.ProgImp.ThrImp.StoreImp.store * (bool * bool))
 
     let test_cases =
         let rec array_store n = if n = 0 then [("0", Integer 0)]
@@ -21,64 +21,65 @@ module PLCorrectnessTest (Chk :
             in "fn x => " ^ (itls_aux 0) in
 
     [
+        (* Initial expression strings, global store, (error free, deadlock free) *)
+
         (* Test 0 *)
-        (* Initial expression strings, global store, error possible *)
         ([| "cas(Gx, 2, 0)";
             "cas(Gx, 2, 1)";
-         |], [("x", Integer 2)], false);
+         |], [("x", Integer 2)], (true, true));
 
         (* Test 1 *)
         ([| "if cas(Gx, 2, 0) then skip else error(not cas)";
             "cas(Gx, 2, 1)";
-         |], [("x", Integer 2)], true);
+         |], [("x", Integer 2)], (false, true));
 
         (* Test 2 *)
         ([| "if cas(Gx, 2, 0) then skip else error(not cas)";
             "cas(Gx, 2, 2)";
-         |], [("x", Integer 2)], false);
+         |], [("x", Integer 2)], (true, true));
 
         (* Test 3 *)
         ([| "if cas(Gx, 2, 0) then skip else error(not cas)";
             "cas(Gx, 1, 1)";
-         |], [("x", Integer 2)], false);
+         |], [("x", Integer 2)], (true, true));
 
         (* Test 4 *)
         ([| "if cas(Gx, 1, 0) then skip else error(not cas)";
             "cas(Gx, 2, 1)";
-         |], [("x", Integer 2)], true);
+         |], [("x", Integer 2)], (false, true));
 
         (* Test 5 *)
         ([| "while cas (Gx, false, skip) do error(unreachable) done";
             "while cas (Gx, skip, true) do error(unreachable) done";
-         |], [("x", Integer 5)], false);
+         |], [("x", Integer 5)], (true, true));
 
         (* Test 6 *)
         ([| "while cas (Gx, false, skip) do error(unreachable) done";
             "while cas (Gx, skip, true) do error(unreachable) done";
-         |], [("x", Skip)], true);
+         |], [("x", Skip)], (false, true));
 
         (* Test 7 *)
         ([| "if cas(Gx, !Gx, 0) then skip else error(not cas)";
             "if cas(Gx, !Gx, 1) then skip else error(not cas)";
-         |], [("x", Integer 2)], true);
+         |], [("x", Integer 2)], (false, true));
 
         (* Test 8 *)
         ([| "if cas(Gx, !Gx, 2) then skip else error(not cas)";
             "if cas(Gx, !Gx, 2) then skip else error(not cas)";
-         |], [("x", Integer 2)], false);
+         |], [("x", Integer 2)], (true, true));
 
         (* Test 9 *)
         ([| "cas(Gx, !Gx, !Gx + 1)";
             "cas(Gx, !Gx, !Gx + 1)";
             "if !Gx > 1 then error(both threads accessed x) else skip";
-         |], [("l", Integer 0); ("x", Integer 0)], true);
+         |], [("l", Integer 0); ("x", Integer 0)], (false, true));
 
         (* Test 10 *)
         (* Exclude one thread from entering *)
         ([| "if cas(Gl, 0, 1) then cas(Gx, !Gx, !Gx + 1) else skip";
             "if cas(Gl, 0, 1) then cas(Gx, !Gx, !Gx + 1) else skip";
             "if !Gx > 1 then error(both threads accessed x) else skip";
-         |], [("l", Integer 0); ("x", Integer 0)], false);
+         |], [("l", Integer 0); ("x", Integer 0)], (true, true));
 
         (* Test 11 *)
         (* Only change value if unchanged since read *)
@@ -91,7 +92,7 @@ module PLCorrectnessTest (Chk :
             "if !Gd0 then if !Gd1 then if !Gx = 103 then skip
                 else error(race condition) else skip else skip";
          |], [("x", Integer 100); ("d0", Boolean false); ("d1", Boolean false)],
-            false);
+            (true, true));
 
         (* Test 12 *)
         (* Large state space *)
@@ -99,7 +100,7 @@ module PLCorrectnessTest (Chk :
                 while 2 > !r do if cas(Gx, !r, !r+1) then r := !Gx else r := !Gx done"; 
             "let r= ref 0 in
                 while 2 > !r do if cas(Gx, !r, !r+1) then r := !Gx else r := !Gx done"; 
-        |], [("x", Integer 0)], false);
+        |], [("x", Integer 0)], (true, true));
 
         (* Test 13 *)
         (* Indexer example *)
@@ -138,7 +139,7 @@ module PLCorrectnessTest (Chk :
             done";
 
         |], ("table", Pl_parser.expr_of_string (int_to_loc_str 128))::
-                (array_store 128), false);
+                (array_store 128), (true, true));
 
         (* Test 14 *)
         (* Thread 0 accesses even array indices; thread 1 accesses odd *)
@@ -163,7 +164,7 @@ module PLCorrectnessTest (Chk :
              done";
 
          |], ("table", Pl_parser.expr_of_string (int_to_loc_str 128))::
-                (array_store 128), false);
+                (array_store 128), (true, true));
 
         (* Test 15 *)
         (* Thread 0 accesses 0,3,6,9; thread 1 accesses 1,5,9; error at 9 *)
@@ -188,7 +189,7 @@ module PLCorrectnessTest (Chk :
              done";
 
          |], ("table", Pl_parser.expr_of_string (int_to_loc_str 128))::
-                (array_store 128), true);
+                (array_store 128), (false, true));
 
         (* Test 16 *)
         (* first set array values in thread 0, then check them in thread 1 *)
@@ -215,7 +216,7 @@ module PLCorrectnessTest (Chk :
             done)";
 
          |], ("table", Pl_parser.expr_of_string (int_to_loc_str 8))::
-               (("ready", Boolean false)::(array_store 8)), false);
+               (("ready", Boolean false)::(array_store 8)), (true, true));
 
         (* Test 17 *)
         (* Producer/Consumer *)
@@ -252,7 +253,7 @@ module PLCorrectnessTest (Chk :
              done";
 
          |], ("table", Pl_parser.expr_of_string (int_to_loc_str 8))::
-               (array_store 8), false);
+               (array_store 8), (true, true));
 
         (* Test 18 *)
         (* Set array values, and check they aren't set to values they aren't set to *)
@@ -283,7 +284,7 @@ module PLCorrectnessTest (Chk :
             done";
 
          |], ("table", Pl_parser.expr_of_string (int_to_loc_str 8))::
-             ("size", Integer 4)::("mod", Integer 4)::(array_store 8), false);
+             ("size", Integer 4)::("mod", Integer 4)::(array_store 8), (true, true));
 
         (* Test 19 *)
         (* Beer in fridge example from Part IB Conc. Systems *)
@@ -293,7 +294,7 @@ module PLCorrectnessTest (Chk :
             "if !Gbeer then skip
              else if cas(Gbeer, false, true) then skip
                   else error(someone put beer in the fridge before me)";
-        |], [("beer", Boolean false)], true);
+        |], [("beer", Boolean false)], (false, true));
 
         (* Test 20 *)
         (* Solution to beer problem *)
@@ -318,7 +319,7 @@ module PLCorrectnessTest (Chk :
 
         |], [("beer", Boolean false); ("note", Boolean false);
              ("t1finished", Boolean false); ("t2finished", Boolean false)],
-                false);
+                (true, true));
 
         (* Test 21 *)
         (* Another example showing off DPOR *)
@@ -345,7 +346,7 @@ module PLCorrectnessTest (Chk :
             done";
 
          |], ("table", Pl_parser.expr_of_string (int_to_loc_str 100))::
-             ("size", Integer 3)::(array_store 100), false);
+             ("size", Integer 3)::(array_store 100), (true, true));
 
         (* Test 22 *)
         ([| "let size = !Gsize in
@@ -391,7 +392,7 @@ module PLCorrectnessTest (Chk :
              done";
 
          |], ("table", Pl_parser.expr_of_string (int_to_loc_str 8))::
-             ("size", Integer 2)::(array_store 8), false);
+             ("size", Integer 2)::(array_store 8), (true, true));
 
         (* Test 23 *)
         ([| "let size = !Gsize in
@@ -423,7 +424,7 @@ module PLCorrectnessTest (Chk :
 
          |], ("table", Pl_parser.expr_of_string (int_to_loc_str 100))::
              ("increment", Integer 3)::("size", Integer 4)::
-             (array_store 100), false);
+             (array_store 100), (true, true));
 
 
         (* Test 24 *)
@@ -439,7 +440,7 @@ module PLCorrectnessTest (Chk :
              if cas(Gx, read, read + 1)
                 then unlock SL0
                 else error(value unexpectedly changed)";
-        |], [("x", Integer 0)], false);
+        |], [("x", Integer 0)], (true, true));
 
         (* Test 25 *)
         ([| "lock SL0;
@@ -452,7 +453,7 @@ module PLCorrectnessTest (Chk :
              if cas(Gx, read, read + 1)
                 then skip
                 else error(value unexpectedly changed)";
-        |], [("x", Integer 0)], true);
+        |], [("x", Integer 0)], (false, true));
 
         (* Test 26 *)
         ([| "lock SL0;
@@ -473,7 +474,7 @@ module PLCorrectnessTest (Chk :
                   then unlock SL0
                   else error(value unexpectedly changed)
              else error(value should always be false)";
-        |], [("x", Boolean false)], false);
+        |], [("x", Boolean false)], (true, true));
 
         (* Test 27 *)
         ([| "if cas(Gx, false, true)
@@ -493,7 +494,7 @@ module PLCorrectnessTest (Chk :
                   then unlock SL0
                   else error(value unexpectedly changed)
              else error(value should always be false)";
-        |], [("x", Boolean false)], true);
+        |], [("x", Boolean false)], (false, false));
 
         (* Test 28 *)
         ([| "let lf = fn i =>
@@ -536,35 +537,36 @@ module PLCorrectnessTest (Chk :
                 else unlock (lf @ !ri)
             done";
          |], ("table", Pl_parser.expr_of_string (int_to_loc_str 4))::
-             (array_store 4), false);
+             (array_store 4), (true, true));
 
     ]
 
-    let run_test (es, g, err_poss) =
+    let run_test (es, g, (eef, edf)) =
         C.max_depth := 0; C.calls := 0;
         let convert e = (Pl_parser.expr_of_string e, C.ProgImp.ThrImp.StoreImp.empty) in
         let tds = Array.map convert es in
         let init_time = Sys.time() in
-        let (ef, df) = C.error_and_deadlock_free (tds, g) in
-        if false (* C.error_free (tds, g) = err_poss *) then (* Failure *)
-             (print_string "Below initial state expected ";
-              (if err_poss then print_string "to have error but none found\n"
-                else print_string "not to have error but error found\n");
-              print_endline (C.ProgImp.string_of_program (tds, g));
-              print_newline ();
-              false)
-        else (print_endline ("Error: " ^ (string_of_bool ef) ^ "\n"
-                            ^"DLock: " ^ (string_of_bool df) ^ "\n"
-                            ^"Calls: " ^ (string_of_int !C.calls) ^ "\n"
-                            ^" Time: " ^ (string_of_float
-                                (Sys.time() -. init_time)) ^ "\n"
-                            ^"Depth: " ^ (string_of_int !C.max_depth) ^ "\n");
-              true) (* Success *)
+        let (aef, adf) = C.error_and_deadlock_free (tds, g) in
+        let success = aef = eef && adf = edf in
+        if success then print_endline "Result: Success"
+                   else (print_string "Result: Failure";
+                    if aef <> eef then if eef
+                        then print_string " (Unexpected error)"
+                        else print_string " (Unexpectedly error-free)";
+                    if adf <> edf then if edf
+                        then print_string " (Unexpected deadlock)"
+                        else print_string " (Unexpectedly deadlock-free)";
+                    print_newline());
+        print_endline (" Calls: " ^ (string_of_int !C.calls) ^ "\n"
+        ^"  Time: " ^ (string_of_float
+            (Sys.time() -. init_time)) ^ "\n"
+        ^" Depth: " ^ (string_of_int !C.max_depth) ^ "\n");
+        success
 
     let all_tests_passed () =
         let rec conj l = match l with [] -> true | b::bs -> b && conj bs in
             conj (List.mapi (fun index ->
-                print_endline ("Index: " ^ (string_of_int index)); run_test)
+                print_endline (" Index: " ^ (string_of_int index)); run_test)
                     test_cases)
 
     let print_all_tests_passed () = print_endline ("Checker Correctness Tests All Passed: "
