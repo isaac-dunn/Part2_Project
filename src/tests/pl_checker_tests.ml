@@ -539,6 +539,24 @@ module PLCorrectnessTest (Chk :
          |], ("table", Pl_parser.expr_of_string (int_to_loc_str 4))::
              (array_store 4), (true, true));
 
+        (* Test 29 *)
+        (* Deadlocks can happen *)
+        ([| "lock SL0; lock SL1; unlock SL1; unlock SL0";
+            "lock SL1; lock SL0; unlock SL0; unlock SL1";
+        |], [], (true, false));
+
+        (* Test 30 *)
+        (* But an ordering on the locks can avoid it *)
+        ([| "lock SL0; lock SL1; unlock SL1; unlock SL0";
+            "lock SL0; lock SL1; unlock SL1; unlock SL0";
+        |], [], (true, true));
+
+        (* Test 31 *)
+        (* Forgot to unlock, oops *)
+        ([| "lock SL0; lock SL1; unlock SL1; unlock SL0";
+            "lock SL0; lock SL1; unlock SL1";
+        |], [], (true, false));
+
     ]
 
     let run_test (es, g, (eef, edf)) =
