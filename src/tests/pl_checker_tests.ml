@@ -11,14 +11,17 @@ module PLCorrectnessTest (Chk :
     type case = (string array * C.ProgImp.ThrImp.StoreImp.store * (bool * bool))
 
     let test_cases =
-        let rec array_store n = if n = 0 then [("0", Integer 0)]
-            else  (string_of_int n,
-                    Integer 0)::(array_store (n-1)) in
-        let int_to_loc_str n =
+        let rec array_store n loc_fun init_val_fun = if n < 0 then []
+            else  (loc_fun n, init_val_fun n)::
+                    (array_store (n-1) loc_fun init_val_fun) in
+        let intloc_array_zero_store n =
+            array_store n string_of_int (fun _ -> Integer 0) in
+        let array_pl_fun n loc_fun =
             let rec itls_aux m = if m > n then "error(index out of bounds)"
-                    else "if x=" ^ (string_of_int m) ^ " then G" ^
-                            (string_of_int m) ^ " else " ^ (itls_aux (m+1))
+                    else "if x=" ^ (string_of_int m) ^ " then " ^ (loc_fun m)
+                              ^ " else " ^ (itls_aux (m+1))
             in "fn x => " ^ (itls_aux 0) in
+        let int_to_loc_str n = array_pl_fun n (fun m -> "G" ^ (string_of_int m)) in
 
     [
         (* Initial expression strings, global store, (error free, deadlock free) *)
@@ -139,7 +142,7 @@ module PLCorrectnessTest (Chk :
             done";
 
         |], ("table", Pl_parser.expr_of_string (int_to_loc_str 128))::
-                (array_store 128), (true, true));
+                (intloc_array_zero_store 128), (true, true));
 
         (* Test 14 *)
         (* Thread 0 accesses even array indices; thread 1 accesses odd *)
@@ -164,7 +167,7 @@ module PLCorrectnessTest (Chk :
              done";
 
          |], ("table", Pl_parser.expr_of_string (int_to_loc_str 128))::
-                (array_store 128), (true, true));
+                (intloc_array_zero_store 128), (true, true));
 
         (* Test 15 *)
         (* Thread 0 accesses 0,3,6,9; thread 1 accesses 1,5,9; error at 9 *)
@@ -189,7 +192,7 @@ module PLCorrectnessTest (Chk :
              done";
 
          |], ("table", Pl_parser.expr_of_string (int_to_loc_str 128))::
-                (array_store 128), (false, true));
+                (intloc_array_zero_store 128), (false, true));
 
         (* Test 16 *)
         (* first set array values in thread 0, then check them in thread 1 *)
@@ -216,7 +219,7 @@ module PLCorrectnessTest (Chk :
             done)";
 
          |], ("table", Pl_parser.expr_of_string (int_to_loc_str 8))::
-               (("ready", Boolean false)::(array_store 8)), (true, true));
+               (("ready", Boolean false)::(intloc_array_zero_store 8)), (true, true));
 
         (* Test 17 *)
         (* Producer/Consumer *)
@@ -253,7 +256,7 @@ module PLCorrectnessTest (Chk :
              done";
 
          |], ("table", Pl_parser.expr_of_string (int_to_loc_str 8))::
-               (array_store 8), (true, true));
+               (intloc_array_zero_store 8), (true, true));
 
         (* Test 18 *)
         (* Set array values, and check they aren't set to values they aren't set to *)
@@ -284,7 +287,7 @@ module PLCorrectnessTest (Chk :
             done";
 
          |], ("table", Pl_parser.expr_of_string (int_to_loc_str 8))::
-             ("size", Integer 4)::("mod", Integer 4)::(array_store 8), (true, true));
+             ("size", Integer 4)::("mod", Integer 4)::(intloc_array_zero_store 8), (true, true));
 
         (* Test 19 *)
         (* Beer in fridge example from Part IB Conc. Systems *)
@@ -346,7 +349,7 @@ module PLCorrectnessTest (Chk :
             done";
 
          |], ("table", Pl_parser.expr_of_string (int_to_loc_str 100))::
-             ("size", Integer 3)::(array_store 100), (true, true));
+             ("size", Integer 3)::(intloc_array_zero_store 100), (true, true));
 
         (* Test 22 *)
         ([| "let size = !Gsize in
@@ -392,7 +395,7 @@ module PLCorrectnessTest (Chk :
              done";
 
          |], ("table", Pl_parser.expr_of_string (int_to_loc_str 8))::
-             ("size", Integer 2)::(array_store 8), (true, true));
+             ("size", Integer 2)::(intloc_array_zero_store 8), (true, true));
 
         (* Test 23 *)
         ([| "let size = !Gsize in
@@ -424,7 +427,7 @@ module PLCorrectnessTest (Chk :
 
          |], ("table", Pl_parser.expr_of_string (int_to_loc_str 100))::
              ("increment", Integer 3)::("size", Integer 4)::
-             (array_store 100), (true, true));
+             (intloc_array_zero_store 100), (true, true));
 
 
         (* Test 24 *)
@@ -537,7 +540,7 @@ module PLCorrectnessTest (Chk :
                 else unlock (lf @ !ri)
             done";
          |], ("table", Pl_parser.expr_of_string (int_to_loc_str 4))::
-             (array_store 4), (true, true));
+             (intloc_array_zero_store 4), (true, true));
 
         (* Test 29 *)
         (* Deadlocks can happen *)
