@@ -11,7 +11,9 @@ module SimpleChecker (Prog : Interfaces.Program) =
         if depth > !max_depth then max_depth := depth;
         let (tds, g) = List.fold_left ProgImp.apply_transition init_prog t_seq in
         let error_free = ref true in
-        let deadlock_free = ref true in
+        let one_thread_can_advance = ref false in
+        let all_stopped_threads_are_values = ref true in
+        let recursive_calls_deadlock_free = ref true in
         for i = 0 to Array.length tds - 1 do
             let (e, s) = Array.get tds i in
             match ProgImp.ThrImp.next_transition (e, s, g) with
@@ -22,19 +24,21 @@ module SimpleChecker (Prog : Interfaces.Program) =
                     then error_free := false
                     else match ProgImp.ThrImp.next_step (ex, st, g) with
                         None -> if not (ProgImp.ThrImp.ExpImp.is_value ex)
-                                then deadlock_free := false
-                      | Some t_step -> check_local (t_step.ProgImp.ThrImp.new_expr,
+                                then all_stopped_threads_are_values := false
+                      | Some t_step -> (check_local (t_step.ProgImp.ThrImp.new_expr,
                                         (match t_step.ProgImp.ThrImp.s_update with
                                           None -> st
-                                        | Some su -> ProgImp.ThrImp.StoreImp.update st su))
+                                        | Some su -> ProgImp.ThrImp.StoreImp.update st su)))
                 in check_local (e, s)
               (* There is a transition: check if error; explore from the new state *)
-            | Some t_tran -> 
+            | Some t_tran -> (
+                one_thread_can_advance := true;
                 let (ef, df) = check init_prog (t_seq @ [(i, t_tran)])
                 in error_free := !error_free && ef;
-                   deadlock_free := !deadlock_free && df
+                   recursive_calls_deadlock_free := !recursive_calls_deadlock_free && df)
         done;
-        (!error_free, !deadlock_free)
+        (!error_free, !recursive_calls_deadlock_free &&
+                (!one_thread_can_advance || !all_stopped_threads_are_values))
 
     let error_and_deadlock_free init_prog = check init_prog []
   end
