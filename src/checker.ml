@@ -60,8 +60,10 @@ module DPORChecker (Prog : Interfaces.Program) =
         let depth = List.length t_seq in
         if depth > !max_depth then max_depth := depth;
 
-        (* Track the one bit of info we're after *)
-        let no_err_reached = ref true in
+        let error_free = ref true in
+        let one_thread_can_advance = ref false in
+        let all_stopped_threads_are_values = ref true in
+        let recursive_calls_deadlock_free = ref true in
 
         (* Used to determine if there is some enabled p *)
         let transition_to_explore = ref None in
@@ -87,17 +89,19 @@ module DPORChecker (Prog : Interfaces.Program) =
               None ->
                 let rec check_local (ex, st) =
                     if T.ExpImp.is_error ex
-                    then no_err_reached := false
+                    then error_free := false
                     else match T.next_step (ex, st, g) with
-                        None -> () (* No errors *)
+                        None -> if not (T.ExpImp.is_value ex)
+                                then all_stopped_threads_are_values := false
                       | Some t_step -> check_local (t_step.T.new_expr,
                                         (match t_step.T.s_update with
                                           None -> st
                                         | Some su -> T.StoreImp.update st su))
-                in if !no_err_reached then check_local (e, s)
+                in check_local (e, s)
 
-              (* There is a transition: check if error  *)
+              (* There is a transition *)
             | Some next_t -> 
+                one_thread_can_advance := true;
                 (* There is at least one transition to explore: this one *)
                 transition_to_explore := Some p;
                 (* let i = L(alpha(next(s,p))) *)
@@ -163,7 +167,9 @@ module DPORChecker (Prog : Interfaces.Program) =
                                        else last_ti oi in
 
         (* Explore(S', C', L') *)
-        no_err_reached := !no_err_reached && fst (check init_prog new_t_seq new_proc_cvs new_obj_cvs new_last_ti);
+        let (ef, df) = check init_prog new_t_seq new_proc_cvs new_obj_cvs new_last_ti in
+        error_free := !error_free && ef;
+        recursive_calls_deadlock_free := !recursive_calls_deadlock_free && df;
 
         (* go back to top of while loop if necessary *)
         (* also contains add p to done *)
@@ -172,7 +178,8 @@ module DPORChecker (Prog : Interfaces.Program) =
         in whileloop (find_p (Var_array.get backtracks (Var_array.length backtracks - 1)) []) [];
             Var_array.remove_last backtracks (* Decrement size of array to counter earlier increment *)));
  
-        (!no_err_reached, true)
+        (!error_free, !recursive_calls_deadlock_free &&
+            (!one_thread_can_advance || !all_stopped_threads_are_values))
 
     let error_and_deadlock_free (tds, g) =
         let n = Array.length tds in
