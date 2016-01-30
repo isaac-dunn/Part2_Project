@@ -225,7 +225,7 @@ let rec subst e n f = match f with
                              subst e n e3)
   | Spinlock l -> Spinlock l
   | Lock e1 -> Lock (subst e n e1)
-  | Unlock e1 -> Lock (subst e n e1)
+  | Unlock e1 -> Unlock (subst e n e1)
   | Error msg -> Error msg
 
 (* To fulfill signature *)
