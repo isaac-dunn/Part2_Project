@@ -557,6 +557,16 @@ module PLCorrectnessTest (Chk :
             "lock SL0; lock SL1; unlock SL1";
         |], [], (true, false));
 
+        (* Test 32 *)
+        ([| "lock SL1; lock SL0; unlock SL0; unlock SL1";
+            "lock SL1; lock SL0; unlock SL1";
+        |], [], (true, false));
+
+        (* Test 33 *)
+        ([| "lock SL1; lock SL0; unlock SL1";
+            "lock SL1; lock SL0; unlock SL0; unlock SL1";
+        |], [], (true, false));
+
     ]
 
     let run_test (es, g, (eef, edf)) =
