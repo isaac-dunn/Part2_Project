@@ -107,9 +107,11 @@ module PLCorrectnessTest (Chk :
 
         (* Test 13 *)
         (* Indexer example *)
-        ([| "let size= 128 in
+        (let test13_thread n =
+            "let size= 128 in
              let max = 4 in
-             let tid = 0 in
+             let tid = " ^ (string_of_int n) ^ " in
+             let table = " ^ (int_to_loc_str 128) ^ " in
              let m = ref 0 in
              let w = ref 0 in
              let h = ref 0 in
@@ -119,30 +121,13 @@ module PLCorrectnessTest (Chk :
                 m := !m + 1;
                 w := (getmsg @ skip);
                 h := (hash @ !w);
-                while (if cas(!Gtable @ !h, 0, !w) then false else true) do
+                while (if cas(table @ !h, 0, !w) then false else true) do
                     h := (!h + 1) % size
                 done
-            done";
+            done" in
 
-            "let size = 128 in
-             let max = 4 in
-             let tid = 1 in
-             let m = ref 0 in
-             let w = ref 0 in
-             let h = ref 0 in
-             let hash = fn x => (x * 7) % size in
-             let getmsg = fn u => !m * 11 + tid in
-             while max > !m do
-                m := !m + 1;
-                w := (getmsg @ skip);
-                h := (hash @ !w);
-                while (if cas(!Gtable @ !h, 0, !w) then false else true) do
-                    h := (!h + 1) % size
-                done
-            done";
-
-        |], ("table", Pl_parser.expr_of_string (int_to_loc_str 128))::
-                (intloc_array_zero_store 128), (true, true));
+        (Array.init 16 test13_thread, ("table", Pl_parser.expr_of_string (int_to_loc_str 128))::
+                (intloc_array_zero_store 128), (true, true)));
 
         (* Test 14 *)
         (* Thread 0 accesses even array indices; thread 1 accesses odd *)
