@@ -206,12 +206,13 @@ module PLCorrectnessTest (Chk :
              let i = ref 0 in
              let limit = 2 in
              let ctr = ref 0 in
+             let table = " ^ (int_to_loc_str 128) ^ " in
              let hash =
                 fn x => ((((12773*x)%179)*7)%100)+1 in
              while limit > !ctr do
-                if !(!Gtable @ !i) = 0
-                then if cas(!Gtable @ (!i+1), 0, hash @ (!i+1))
-                     then if cas(!Gtable @ !i, 0, 1)
+                if !(table @ !i) = 0
+                then if cas(table @ (!i+1), 0, hash @ (!i+1))
+                     then if cas(table @ !i, 0, 1)
                         then ctr := !ctr + 1; i := (!i + 2) % size
                         else error(marker should still be zero)
                      else error(supposed to be empty slot)
@@ -222,51 +223,38 @@ module PLCorrectnessTest (Chk :
              let i = ref 0 in
              let limit = 2 in
              let ctr = ref 0 in
+             let table = " ^ (int_to_loc_str 128) ^ " in
              while limit > !ctr do
-                if !(!Gtable @ !i) = 1
-                then let n = !(!Gtable @ (!i+1)) in
+                if !(table @ !i) = 1
+                then let n = !(table @ (!i+1)) in
                    if n = 0 then error(supposed to be full slot)
-                   else if cas(!Gtable @ (!i+1), n, 0)
-                        then if cas(!Gtable @ !i, 1, 0)
+                   else if cas(table @ (!i+1), n, 0)
+                        then if cas(table @ !i, 1, 0)
                              then ctr := !ctr + 1; i := (!i + 2) % size
                              else error(marker should still be one)
                         else error(value changed since read)
                 else ctr := !ctr + 1
              done";
 
-         |], ("table", Pl_parser.expr_of_string (int_to_loc_str 8))::
-               (intloc_array_zero_store 8), (true, true));
+         |], (intloc_array_zero_store 128), (true, true));
 
         (* Test 18 *)
         (* Set array values, and check they aren't set to values they aren't set to *)
-       ([| "let table = !Gtable in
-            let size = !Gsize in
-            let mod = !Gmod in
-            let tid = 1 in
+        (let test18_thread n =
+           "let table = " ^ (int_to_loc_str 128) ^ " in
+            let size = 6 in
+            let tid = " ^ (string_of_int (n+1)) ^ " in
             let i = ref 0 in
             while size > !i do
                 if cas(table @ !i, 0, tid)
                 then i := !i + 1
-                else if !(table @ !i) % mod = 0
-                     then error(should never be zero)
-                     else i := !i + 1
-            done";
+                else let read = !(table @ !i) in
+                    if ((read = 0) | (read = tid))
+                    then error(should be the tid of another thread)
+                    else i := !i + 1
+            done" in
 
-           "let table = !Gtable in
-            let size = !Gsize in
-            let mod = !Gmod in
-            let tid = 2 in
-            let i = ref 0 in
-            while size > !i do
-                if cas(table @ !i, 0, tid)
-                then i := !i + 1
-                else if !(table @ !i) % mod = 0
-                     then error(should never be zero)
-                     else i := !i + 1
-            done";
-
-         |], ("table", Pl_parser.expr_of_string (int_to_loc_str 8))::
-             ("size", Integer 4)::("mod", Integer 4)::(intloc_array_zero_store 8), (true, true));
+        (Array.init 2 test18_thread, (intloc_array_zero_store 8), (true, true)));
 
         (* Test 19 *)
         (* Beer in fridge example from Part IB Conc. Systems *)
