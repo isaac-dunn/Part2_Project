@@ -347,36 +347,20 @@ module PLCorrectnessTest (Chk :
         (Array.init 2 test22_thread, (intloc_array_zero_store 8), (true, true)));
 
         (* Test 23 *)
-        ([| "let size = !Gsize in
-             let table = !Gtable in
-             let i = ref 1 in
+        (* Thread i sets indices j such that j === i (mod num_threads) *)
+        (let num_threads = 4 in
+         let test23_thread n =
+            "let size = 10 in
+             let table = " ^ (int_to_loc_str 128) ^ " in
+             let i = ref " ^ (string_of_int n) ^ " in
              while size > !i do
                 if cas(table @ !i, 0, 1) then
-                    i := !i + !Gincrement
+                    i := !i + " ^ (string_of_int num_threads) ^ "
                 else error(should not be set)
-            done";
+            done" in
 
-            "let size = !Gsize in
-             let table = !Gtable in
-             let i = ref 2 in
-             while size > !i do
-                if cas(table @ !i, 0, 1) then
-                    i := !i + !Gincrement
-                else error(should not be set)
-             done";
-
-            "let size = !Gsize in
-             let table = !Gtable in
-             let i = ref 3 in
-             while size > !i do
-                if cas(table @ !i, 0, 1) then
-                    i := !i + !Gincrement
-                else error(should not be set)
-             done";
-
-         |], ("table", Pl_parser.expr_of_string (int_to_loc_str 100))::
-             ("increment", Integer 3)::("size", Integer 4)::
-             (intloc_array_zero_store 100), (true, true));
+        (Array.init num_threads test23_thread,
+             (intloc_array_zero_store 128), (true, true)));
 
 
         (* Test 24 *)
@@ -408,88 +392,55 @@ module PLCorrectnessTest (Chk :
         |], [("x", Integer 0)], (false, true));
 
         (* Test 26 *)
-        ([| "lock SL0;
-             if cas(Gx, false, true)
-             then if cas(Gx, true, false)
-                  then unlock SL0
-                  else error(value unexpectedly changed)
-             else error(value should always be false)";
+        (Array.make 7
             "lock SL0;
              if cas(Gx, false, true)
              then if cas(Gx, true, false)
                   then unlock SL0
                   else error(value unexpectedly changed)
-             else error(value should always be false)";
-            "lock SL0;
-             if cas(Gx, false, true)
-             then if cas(Gx, true, false)
-                  then unlock SL0
-                  else error(value unexpectedly changed)
-             else error(value should always be false)";
-        |], [("x", Boolean false)], (true, true));
+             else error(value should always be false)"
+        ,[("x", Boolean false)], (true, true));
 
         (* Test 27 *)
-        ([| "if cas(Gx, false, true)
+        (* One thread doesn't bother locking *)
+        (Array.append
+         [| "if cas(Gx, false, true)
              then if cas(Gx, true, false)
                   then skip
                   else error(value unexpectedly changed)
-             else error(value should always be false)";
+             else error(value should always be false)";|]
+         (Array.make 6
             "lock SL0;
              if cas(Gx, false, true)
              then if cas(Gx, true, false)
                   then unlock SL0
                   else error(value unexpectedly changed)
-             else error(value should always be false)";
-            "lock SL0;
-             if cas(Gx, false, true)
-             then if cas(Gx, true, false)
-                  then unlock SL0
-                  else error(value unexpectedly changed)
-             else error(value should always be false)";
-        |], [("x", Boolean false)], (false, false));
+             else error(value should always be false)")
+        , [("x", Boolean false)], (false, false));
 
         (* Test 28 *)
-        ([| "let lf = fn i =>
-                if i = 0 then SLl0 else
-                if i = 1 then SLl1 else
-                if i = 2 then SLl2 else error(out of bounds)
-             in let ri = ref 0 in
-             let rtot = ref 0 in
-             while !ri < 3 do
-                lock (lf @ !ri);
-                rtot := !rtot + !(!Gtable @ !ri);
-                ri := !ri + 1
-             done;
-             if ¬(!rtot % 3 = 0) then error(locking gone wrong)
-             else while !ri > 0 do
-                ri := !ri - 1;
-                let location = (!Gtable @ !ri) in
-                let vl = !location in
-                if ¬cas(location, vl, vl) then error(unexpected change)
-                else unlock (lf @ !ri)
-            done";
-
+        (Array.make 5 (
             "let lf = fn i =>
                 if i = 0 then SLl0 else
                 if i = 1 then SLl1 else
                 if i = 2 then SLl2 else error(out of bounds)
              in let ri = ref 0 in
+             let table = " ^ (int_to_loc_str 128) ^ " in
              let rtot = ref 0 in
              while !ri < 3 do
                 lock (lf @ !ri);
-                rtot := !rtot + !(!Gtable @ !ri);
+                rtot := !rtot + !(table @ !ri);
                 ri := !ri + 1
              done;
              if ¬(!rtot % 3 = 0) then error(locking gone wrong)
              else while !ri > 0 do
                 ri := !ri - 1;
-                let location = (!Gtable @ !ri) in
+                let location = (table @ !ri) in
                 let vl = !location in
                 if ¬cas(location, vl, vl) then error(unexpected change)
                 else unlock (lf @ !ri)
-            done";
-         |], ("table", Pl_parser.expr_of_string (int_to_loc_str 4))::
-             (intloc_array_zero_store 4), (true, true));
+            done")
+         , intloc_array_zero_store 128, (true, true));
 
         (* Test 29 *)
         (* Deadlocks can happen *)
