@@ -636,6 +636,8 @@ module PLCorrectnessTest (Chk :
         ^" Depth: " ^ (string_of_int !C.max_depth) ^ "\n");
         success
 
+    let run_nth_test_case n = let _ = run_test (List.nth test_cases n) in ()
+
     let all_tests_passed () =
         let rec conj l = match l with [] -> true | b::bs -> b && conj bs in
             conj (List.mapi (fun index ->
@@ -653,7 +655,13 @@ module DPORPLCheckerCorrectnessTest = PLCorrectnessTest (Checker.DPORPLChecker)
 let () = let n = if Array.length Sys.argv > 1
                  then int_of_string (Sys.argv.(1))
                  else 1 in
-         if n = 0 then SPLCheckerCorrectnessTest.print_all_tests_passed()
-    else if n = 1 then DPORPLCheckerCorrectnessTest.print_all_tests_passed()
-    else print_endline "Error: pass 0 and 1 for simple or DPOR check tests"
+    if Array.length Sys.argv = 3 then
+         if n = 0 then SPLCheckerCorrectnessTest.run_nth_test_case
+                                (int_of_string Sys.argv.(2))
+         else if n = 1 then DPORPLCheckerCorrectnessTest.run_nth_test_case
+                                (int_of_string Sys.argv.(2))
+         else print_endline "Error: pass 0 and 1 for simple or DPOR check tests"
+    else if n = 0 then SPLCheckerCorrectnessTest.print_all_tests_passed()
+         else if n = 1 then DPORPLCheckerCorrectnessTest.print_all_tests_passed()
+         else print_endline "Error: pass 0 and 1 for simple or DPOR check tests"
 
