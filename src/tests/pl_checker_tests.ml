@@ -126,42 +126,35 @@ module PLCorrectnessTest (Chk :
                 done
             done" in
 
-        (Array.init 16 test13_thread, ("table", Pl_parser.expr_of_string (int_to_loc_str 128))::
-                (intloc_array_zero_store 128), (true, true)));
+        (Array.init 3 test13_thread, (intloc_array_zero_store 128),
+        (true, true)));
 
         (* Test 14 *)
         (* Thread 0 accesses even array indices; thread 1 accesses odd *)
-        ([| "let size = 128 in
-             let max = 4 in
-             let tid = 0 in
-             let i = ref 0 in
-             while max > !i do
-                if cas(!Gtable @ (tid + 2 * !i), 0, 1)
-                then i := !i + 1
-                else error(array element already reached)
-             done";
-
+        (let test14_thread n =
             "let size = 128 in
              let max = 4 in
-             let tid = 1 in
+             let tid = " ^ (string_of_int n) ^ " in
+             let table = " ^ (int_to_loc_str 128) ^ " in
              let i = ref 0 in
              while max > !i do
-                if cas(!Gtable @ (tid + 2 * !i), 0, 1)
+                if cas(table @ (tid + 2 * !i), 0, 1)
                 then i := !i + 1
                 else error(array element already reached)
-             done";
+             done" in
 
-         |], ("table", Pl_parser.expr_of_string (int_to_loc_str 128))::
-                (intloc_array_zero_store 128), (true, true));
+        (* N.B. Possible error if more than 2 threads *)
+        (Array.init 2 test14_thread, (intloc_array_zero_store 128), (true, true)));
 
         (* Test 15 *)
         (* Thread 0 accesses 0,3,6,9; thread 1 accesses 1,5,9; error at 9 *)
         ([| "let size = 128 in
              let max = 4 in
              let tid = 0 in
+             let table = " ^ (int_to_loc_str 128) ^ " in
              let i = ref 0 in
              while max > !i do
-                if cas(!Gtable @ (tid + 3 * !i), 0, 1)
+                if cas(table @ (tid + 3 * !i), 0, 1)
                 then i := !i + 1
                 else error(array element already reached)
              done";
@@ -169,42 +162,43 @@ module PLCorrectnessTest (Chk :
             "let size = 128 in
              let max = 4 in
              let tid = 1 in
+             let table = " ^ (int_to_loc_str 128) ^ " in
              let i = ref 0 in
              while max > !i do
-                if cas(!Gtable @ (tid + 4 * !i), 0, 1)
+                if cas(table @ (tid + 4 * !i), 0, 1)
                 then i := !i + 1
                 else i := !i + 1
              done";
 
-         |], ("table", Pl_parser.expr_of_string (int_to_loc_str 128))::
-                (intloc_array_zero_store 128), (false, true));
+         |], (intloc_array_zero_store 128), (false, true));
 
         (* Test 16 *)
         (* first set array values in thread 0, then check them in thread 1 *)
         ([| "let size = 3 in
              let i = ref 0 in
+             let table = " ^ (int_to_loc_str 128) ^ " in
              while size > !i do
-                if cas(!Gtable @ !i, 0, (!i % 4) + 1)
+                if cas(table @ !i, 0, (!i % 4) + 1)
                 then i := !i + 1
                 else error(array should be initially zero)
              done; if cas(Gready, false, true) then skip
                     else error(should only be ready now not before)";
 
             "let limit = 8 in
+             let table = " ^ (int_to_loc_str 128) ^ " in
              let counter = ref 0 in (
              while if !Gready then false else limit > !counter
                 do counter := !counter + 1 done;
              let size = 3 in
              let i = ref 0 in
              while size > !i do
-                if cas(!Gtable @ !i, (!i % 4) + 1, 0)
+                if cas(table @ !i, (!i % 4) + 1, 0)
                 then i := !i + 1
                 else if limit > !counter then error(wrong value in table)
                      else i := !i + 1
             done)";
 
-         |], ("table", Pl_parser.expr_of_string (int_to_loc_str 8))::
-               (("ready", Boolean false)::(intloc_array_zero_store 8)), (true, true));
+         |], (("ready", Boolean false)::(intloc_array_zero_store 128)), (true, true));
 
         (* Test 17 *)
         (* Producer/Consumer *)
