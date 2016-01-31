@@ -293,6 +293,7 @@ module PLCorrectnessTest (Chk :
 
         (* Test 21 *)
         (* Another example showing off DPOR *)
+        (* On reflection very similar to test 18 *)
         ([| "let size = !Gsize in
              let tid = 0 in
              let pi = ref 0 in
@@ -319,50 +320,31 @@ module PLCorrectnessTest (Chk :
              ("size", Integer 3)::(intloc_array_zero_store 100), (true, true));
 
         (* Test 22 *)
-        ([| "let size = !Gsize in
-             let tid = 1 in
+        (* Use index 2k as mutex flag for index 2k+1 *)
+        (let test22_thread n =
+            "let size = 6 in
+             let tid = " ^ (string_of_int (n+1)) ^ " in
+             let table = " ^ (int_to_loc_str 128) ^ " in
              let i = ref 0 in
              while size > !i do
-                if cas(!Gtable @ !i, 0, 1)
-                then if cas(!Gtable @ (!i + 1), 0, tid)
-                     then if cas(!Gtable @ !i, 1, 2)
+                if cas(table @ !i, 0, 1)
+                then if cas(table @ (!i + 1), 0, tid)
+                     then if cas(table @ !i, 1, 2)
                           then i := !i + 2
                           else error(flag should be set to 1)
                      else error(value should be unset)
-                else if !(!Gtable @ !i) = 2
+                else if !(table @ !i) = 2
                   then
-                     let read = !(!Gtable @ (!i + 1)) in
+                     let read = !(table @ (!i + 1)) in
                      if read = 0
                      then error(should be set by some thread)
                      else if read = tid
                      then error(should be set by another thread)
                      else i := !i + 2
                   else i := !i + 2
-             done";
+             done" in
 
-            "let size = !Gsize in
-             let tid = 2 in
-             let i = ref 0 in
-             while size > !i do
-                if cas(!Gtable @ !i, 0, 1)
-                then if cas(!Gtable @ (!i + 1), 0, tid)
-                     then if cas(!Gtable @ !i, 1, 2)
-                          then i := !i + 2
-                          else error(flag should be set to 1)
-                     else error(value should be unset)
-                else if !(!Gtable @ !i) = 2
-                  then
-                     let read = !(!Gtable @ (!i + 1)) in
-                     if read = 0
-                     then error(should be set by some thread)
-                     else if read = tid
-                     then error(should be set by another thread)
-                     else i := !i + 2
-                  else i := !i + 2
-             done";
-
-         |], ("table", Pl_parser.expr_of_string (int_to_loc_str 8))::
-             ("size", Integer 2)::(intloc_array_zero_store 8), (true, true));
+        (Array.init 2 test22_thread, (intloc_array_zero_store 8), (true, true)));
 
         (* Test 23 *)
         ([| "let size = !Gsize in
