@@ -572,13 +572,14 @@ module PLCorrectnessTest (Chk :
 
         (* Test 34 *)
         (* File System Example from POPL'05 *)
-        ([|
-           "let i = 0 % !Gnuminode in
-            let numblocks = !Gnumblocks in
-            let locki = !Glocki in
-            let inode = !Ginode in
-            let lockb = !Glockb in
-            let busy = !Gbusy in
+        (let test34_thread n =
+           "let i = " ^ (string_of_int n) ^ " % 32 in
+            let numblocks = 26 in
+            let locki = " ^ (array_pl_fun 32 (fun i -> "SLi"^(string_of_int i)))
+            ^ " in let inode = " ^ (array_pl_fun 32 (fun i -> "Ginode_"^(string_of_int i)))
+            ^ " in let lockb = " ^ (array_pl_fun 26 (fun i -> "SLb"^(string_of_int i)))
+            ^ " in let busy = " ^ (array_pl_fun 26 (fun i -> "Gbusy_"^(string_of_int i)))
+            ^ " in
             lock (locki @ i);
             (if !(inode @ i) = 0
             then let b = ref ((i*2) % numblocks) in
@@ -596,22 +597,35 @@ module PLCorrectnessTest (Chk :
                          b := (!b + 1) % numblocks
                 done
             else skip);
-            unlock (locki @ i)";
+            unlock (locki @ i)" in
 
-        |], [("numblocks", Integer 26); ("numinode", Integer 32);
-             ("locki", Pl_parser.expr_of_string
-                (array_pl_fun 32 (fun i -> "SLi"^(string_of_int i))));
-             ("inode", Pl_parser.expr_of_string
-                (array_pl_fun 32 (fun i -> "Ginode_"^(string_of_int i))));]
-            @ (array_store 32 (fun i -> "inode_"^(string_of_int i))
+        (Array.init 2 test34_thread,
+              (array_store 32 (fun i -> "inode_"^(string_of_int i))
                         (fun _ -> Integer 0))
-            @ [("lockb", Pl_parser.expr_of_string
-                (array_pl_fun 26 (fun i -> "SLb"^(string_of_int i))));
-               ("busy", Pl_parser.expr_of_string
-                (array_pl_fun 26 (fun i -> "Gbusy_"^(string_of_int i))));]
             @ (array_store 26 (fun i -> "busy_"^(string_of_int i))
                         (fun _ -> Boolean false)),
-        (true, true));
+        (true, true)));
+
+        (* Test 35 *)
+        (* Reads only *)
+        ([| "if !Ga + !Gb + !Gc + !Gd = 33
+             then skip else error(should be 33)";
+
+            "if !Ga + !Gb + !Gc + !Gd = 33
+             then skip else error(should be 33)";
+
+            "if !Ga + !Gb + !Gc + !Gd = 33
+             then skip else error(should be 33)";
+
+        |], [("a", Integer 10); ("b", Integer 11);
+             ("c", Integer 12); ("d", Integer 0);], (true, true));
+
+        (* Test 36 *)
+        (* Repetitive reading *)
+        ([| "if !Ga + !Ga + !Ga + !Ga = 44 then skip else error(should be 33)";
+            "if !Ga + !Ga + !Ga + !Ga = 44 then skip else error(should be 33)";
+            "if !Ga + !Ga + !Ga + !Ga = 44 then skip else error(should be 33)";
+        |], [("a", Integer 11)], (true, true));
 
     ]
 
