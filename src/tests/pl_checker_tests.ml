@@ -570,6 +570,20 @@ module PLCorrectnessTest (Chk :
             "lock SL1; lock SL0; unlock SL0; unlock SL1";
         |], [], (true, false));
 
+        (* Test 34 *)
+        (* File System Example from POPL'05 *)
+        ([|
+
+        |], [("numblocks", Integer 26); ("numinode", Integer 32);
+             ("locki", array_pl_fun 32 (fun i -> "SLi"^(string_of_int i)));
+             ("inode", array_pl_fun 32 (fun i -> "Ginode_"^(string_of_int i)));]
+            @ (array_store 32 (fun i -> "inode_"^(string_of_int i))
+                        (fun _ -> Integer 0))
+            @ [("lockb", array_pl_fun 26 (fun i -> "SLb"^(string_of_int i)));
+               ("busy", array_pl_fun 26 (fun i -> "Gbusy_"^(string_of_int i)));]
+            @ (array_store 26 (fun i -> "busy_"^(string_of_int i))),
+        (true, true));
+
     ]
 
     let run_test (es, g, (eef, edf)) =
