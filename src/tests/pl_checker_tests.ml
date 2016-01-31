@@ -573,15 +573,44 @@ module PLCorrectnessTest (Chk :
         (* Test 34 *)
         (* File System Example from POPL'05 *)
         ([|
+           "let i = 0 % !Gnuminode in
+            let numblocks = !Gnumblocks in
+            let locki = !Glocki in
+            let inode = !Ginode in
+            let lockb = !Glockb in
+            let busy = !Gbusy in
+            lock (locki @ i);
+            (if !(inode @ i) = 0
+            then let b = ref ((i*2) % numblocks) in
+                 let loop = ref true in
+                 while !loop do
+                    lock (lockb @ !b);
+                    if ¬(!(busy @ !b))
+                    then if cas(busy @ !b, false, true)
+                         then if cas(inode @ i, 0,!b+1)
+                              then unlock (lockb @ !b);
+                                   loop := false
+                              else error(we have inode lock)
+                         else error(we have busy lock)
+                    else unlock (lockb @ !b);
+                         b := (!b + 1) % numblocks
+                done
+            else skip);
+            unlock (locki @ i)";
 
         |], [("numblocks", Integer 26); ("numinode", Integer 32);
-             ("locki", array_pl_fun 32 (fun i -> "SLi"^(string_of_int i)));
-             ("inode", array_pl_fun 32 (fun i -> "Ginode_"^(string_of_int i)));]
+             ("locki", Pl_parser.expr_of_string
+                (array_pl_fun 32 (fun i -> "SLi"^(string_of_int i))));
+             ("inode", Pl_parser.expr_of_string
+                (array_pl_fun 32 (fun i -> "Ginode_"^(string_of_int i))));]
             @ (array_store 32 (fun i -> "inode_"^(string_of_int i))
                         (fun _ -> Integer 0))
-            @ [("lockb", array_pl_fun 26 (fun i -> "SLb"^(string_of_int i)));
-               ("busy", array_pl_fun 26 (fun i -> "Gbusy_"^(string_of_int i)));]
-            @ (array_store 26 (fun i -> "busy_"^(string_of_int i))),
+            @ [("lockb", Pl_parser.expr_of_string
+                (array_pl_fun 26 (fun i -> "SLb"^(string_of_int i))));
+               ("busy", Pl_parser.expr_of_string
+                (array_pl_fun 26 (fun i -> "Gbusy_"^(string_of_int i))));]
+            @ (array_store 26 (fun i -> "busy_"^(string_of_int i))
+                        (fun _ -> Boolean false)),
         (true, true));
 
     ]
