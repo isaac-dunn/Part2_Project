@@ -527,6 +527,48 @@ module PLCorrectnessTest (Chk :
             "if !Ga + !Ga + !Ga + !Ga = 44 then skip else error(should be 33)";
         |], [("a", Integer 11)], (true, true));
 
+        (* Test 37 *)
+        (* Multiple producer & consumers, using locks *)
+        (let buf_size = 8 in
+         let limit = 3 in
+         let num_each = 1 in
+         let common_prefix = (
+           "let bufsize = " ^ (string_of_int buf_size) ^ " in
+            let i = ref 0 in
+            let limit = " ^ (string_of_int limit) ^ " in
+            let ctr = ref 0 in
+            let hash = fn x => (((((x*x*292)/37)*(1+(x%3)))*x)%777) + 1 in
+            let items = " ^
+                (array_pl_fun buf_size (fun i -> "Gitem"^(string_of_int i))) ^
+           " in let locks = " ^
+                (array_pl_fun buf_size (fun i -> "SLitemlock"^(string_of_int i))) ^
+           " in while !ctr < limit do
+                lock (locks @ !i);
+           ") in
+         let prod_thread = common_prefix ^ (
+              "(if !(items @ !i) = 0 then
+                    if cas(items @ !i, 0, hash @ !i)
+                    then skip else error(unexpectedly written to)
+                else skip);
+                unlock (locks @ !i);
+                i := (!i + 1) % bufsize;
+                ctr := !ctr + 1
+            done") in
+         let cons_thread = common_prefix ^ (
+               "(let read = !(items @ !i) in
+                 if read > 0 then
+                    if cas(items @ !i, read, 0)
+                    then skip else error(unexpectedly written to)
+                 else skip);
+                unlock (locks @ !i);
+                i := (!i + 1) % bufsize;
+                ctr := !ctr + 1
+            done") in
+        (Array.append
+            (Array.make num_each prod_thread) (Array.make num_each cons_thread)
+        , array_store buf_size (fun i -> "item"^(string_of_int i))
+                        (fun _ -> Integer 0), (true, true)));
+
     ]
 
     let run_test (es, g, (eef, edf)) =
