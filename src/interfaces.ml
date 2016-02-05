@@ -91,6 +91,9 @@ module type Thread = sig
     (* Given expression, local state and global state, gives new expression
     * local store update, global store update and global location touched *)
     val next_transition : ExpImp.expr * StoreImp.store * StoreImp.store -> transition option
+
+    (* True if given expression is a lock which is held by another in given store *)
+    val waiting_for_spinlock : ExpImp.expr -> StoreImp.store -> bool
 end
 
 (* Program Interface *)

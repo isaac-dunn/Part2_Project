@@ -118,10 +118,9 @@ let rec next_step_aux (e, s, g)  = match e with
                           | None -> None)
   | Spinlock _ -> None
   | Lock (Spinlock l) -> (match StoreImp.get g l with
-                            Some v -> if v = (Boolean true) then None (*TODO check*)
-                                      else if v = (Boolean false) then
-                                        Some (Skip, None, Some (l, Boolean true), Some l)
-                                      else raise (Failure "A lock has a non-Boolean value; oh dear")
+                            Some (Boolean _) ->
+                                Some (Skip, None, Some (l, Boolean true), Some l)
+                          | Some _ -> raise (Failure "A lock has a non-Boolean value; oh dear")
                           | None -> Some (Skip, None, Some (l, Boolean true), Some l))
   | Lock e1 -> (match next_step_aux (e1, s, g) with
                     Some (f, t, h, lo) -> Some (Lock f, t, h, lo)
@@ -173,4 +172,11 @@ let next_transition x = match next_transition_aux x with
                                  g_loc = gl;
                                }
   | None -> None
+
+let waiting_for_spinlock e g =
+    match e with
+        Lock (Spinlock l) -> (match StoreImp.get g l with
+            Some (Boolean true) -> true
+          | _ -> false)
+      | _ -> false
 

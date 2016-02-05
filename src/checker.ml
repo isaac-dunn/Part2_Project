@@ -101,9 +101,10 @@ module DPORChecker (Prog : Interfaces.Program) =
 
               (* There is a transition *)
             | Some next_t -> 
-                one_thread_can_advance := true;
-                (* There is at least one transition to explore: this one *)
-                transition_to_explore := Some p;
+                if not (ProgImp.ThrImp.waiting_for_spinlock e g) then (
+                    one_thread_can_advance := true;
+                    (* There is at least one transition to explore: this one *)
+                    transition_to_explore := Some p);
                 (* let i = L(alpha(next(s,p))) *)
                 let i = last_ti next_t.T.g_loc in
 
@@ -115,7 +116,8 @@ module DPORChecker (Prog : Interfaces.Program) =
                     let enabled p' (tds', g') =
                         let (e', s') = Array.get tds' p' in
                         match ProgImp.ThrImp.next_transition (e', s', g') with
-                        Some _ -> true | None -> false
+                        Some _ -> not (ProgImp.ThrImp.waiting_for_spinlock e' g')
+                      | None -> false
                     (* if p in enabled(pre(S, i)) *)
                     in if enabled p prei
                     (* then add p to backtrack(pre(S, i)) *)
