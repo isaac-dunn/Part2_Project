@@ -10,6 +10,8 @@ module SimpleChecker (Prog : Interfaces.Program) =
         let depth = List.length t_seq in
         if depth > !max_depth then max_depth := depth;
         let (tds, g) = List.fold_left ProgImp.apply_transition init_prog t_seq in
+        print_endline (ProgImp.string_of_program (tds, g));
+        print_newline();
         let error_free = ref true in
         let one_thread_can_advance = ref false in
         let all_stopped_threads_are_values = ref true in
@@ -32,10 +34,11 @@ module SimpleChecker (Prog : Interfaces.Program) =
                 in check_local (e, s)
               (* There is a transition: check if error; explore from the new state *)
             | Some t_tran -> (
+                if ProgImp.ThrImp.waiting_for_spinlock e g then ()  else (
                 one_thread_can_advance := true;
                 let (ef, df) = check init_prog (t_seq @ [(i, t_tran)])
                 in error_free := !error_free && ef;
-                   recursive_calls_deadlock_free := !recursive_calls_deadlock_free && df)
+                   recursive_calls_deadlock_free := !recursive_calls_deadlock_free && df))
         done;
         (!error_free, !recursive_calls_deadlock_free &&
                 (!one_thread_can_advance || !all_stopped_threads_are_values))
@@ -102,9 +105,9 @@ module DPORChecker (Prog : Interfaces.Program) =
               (* There is a transition *)
             | Some next_t -> 
                 if not (ProgImp.ThrImp.waiting_for_spinlock e g) then (
-                    one_thread_can_advance := true;
-                    (* There is at least one transition to explore: this one *)
-                    transition_to_explore := Some p);
+                one_thread_can_advance := true;
+                (* There is at least one transition to explore: this one *)
+                transition_to_explore := Some p;
                 (* let i = L(alpha(next(s,p))) *)
                 let i = last_ti next_t.T.g_loc in
 
@@ -127,7 +130,7 @@ module DPORChecker (Prog : Interfaces.Program) =
                          in let en_in_prei q = enabled q prei
                          in Var_array.set backtracks i (List.filter en_in_prei
                                 (ntoz (Array.length tds - 1)))
-                    )
+                    ))
         done;
 
         (* if there is some p in enabled(s) *)

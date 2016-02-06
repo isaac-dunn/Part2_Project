@@ -125,9 +125,12 @@ let rec next_step_aux (e, s, g)  = match e with
   | Lock e1 -> (match next_step_aux (e1, s, g) with
                     Some (f, t, h, lo) -> Some (Lock f, t, h, lo)
                   | None -> None)
-  | Unlock (Spinlock l) -> if StoreImp.get g l = Some (Boolean true) then
-                            Some (Skip, None, Some (l, Boolean false), Some l)
-                         else raise (Failure "Cannot unlock with value not (Boolean true)")
+  | Unlock (Spinlock l) -> (match StoreImp.get g l with
+                            Some v -> if v = Boolean true then
+                                Some (Skip, None, Some (l, Boolean false), Some l)
+                                 else raise (Failure ("Cannot unlock with value "
+                                    ^ ExpImp.string_of_expr v))
+                          | None -> raise (Failure "Cannot unlock nonexistent lock"))
   | Unlock e1 -> (match next_step_aux (e1, s, g) with
                     Some (f, t, h, lo) -> Some (Unlock f, t, h, lo)
                   | None -> None)
@@ -173,10 +176,24 @@ let next_transition x = match next_transition_aux x with
                                }
   | None -> None
 
-let waiting_for_spinlock e g =
+let rec waiting_for_spinlock e g =
     match e with
         Lock (Spinlock l) -> (match StoreImp.get g l with
             Some (Boolean true) -> true
           | _ -> false)
+      | Not e1 -> waiting_for_spinlock e1 g
+      | Op (e1, _, e2) -> waiting_for_spinlock e1 g || waiting_for_spinlock e2 g
+      | If (e1, _, _) -> waiting_for_spinlock e1 g
+      | Assign (e1, e2) -> waiting_for_spinlock e1 g || waiting_for_spinlock e2 g
+      | Deref e1 -> waiting_for_spinlock e1 g
+      | Ref e1 -> waiting_for_spinlock e1 g
+      | Seq (e1, _) -> waiting_for_spinlock e1 g
+      | While (e1, _) -> waiting_for_spinlock e1 g
+      | App (e1, e2) -> waiting_for_spinlock e1 g || waiting_for_spinlock e2 g
+      | Let (e1, _) -> waiting_for_spinlock e1 g
+      | Cas (e1, e2, e3) -> waiting_for_spinlock e1 g || waiting_for_spinlock e2 g
+                            || waiting_for_spinlock e3 g
+      | Lock e1 -> waiting_for_spinlock e1 g
+      | Unlock e1 -> waiting_for_spinlock e1 g
       | _ -> false
 

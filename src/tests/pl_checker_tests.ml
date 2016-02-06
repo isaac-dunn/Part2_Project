@@ -419,7 +419,7 @@ module PLCorrectnessTest (Chk :
         , [("x", Boolean false)], (false, false));
 
         (* Test 28 *)
-        (Array.make 5 (
+        (Array.make 2 (
             "let lf = fn i =>
                 if i = 0 then SLl0 else
                 if i = 1 then SLl1 else
