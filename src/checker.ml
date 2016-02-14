@@ -96,15 +96,17 @@ module DPORChecker (Prog : Interfaces.Program) =
                     else match T.next_step (ex, st, g) with
                         None -> if not (T.ExpImp.is_value ex)
                                 then all_stopped_threads_are_values := false
-                      | Some t_step -> check_local (t_step.T.new_expr,
+                      | Some (t_step, enabled) -> if not enabled then
+                                raise (Failure "Should always be enabled") else
+                                check_local (t_step.T.new_expr,
                                         (match t_step.T.s_update with
                                           None -> st
                                         | Some su -> T.StoreImp.update st su))
                 in check_local (e, s)
 
               (* There is a transition *)
-            | Some next_t -> 
-                if not (ProgImp.ThrImp.waiting_for_spinlock e g) then (
+            | Some (next_t, enabled) ->
+                if not enabled then all_stopped_threads_are_values := false else (
                 one_thread_can_advance := true;
                 (* There is at least one transition to explore: this one *)
                 transition_to_explore := Some p;
@@ -119,7 +121,7 @@ module DPORChecker (Prog : Interfaces.Program) =
                     let enabled p' (tds', g') =
                         let (e', s') = Array.get tds' p' in
                         match ProgImp.ThrImp.next_transition (e', s', g') with
-                        Some _ -> not (ProgImp.ThrImp.waiting_for_spinlock e' g')
+                        Some (_, b) -> b
                       | None -> false
                     (* if p in enabled(pre(S, i)) *)
                     in if enabled p prei
@@ -151,7 +153,9 @@ module DPORChecker (Prog : Interfaces.Program) =
         let (e, s) = Array.get tds p in
         match T.next_transition (e, s, g) with
             None -> raise (Failure "Should NEVER happen; there is a transition")
-          | Some next_t -> (
+          | Some (next_t, enabled) -> (
+
+        if not enabled then raise (Failure "Only enabled transitions should be explored");
 
         (* let S' = S.next(s,p) *)
         let new_t_seq = t_seq @ [(p, next_t)] in
