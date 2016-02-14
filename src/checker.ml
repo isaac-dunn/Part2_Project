@@ -77,6 +77,7 @@ module DPORChecker (Prog : Interfaces.Program) =
                     (pre_aux (List.tl tran_list) (index+1)
                         (ProgImp.apply_transition state (List.hd tran_list)))
             in pre_aux t_seq 0 init_prog in
+
         (* let s = last(S) *)
         let (tds, g) = pre depth in
 
@@ -106,10 +107,12 @@ module DPORChecker (Prog : Interfaces.Program) =
 
               (* There is a transition *)
             | Some (next_t, enabled) ->
-                if not enabled then all_stopped_threads_are_values := false else (
-                one_thread_can_advance := true;
-                (* There is at least one transition to explore: this one *)
-                transition_to_explore := Some p;
+                if enabled then
+                    (* There is at least one transition to explore: this one *)
+                    (one_thread_can_advance := true;
+                    transition_to_explore := Some p)
+                else all_stopped_threads_are_values := false;
+
                 (* let i = L(alpha(next(s,p))) *)
                 let i = last_ti next_t.T.g_loc in
 
@@ -118,21 +121,21 @@ module DPORChecker (Prog : Interfaces.Program) =
                    i > Clockvector.get (proc_cvs p) (fst (List.nth t_seq i))
                 then (
                     let prei = pre i in
-                    let enabled p' (tds', g') =
+                    let is_enabled p' (tds', g') =
                         let (e', s') = Array.get tds' p' in
                         match ProgImp.ThrImp.next_transition (e', s', g') with
                         Some (_, b) -> b
                       | None -> false
                     (* if p in enabled(pre(S, i)) *)
-                    in if enabled p prei
+                    in if is_enabled p prei
                     (* then add p to backtrack(pre(S, i)) *)
                     then Var_array.set backtracks i (p::(Var_array.get backtracks i))
                     (* else add enabled(pre(S,i)) to backtrack(pre(S,i)) *)
                     else let rec ntoz n = if n = 0 then [0] else n::(ntoz (n-1))
-                         in let en_in_prei q = enabled q prei
+                         in let en_in_prei q = is_enabled q prei
                          in Var_array.set backtracks i (List.filter en_in_prei
                                 (ntoz (Array.length tds - 1)))
-                    ))
+                    )
         done;
 
         (* if there is some p in enabled(s) *)
