@@ -25,12 +25,11 @@ type transition = { next_expr : ExpImp.expr ;
 
 val string_of_transition : transition -> string
 
-(** Given expression, local store, global store, gives next thread step if it exists *)
-val next_step : ExpImp.expr * StoreImp.store * StoreImp.store -> step option
+(** Given expression, local store, global store,
+    gives (next thread step, enabled bool) if it exists *)
+val next_step : ExpImp.expr * StoreImp.store * StoreImp.store -> (step * bool) option
 
 (* Given expression, local state and global state, gives new expression
-* local store update, global store update and global location touched *)
-val next_transition : ExpImp.expr * StoreImp.store * StoreImp.store -> transition option
+* local store update, global store update global location touched, and enabled bool *)
+val next_transition : ExpImp.expr * StoreImp.store * StoreImp.store -> (transition * bool) option
 
-(* True if expression given is a lock which is held by another in the store *)
-val waiting_for_spinlock : ExpImp.expr -> StoreImp.store -> bool

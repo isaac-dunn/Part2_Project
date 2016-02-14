@@ -24,8 +24,12 @@ let string_of_transition t =
     "g_updates: " ^ (StoreImp.string_of_store t.g_updates) ^ "\n" ^
     "g_loc:     " ^ (ExpImp.string_of_loc t.g_loc) ^ "\n"
 
-(* next_step_aux : (expr * store * store) -> step option *)
+(* next_step_aux : (expr * store * store)
+     -> (expr * store_update * store_update * ((loc * bool) option)*)
 (* Given expression, local store, global store, gives next thread step if it exists *)
+(* Note the (loc * bool) option is the global location accessed and whether the step
+   is enabled. The step enabled bool is there because it was an easy change to make,
+   not because it is logically strongly related to the global location accessed*)
 let rec next_step_aux (e, s, g)  = match e with
     Integer _ -> None
   | Boolean _ -> None
@@ -68,7 +72,7 @@ let rec next_step_aux (e, s, g)  = match e with
                         Some v -> Some (v, None, None, None)
                       | None -> None)
   | Deref (Glo l) -> (match StoreImp.get g l with
-                        Some v -> Some (v, None, None, Some l)
+                        Some v -> Some (v, None, None, Some (l, true))
                       | None -> None)
   | Deref e1 -> (match next_step_aux (e1, s, g) with
                     Some (f, t, h, lo) -> Some (Deref f, t, h, lo)
@@ -104,8 +108,8 @@ let rec next_step_aux (e, s, g)  = match e with
       Some (substitute_outmost (Fn (Letrec (shift 2 e1, swap 0 e1))) e2, None, None, None)
   | Cas (Glo l, e2, e3) -> if is_value e2 then (* Reduce e1 then e2 then e3 to values *)
                             (if is_value e3 then (match StoreImp.get g l with
-                                Some v -> if v = e2 then Some (Boolean true, None, Some (l, e3), Some l)
-                                             else Some (Boolean false, None, None, Some l)
+                                Some v -> if v = e2 then Some (Boolean true, None, Some (l, e3), Some (l, true))
+                                             else Some (Boolean false, None, None, Some (l, true))
                               | None -> None)
                             else (match next_step_aux (e3, s, g) with
                              Some (f, t, h, lo) -> Some (Cas (Glo l, e2, f), t, h, lo)
@@ -118,16 +122,16 @@ let rec next_step_aux (e, s, g)  = match e with
                           | None -> None)
   | Spinlock _ -> None
   | Lock (Spinlock l) -> (match StoreImp.get g l with
-                            Some (Boolean _) ->
-                                Some (Skip, None, Some (l, Boolean true), Some l)
+                            Some (Boolean b) ->
+                                Some (Skip, None, Some (l, Boolean true), Some (l, not b))
                           | Some _ -> raise (Failure "A lock has a non-Boolean value; oh dear")
-                          | None -> Some (Skip, None, Some (l, Boolean true), Some l))
+                          | None -> Some (Skip, None, Some (l, Boolean true), Some (l, true)))
   | Lock e1 -> (match next_step_aux (e1, s, g) with
                     Some (f, t, h, lo) -> Some (Lock f, t, h, lo)
                   | None -> None)
   | Unlock (Spinlock l) -> (match StoreImp.get g l with
                             Some v -> if v = Boolean true then
-                                Some (Skip, None, Some (l, Boolean false), Some l)
+                                Some (Skip, None, Some (l, Boolean false), Some (l, true))
                                  else raise (Failure ("Cannot unlock with value "
                                     ^ ExpImp.string_of_expr v))
                           | None -> raise (Failure "Cannot unlock nonexistent lock"))
@@ -137,16 +141,23 @@ let rec next_step_aux (e, s, g)  = match e with
   | Error msg -> None
 
 let next_step x = match next_step_aux x with
-    Some (f, t, h, lo) -> Some { new_expr = f;
-                                 s_update = t;
-                                 g_update = h;
-                                 g_loc = lo;
-                               }
+    Some (f, t, h, lo) -> (match lo with Some (l, b) ->
+                              Some ({ new_expr = f;
+                                     s_update = t;
+                                     g_update = h;
+                                     g_loc = Some l;
+                                   }, b)
+                          | None ->
+                              Some ({ new_expr = f;
+                                     s_update = t;
+                                     g_update = h;
+                                     g_loc = None;
+                                   }, true))
   | None -> None
 
-(* next_transition_aux : expr * store * store -> (expr * store * store * loc) option *)
+(* next_transition_aux : expr * store * store -> (expr * store * store * loc * bool) option *)
 (* Given expression, local state and global state, gives new expression
-* local store update, global store update and global location touched *)
+* local store update, global store update,global location touched, and enabled bool *)
 let rec next_transition_aux (e, s, g) =
     (* If opt is None then empty, else if Some su then just [su] *)
     let extract opt = match opt with
@@ -155,45 +166,24 @@ let rec next_transition_aux (e, s, g) =
     in match next_step_aux (e, s, g) with
         Some (f, t, h, lo) -> (match lo with
             (* Global object touched: transition just this step *)
-            Some l -> Some (f, extract t, extract h, l)
+            Some (l, b) -> Some (f, extract t, extract h, l, b)
             (* No global object touched: this step plus subsequent ones *)
           | None -> (match next_transition_aux (f, StoreImp.extend s (extract t), g) with
                 (* There is some recursive result; construct our result *)
-                Some (e_res, s_res, g_res, l_res) ->
+                Some (e_res, s_res, g_res, l_res, b_res) ->
                     (* Need to add our local store updates if not overriden *)
                     Some (e_res, (match t with None -> s_res | Some su -> s_res @ [su]),
-                             g_res, l_res)
+                             g_res, l_res, b_res)
                 (* Stuck so no transition *)
               | None -> None))
       (* No next step so no transition *)
       | None -> None
 
 let next_transition x = match next_transition_aux x with
-    Some (f, t, h, gl) -> Some { next_expr = f;
+    Some (f, t, h, gl, enabled) -> Some ({ next_expr = f;
                                  s_updates = StoreImp.minimise t;
                                  g_updates = StoreImp.minimise h;
                                  g_loc = gl;
-                               }
+                               }, enabled)
   | None -> None
-
-let rec waiting_for_spinlock e g =
-    match e with
-        Lock (Spinlock l) -> (match StoreImp.get g l with
-            Some (Boolean true) -> true
-          | _ -> false)
-      | Not e1 -> waiting_for_spinlock e1 g
-      | Op (e1, _, e2) -> waiting_for_spinlock e1 g || waiting_for_spinlock e2 g
-      | If (e1, _, _) -> waiting_for_spinlock e1 g
-      | Assign (e1, e2) -> waiting_for_spinlock e1 g || waiting_for_spinlock e2 g
-      | Deref e1 -> waiting_for_spinlock e1 g
-      | Ref e1 -> waiting_for_spinlock e1 g
-      | Seq (e1, _) -> waiting_for_spinlock e1 g
-      | While (e1, _) -> waiting_for_spinlock e1 g
-      | App (e1, e2) -> waiting_for_spinlock e1 g || waiting_for_spinlock e2 g
-      | Let (e1, _) -> waiting_for_spinlock e1 g
-      | Cas (e1, e2, e3) -> waiting_for_spinlock e1 g || waiting_for_spinlock e2 g
-                            || waiting_for_spinlock e3 g
-      | Lock e1 -> waiting_for_spinlock e1 g
-      | Unlock e1 -> waiting_for_spinlock e1 g
-      | _ -> false
 

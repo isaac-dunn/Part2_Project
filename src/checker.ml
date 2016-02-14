@@ -10,8 +10,6 @@ module SimpleChecker (Prog : Interfaces.Program) =
         let depth = List.length t_seq in
         if depth > !max_depth then max_depth := depth;
         let (tds, g) = List.fold_left ProgImp.apply_transition init_prog t_seq in
-        print_endline (ProgImp.string_of_program (tds, g));
-        print_newline();
         let error_free = ref true in
         let one_thread_can_advance = ref false in
         let all_stopped_threads_are_values = ref true in
@@ -27,14 +25,16 @@ module SimpleChecker (Prog : Interfaces.Program) =
                     else match ProgImp.ThrImp.next_step (ex, st, g) with
                         None -> if not (ProgImp.ThrImp.ExpImp.is_value ex)
                                 then all_stopped_threads_are_values := false
-                      | Some t_step -> (check_local (t_step.ProgImp.ThrImp.new_expr,
+                      | Some (t_step, enabled) -> if not enabled then
+                                raise (Failure "Should always be enabled") else
+                                    (check_local (t_step.ProgImp.ThrImp.new_expr,
                                         (match t_step.ProgImp.ThrImp.s_update with
                                           None -> st
                                         | Some su -> ProgImp.ThrImp.StoreImp.update st su)))
                 in check_local (e, s)
               (* There is a transition: check if error; explore from the new state *)
-            | Some t_tran -> (
-                if ProgImp.ThrImp.waiting_for_spinlock e g then ()  else (
+            | Some (t_tran, enabled) -> (
+                if not enabled then all_stopped_threads_are_values := false else (
                 one_thread_can_advance := true;
                 let (ef, df) = check init_prog (t_seq @ [(i, t_tran)])
                 in error_free := !error_free && ef;

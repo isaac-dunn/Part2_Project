@@ -85,15 +85,13 @@ module type Thread = sig
 
     val string_of_transition : transition -> string
 
-    (** Given expression, local store, global store, gives next thread step if it exists *)
-    val next_step : ExpImp.expr * StoreImp.store * StoreImp.store -> step option
+    (** Given expression, local store, global store,
+        gives next thread step and enabled, if it exists *)
+    val next_step : ExpImp.expr * StoreImp.store * StoreImp.store -> (step * bool) option
 
     (* Given expression, local state and global state, gives new expression
     * local store update, global store update and global location touched *)
-    val next_transition : ExpImp.expr * StoreImp.store * StoreImp.store -> transition option
-
-    (* True if given expression is a lock which is held by another in given store *)
-    val waiting_for_spinlock : ExpImp.expr -> StoreImp.store -> bool
+    val next_transition : ExpImp.expr * StoreImp.store * StoreImp.store -> (transition * bool) option
 end
 
 (* Program Interface *)
