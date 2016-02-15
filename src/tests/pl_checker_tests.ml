@@ -621,7 +621,7 @@ module PLCorrectnessTest (Chk :
                     test_cases)
 
     let print_all_tests_passed () = print_endline ("Checker Correctness Tests All Passed: "
-                            ^ (string_of_bool (all_tests_passed ())) ^ "\n\n")
+                            ^ (string_of_bool (all_tests_passed ())))
 end
 
 module SPLCheckerCorrectnessTest = PLCorrectnessTest (Checker.SimplePLChecker)
@@ -631,6 +631,7 @@ module DPORPLCheckerCorrectnessTest = PLCorrectnessTest (Checker.DPORPLChecker)
 let () = let n = if Array.length Sys.argv > 1
                  then int_of_string (Sys.argv.(1))
                  else 1 in
+    let start_time = Sys.time () in
     if Array.length Sys.argv = 3 then
          if n = 0 then SPLCheckerCorrectnessTest.run_nth_test_case
                                 (int_of_string Sys.argv.(2))
@@ -639,5 +640,6 @@ let () = let n = if Array.length Sys.argv > 1
          else print_endline "Error: pass 0 and 1 for simple or DPOR check tests"
     else if n = 0 then SPLCheckerCorrectnessTest.print_all_tests_passed()
          else if n = 1 then DPORPLCheckerCorrectnessTest.print_all_tests_passed()
-         else print_endline "Error: pass 0 and 1 for simple or DPOR check tests"
+         else print_endline "Error: pass 0 and 1 for simple or DPOR check tests";
+    print_endline ("Time taken: " ^ (string_of_float (Sys.time () -. start_time)))
 
