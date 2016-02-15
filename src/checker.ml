@@ -57,6 +57,7 @@ module DPORChecker (Prog : Interfaces.Program) =
     module T = ProgImp.ThrImp
     let max_depth = ref 0
     let calls = ref 0
+    let ht = Hashtbl.create ~random:true 10000
 
     (* Array for backtracking sets *)
     let backtracks = Var_array.empty()
@@ -85,6 +86,9 @@ module DPORChecker (Prog : Interfaces.Program) =
 
         (* let s = last(S) *)
         let (tds, g) = pre depth in
+
+        if Hashtbl.mem ht (tds, g) then (print_endline (ProgImp.string_of_program (tds, g)); (true, true)) else (
+        Hashtbl.add ht (tds, g) true;
 
         (* for all processes p *)
         for p = 0 to Array.length tds - 1 do
@@ -199,6 +203,7 @@ module DPORChecker (Prog : Interfaces.Program) =
             (!one_thread_can_advance || !all_stopped_threads_are_values))
 
     let error_and_deadlock_free (tds, g) =
+        Hashtbl.reset ht;
         let n = Array.length tds in
         check (tds, g) [] (fun _ -> Clockvector.fresh n) (fun _ -> Clockvector.fresh n) (fun _ -> ~-1)
   end
