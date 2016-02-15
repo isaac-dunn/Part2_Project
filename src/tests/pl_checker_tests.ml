@@ -569,6 +569,25 @@ module PLCorrectnessTest (Chk :
         , array_store buf_size (fun i -> "item"^(string_of_int i))
                         (fun _ -> Integer 0), (true, true)));
 
+        (* Test 38 *)
+        (* Shows that naive stateful DPOR is not sound *)
+        (* Whether Ga is set or not, the same state should be reached, but a = 2
+           needs to insert a backtracking point, while a = 1 does not *)
+        ([| "if ¬(!Gready1) then skip else
+             if !Ga = 1 then if cas(Ggotoerr, true, false) then cas(Gready2, false, true) else cas(Gready2, false, true)
+                        else skip";
+            "if ¬(!Gready1) then skip else
+             if !Ga = 1 & ¬(!Gready2) then skip else if !Ggotoerr then error(gte) else skip";
+            "cas(Ggotoerr, true, false)";
+            "if cas(Ga, 0, 1) then skip else
+                if cas(Gready1, false, true) then skip
+                else error(this should never happen)";
+            "if cas(Ga, 0, 2) then skip else
+                if cas(Gready1, false, true) then skip
+                else error(this should never happen)";
+        |], [("gotoerr", Boolean true); ("ready1", Boolean false); ("ready2", Boolean true);
+             ("a", Integer 0);], (false, true));
+
     ]
 
     let run_test (es, g, (eef, edf)) =
