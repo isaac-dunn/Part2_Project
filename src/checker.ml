@@ -87,6 +87,31 @@ module DPORChecker (Prog : Interfaces.Program) =
         (* let s = last(S) *)
         let (tds, g) = pre depth in
 
+        let update_backtrack_sets (p, next_tran) =
+                (* let i = L(alpha(next(s,p))) *)
+                let i = last_ti next_tran.T.g_loc in
+                (* if i =/= ~-1 and not i <= C(p)(proc(Si)) *)
+                if i > ~-1 then if
+                   i > Clockvector.get (proc_cvs p) (fst (List.nth t_seq i))
+                then (
+                    let prei = pre i in
+                    let is_enabled p' (tds', g') =
+                        let (e', s') = Array.get tds' p' in
+                        match ProgImp.ThrImp.next_transition (e', s', g') with
+                        Some (_, b) -> b
+                      | None -> false
+                    (* if p in enabled(pre(S, i)) *)
+                    in if is_enabled p prei
+                    (* then add p to backtrack(pre(S, i)) *)
+                    then Var_array.set backtracks i (p::(Var_array.get backtracks i))
+                    (* else add enabled(pre(S,i)) to backtrack(pre(S,i)) *)
+                    else let rec ntoz n = if n = 0 then [0] else n::(ntoz (n-1))
+                         in let en_in_prei q = is_enabled q prei
+                         in Var_array.set backtracks i (List.filter en_in_prei
+                                (ntoz (Array.length tds - 1)))
+                    )
+        in
+
         if Hashtbl.mem ht (tds, g) then (print_endline (ProgImp.string_of_program (tds, g)); (true, true)) else (
         Hashtbl.add ht (tds, g) true;
 
@@ -121,30 +146,7 @@ module DPORChecker (Prog : Interfaces.Program) =
                     (one_thread_can_advance := true;
                     transition_to_explore := Some p)
                 else all_stopped_threads_are_values := false;
-
-                (* let i = L(alpha(next(s,p))) *)
-                let i = last_ti next_t.T.g_loc in
-
-                (* if i =/= ~-1 and not i <= C(p)(proc(Si)) *)
-                if i > ~-1 then if
-                   i > Clockvector.get (proc_cvs p) (fst (List.nth t_seq i))
-                then (
-                    let prei = pre i in
-                    let is_enabled p' (tds', g') =
-                        let (e', s') = Array.get tds' p' in
-                        match ProgImp.ThrImp.next_transition (e', s', g') with
-                        Some (_, b) -> b
-                      | None -> false
-                    (* if p in enabled(pre(S, i)) *)
-                    in if is_enabled p prei
-                    (* then add p to backtrack(pre(S, i)) *)
-                    then Var_array.set backtracks i (p::(Var_array.get backtracks i))
-                    (* else add enabled(pre(S,i)) to backtrack(pre(S,i)) *)
-                    else let rec ntoz n = if n = 0 then [0] else n::(ntoz (n-1))
-                         in let en_in_prei q = is_enabled q prei
-                         in Var_array.set backtracks i (List.filter en_in_prei
-                                (ntoz (Array.length tds - 1)))
-                    )
+                update_backtrack_sets (p, next_t)
         done;
 
         (* if there is some p in enabled(s) *)
