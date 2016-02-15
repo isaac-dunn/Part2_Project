@@ -569,6 +569,25 @@ module PLCorrectnessTest (Chk :
         , array_store buf_size (fun i -> "item"^(string_of_int i))
                         (fun _ -> Integer 0), (true, true)));
 
+        (* Test 38 *)
+        (* Shows that naive stateful DPOR is not sound *)
+        (* Whether Ga is set or not, the same state should be reached, but a = 2
+           needs to insert a backtracking point, while a = 1 does not *)
+        ([| "if ¬(!Gready1) then skip else
+             if !Ga = 1 then if cas(Ggotoerr, true, false) then cas(Gready2, false, true) else cas(Gready2, false, true)
+                        else skip";
+            "if ¬(!Gready1) then skip else
+             if !Ga = 1 & ¬(!Gready2) then skip else if !Ggotoerr then error(gte) else skip";
+            "cas(Ggotoerr, true, false)";
+            "if cas(Ga, 0, 1) then skip else
+                if cas(Gready1, false, true) then skip
+                else error(this should never happen)";
+            "if cas(Ga, 0, 2) then skip else
+                if cas(Gready1, false, true) then skip
+                else error(this should never happen)";
+        |], [("gotoerr", Boolean true); ("ready1", Boolean false); ("ready2", Boolean true);
+             ("a", Integer 0);], (false, true));
+
     ]
 
     let run_test (es, g, (eef, edf)) =
@@ -602,7 +621,7 @@ module PLCorrectnessTest (Chk :
                     test_cases)
 
     let print_all_tests_passed () = print_endline ("Checker Correctness Tests All Passed: "
-                            ^ (string_of_bool (all_tests_passed ())) ^ "\n\n")
+                            ^ (string_of_bool (all_tests_passed ())))
 end
 
 module SPLCheckerCorrectnessTest = PLCorrectnessTest (Checker.SimplePLChecker)
@@ -612,6 +631,7 @@ module DPORPLCheckerCorrectnessTest = PLCorrectnessTest (Checker.DPORPLChecker)
 let () = let n = if Array.length Sys.argv > 1
                  then int_of_string (Sys.argv.(1))
                  else 1 in
+    let start_time = Sys.time () in
     if Array.length Sys.argv = 3 then
          if n = 0 then SPLCheckerCorrectnessTest.run_nth_test_case
                                 (int_of_string Sys.argv.(2))
@@ -620,5 +640,6 @@ let () = let n = if Array.length Sys.argv > 1
          else print_endline "Error: pass 0 and 1 for simple or DPOR check tests"
     else if n = 0 then SPLCheckerCorrectnessTest.print_all_tests_passed()
          else if n = 1 then DPORPLCheckerCorrectnessTest.print_all_tests_passed()
-         else print_endline "Error: pass 0 and 1 for simple or DPOR check tests"
+         else print_endline "Error: pass 0 and 1 for simple or DPOR check tests";
+    print_endline ("Time taken: " ^ (string_of_float (Sys.time () -. start_time)))
 

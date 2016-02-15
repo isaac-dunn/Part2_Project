@@ -27,7 +27,8 @@
 %right ASSIGN (* a := b + c is a := (b + c) *)
 
 (* Standard operator precedence *)
-%nonassoc GT LT EQUALS AND OR
+%nonassoc GT LT AND OR
+%nonassoc EQUALS
 %left PLUS MINUS
 %left MULT DIV MOD
 
