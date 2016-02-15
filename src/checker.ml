@@ -200,7 +200,7 @@ module DPORChecker (Prog : Interfaces.Program) =
             Var_array.remove_last backtracks (* Decrement size of array to counter earlier increment *)));
  
         (!error_free, !recursive_calls_deadlock_free &&
-            (!one_thread_can_advance || !all_stopped_threads_are_values))
+            (!one_thread_can_advance || !all_stopped_threads_are_values)))
 
     let error_and_deadlock_free (tds, g) =
         Hashtbl.reset ht;
