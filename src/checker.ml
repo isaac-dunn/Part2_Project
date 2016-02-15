@@ -3,6 +3,7 @@ module SimpleChecker (Prog : Interfaces.Program) =
     module ProgImp = Prog
     let max_depth = ref 0
     let calls = ref 0
+    let ht = Hashtbl.create ~random:true 10000
 
     (* True iff error-free *)
     let rec check init_prog t_seq =
@@ -14,6 +15,8 @@ module SimpleChecker (Prog : Interfaces.Program) =
         let one_thread_can_advance = ref false in
         let all_stopped_threads_are_values = ref true in
         let recursive_calls_deadlock_free = ref true in
+        if Hashtbl.mem ht (tds, g) then () else (
+        Hashtbl.add ht (tds, g) true;
         for i = 0 to Array.length tds - 1 do
             let (e, s) = Array.get tds i in
             match ProgImp.ThrImp.next_transition (e, s, g) with
@@ -39,11 +42,13 @@ module SimpleChecker (Prog : Interfaces.Program) =
                 let (ef, df) = check init_prog (t_seq @ [(i, t_tran)])
                 in error_free := !error_free && ef;
                    recursive_calls_deadlock_free := !recursive_calls_deadlock_free && df))
-        done;
+        done);
         (!error_free, !recursive_calls_deadlock_free &&
                 (!one_thread_can_advance || !all_stopped_threads_are_values))
 
-    let error_and_deadlock_free init_prog = check init_prog []
+    let error_and_deadlock_free init_prog =
+        Hashtbl.reset ht;
+        check init_prog []
   end
 
 module DPORChecker (Prog : Interfaces.Program) =
