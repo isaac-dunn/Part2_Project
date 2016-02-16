@@ -588,6 +588,30 @@ module PLCorrectnessTest (Chk :
         |], [("gotoerr", Boolean true); ("ready1", Boolean false); ("ready2", Boolean true);
              ("a", Integer 0);], (false, true));
 
+        (* Test 39 *)
+        (* Fig. 1 from SPIN '08 stateful DPOR paper *)
+        ([| "let i = ref 0 in
+             let n = !Gn in
+             while !i < n do
+                let rd = !Gd in
+                if cas(Gd, rd, rd + !i)
+                then if (rd + !i) % 5 = 4 then
+                    error(assert this never true)
+                    else i := !i + 5
+                else skip
+             done";
+            "let j = ref 0 in
+             let n = !Gn in
+             while !j < n do
+                let rd = !Gd in
+                if cas(Gd, rd, rd - !j)
+                then if (rd - !j) % 5 = 4 then
+                    error(assert this never true)
+                    else j := !j + 2
+                else skip
+             done";
+        |], [("d", Integer 0); ("n", Integer 9)], (true, true));
+
     ]
 
     let run_test (es, g, (eef, edf)) =
