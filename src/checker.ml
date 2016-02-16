@@ -1,6 +1,7 @@
 module SimpleChecker (Prog : Interfaces.Program) =
   struct
     module ProgImp = Prog
+    let do_stateful = true
     let max_depth = ref 0
     let calls = ref 0
     let ht = Hashtbl.create ~random:true 10000
@@ -15,8 +16,8 @@ module SimpleChecker (Prog : Interfaces.Program) =
         let one_thread_can_advance = ref false in
         let all_stopped_threads_are_values = ref true in
         let recursive_calls_deadlock_free = ref true in
-        if Hashtbl.mem ht (tds, g) then () else (
-        Hashtbl.add ht (tds, g) true;
+        if do_stateful && Hashtbl.mem ht (tds, g) then () else (
+        if do_stateful then Hashtbl.add ht (tds, g) true;
         for i = 0 to Array.length tds - 1 do
             let (e, s) = Array.get tds i in
             match ProgImp.ThrImp.next_transition (e, s, g) with
@@ -55,6 +56,7 @@ module DPORChecker (Prog : Interfaces.Program) =
   struct
     module ProgImp = Prog
     module T = ProgImp.ThrImp
+    let do_stateful = true
     let max_depth = ref 0
     let calls = ref 0
     let ht = Hashtbl.create ~random:true 10000
@@ -113,7 +115,7 @@ module DPORChecker (Prog : Interfaces.Program) =
                     )
         in
 
-        if Hashtbl.mem ht (tds, g) then (
+        if do_stateful && Hashtbl.mem ht (tds, g) then (
         (* For each transition enabled from s *)
         for p = 0 to Array.length tds - 1 do
             let (e, s) = Array.get tds p in
@@ -132,7 +134,7 @@ module DPORChecker (Prog : Interfaces.Program) =
                 (* Update backtracking sets for each node reachable graph node *)
                 in search_and_update (p, next_t)
         done);
-        Hashtbl.add ht (tds, g) true;
+        if do_stateful then Hashtbl.add ht (tds, g) true;
 
         (* for all processes p *)
         for p = 0 to Array.length tds - 1 do
@@ -229,7 +231,9 @@ module DPORChecker (Prog : Interfaces.Program) =
                             else [(p, next_t)] in
                          Hashtbl.replace vodg (p', next_t') new_range
             done; ProgImp.apply_transition  (tds', g') (i', t')
-        in List.fold_left process_and_apply_t init_prog t_seq;
+        in let _ = if do_stateful
+                then List.fold_left process_and_apply_t init_prog t_seq
+                else init_prog in
 
 
         (* Explore(S', C', L') *)
