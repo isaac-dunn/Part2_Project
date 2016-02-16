@@ -58,6 +58,7 @@ module DPORChecker (Prog : Interfaces.Program) =
     let max_depth = ref 0
     let calls = ref 0
     let ht = Hashtbl.create ~random:true 10000
+    let vodg = Hashtbl.create ~random:true 1000
 
     (* Array for backtracking sets *)
     let backtracks = Var_array.empty()
@@ -112,7 +113,25 @@ module DPORChecker (Prog : Interfaces.Program) =
                     )
         in
 
-        if Hashtbl.mem ht (tds, g) then (print_endline (ProgImp.string_of_program (tds, g)); (true, true)) else (
+        if Hashtbl.mem ht (tds, g) then (
+        (* For each transition enabled from s *)
+        for p = 0 to Array.length tds - 1 do
+            let (e, s) = Array.get tds p in
+            match ProgImp.ThrImp.next_transition (e, s, g) with
+              None -> ()
+            | Some (next_t, enabled) -> if not enabled then () else
+                (* Do depth first search of G starting at next_t *)
+                let visited = Hashtbl.create 100 in
+                let rec search_and_update t =
+                    if Hashtbl.mem visited t then () else (
+                    Hashtbl.add visited t true;
+                    update_backtrack_sets t;
+                    let next_ts = if Hashtbl.mem vodg t then Hashtbl.find vodg t
+                                    else [] in
+                    List.iter search_and_update next_ts)
+                (* Update backtracking sets for each node reachable graph node *)
+                in search_and_update (p, next_t)
+        done);
         Hashtbl.add ht (tds, g) true;
 
         (* for all processes p *)
@@ -189,6 +208,30 @@ module DPORChecker (Prog : Interfaces.Program) =
         let new_last_ti oi = if oi = o then List.length new_t_seq - 1 (* index *)
                                        else last_ti oi in
 
+        (* Add appropriate edges to G *)
+        (* if there is some state sx along our transition sequence such that
+           transition tx takes sx to the current state then add (tx, next_t) to G *)
+        let process_and_apply_t (tds', g') (i', t') =
+            (* For each process p in each state along t_seq *)
+            for p' = 0 to Array.length tds - 1 do
+              let (e', s') = Array.get tds' p' in
+              match T.next_transition (e', s', g') with
+            (* If there is a transition from it *)
+                None -> ()
+              | Some (next_t', enabled') -> if enabled' then
+                    (* And that transition results in the current state *)
+                    if ProgImp.apply_transition (tds', g') (p', next_t') = (tds, g)
+                    (* Then add an arc from that transition to next_t *)
+                    then let new_range = if Hashtbl.mem vodg (p', next_t')
+                            then let old_r = Hashtbl.find vodg (p', next_t')
+                                in if List.mem (p, next_t) old_r then old_r
+                                        else (p, next_t)::old_r
+                            else [(p, next_t)] in
+                         Hashtbl.replace vodg (p', next_t') new_range
+            done; ProgImp.apply_transition  (tds', g') (i', t')
+        in List.fold_left process_and_apply_t init_prog t_seq;
+
+
         (* Explore(S', C', L') *)
         let (ef, df) = check init_prog new_t_seq new_proc_cvs new_obj_cvs new_last_ti in
         error_free := !error_free && ef;
@@ -202,7 +245,7 @@ module DPORChecker (Prog : Interfaces.Program) =
             Var_array.remove_last backtracks (* Decrement size of array to counter earlier increment *)));
  
         (!error_free, !recursive_calls_deadlock_free &&
-            (!one_thread_can_advance || !all_stopped_threads_are_values)))
+            (!one_thread_can_advance || !all_stopped_threads_are_values))
 
     let error_and_deadlock_free (tds, g) =
         Hashtbl.reset ht;
