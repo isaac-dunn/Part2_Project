@@ -9,6 +9,8 @@
 \usepackage{amsfonts}
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
+\usepackage{enumitem}
+
 
 \raggedbottom                           % try to avoid widows and orphans
 \sloppy
@@ -206,10 +208,12 @@ state $\sigma' = (l', g')$, where
 			\end{array} \right.
 \]
 In this case we write $\sigma \xrightarrow{t_{p,s}} \sigma'$.
-We write $\longrightarrow^*$ to denote the transition reflexive
+We write $\longrightarrow^*$ to denote the transitive reflexive
 closure of $\longrightarrow$.
 A state $\sigma$ is called a \emph{deadlock} when there is no transition
-$t$ such that $t$ is enabled in $\sigma$.
+$t$ such that $t$ is enabled in $\sigma$. We say that $t_1$ and $t_2$
+may be \emph{co-enabled} if there is some state $\sigma \in \textit{State}$
+such that both $t_1$ and $t_2$ are enabled in $\sigma$.
 
 In any state $\sigma = (l, g)$, let
 $\textit{next}(\sigma, p) = t_{p,l(p)}$ denote the unique next transition
@@ -365,7 +369,7 @@ depth-first search of the reachable state space.
 \subsection{Partial-Order Reduction}
 \textit{Some text revising the principles.}
 
-\subsubsection{Independence}
+\subsubsection{Independence} \label{sec:independence}
 In plain English, two transitions are independent if executing one
 can never disable the other, and if they are commutative.
 
@@ -424,11 +428,73 @@ for all sequences of transitions
 if for all $1 \leq i \leq n$, $t_i \not \in T$ then each $t_i$ is
 independent with every transition in $T$.
 
+\textbf{Why do we care? Is it true that persistent sets are sufficient?}
+
 \section{Dynamic Partial-Order Reduction}
 
 \subsection{Definitions}
-\subsubsection{Notations}
+
+\subsubsection{Transition Sequences}
+Instead of keeping track of just the current state, as
+the algorithms in section~\ref{sec:simple-model-checking}
+did, the DPOR algorithm keeps track of a \emph{transition
+sequence} $\pi \in \mathcal{T}^*$. This transition
+sequence is implicitly executed from the initial state of
+the transition system, $\sigma_0$, so that in practice,
+$\pi = t_0, t_1, \ldots, t_{n-1}$ specifies a sequence of states
+$\sigma_0, \sigma_1, \ldots, \sigma_n$ such that
+\[
+	\sigma_0 \xrightarrow{\ t_0\ } \sigma_1 \xrightarrow{\ t_1\ }
+	\ldots \xrightarrow{t_{n-1}} \sigma_n.
+\]
+
+Given a transition sequence $\pi = t_0, t_1, \ldots, t_{n-1}$,
+we use the following notation:
+\begin{itemize}[label={}]
+	\newcommand{\defsindent}{3.5em}
+	\item{\makebox[\defsindent]{\hfill$\pi_i$}
+		--- the transition $t_i$;}
+	\item{\makebox[\defsindent]{\hfill$\pi.t$}
+		--- the transition sequence $\pi$ extended with
+		an additional transition $t$;}
+	\item{\makebox[\defsindent]{\hfill$\textit{dom}(\pi)$}
+		--- the set $\{i \in \mathbb{N} \mid 0 \leq i < n \}$;}
+	\item{\makebox[\defsindent]{\hfill$\textit{pre}(\pi, i)$}
+		--- the state $\sigma_i$ (i.e. the state before transition $t_i$); and}
+	\item{\makebox[\defsindent]{\hfill$\textit{last}(\pi)$}
+		--- the state $\sigma_n$.}
+\end{itemize}
+
 \subsubsection{The Happens-Before Relations}
+
+Suppose that two adjacent transitions, $\pi_i$ and $\pi_{i+1}$,
+are swapped in a
+transition sequence, $\pi$, to give a new
+transition sequence, $\pi'$. Suppose further
+that $\pi_i$ and $\pi_{i+1}$ are independent.
+
+Since $\pi_{i+1}$ is enabled in $\textit{pre}(\pi, i+1)$,
+$\pi_{i+1}$ must also be enabled in $\textit{pre}(\pi, i)$,
+by the first condition of independence
+(cf. section~\ref{sec:independence}). If $\pi_{i+1}$
+is executed in $\textit{pre}(\pi, i)$ (as we now know
+it can be), it results in a state in which $\pi_i$
+can be executed, again by the first condition of
+independence.
+
+By the second
+condition of independence, the state reached by
+executing $\pi_i$ followed by $\pi_{i+1}$ is the same
+as the state reached by executing $\pi_{i+1}$ followed
+by $\pi_i$.
+So $\textit{pre}(\pi, i+2) = \textit{pre}(\pi', i+2)$. Since 
+for all $j \geq i + 2$, $\pi_j = \pi'_j$, it follows that
+$\textit{last}(\pi) = \textit{last}(\pi')$.
+
+Such equivalent interleavings
+of transitions are precisely what we're interested in.
+
+
 
 \subsection{The Algorithm}
 
