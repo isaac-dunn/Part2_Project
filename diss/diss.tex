@@ -370,7 +370,8 @@ depth-first search of the reachable state space.
 		\EndProcedure
 		\State
 		\State Initially: $\textsc{SimpleDeadlockFree}(\sigma_0)$
-	\end{algorithmic} \end{algorithm}
+	\end{algorithmic}
+\end{algorithm}
 
 \subsection{Partial-Order Reduction}
 \textit{Some text revising the principles.}
@@ -541,7 +542,7 @@ either
 \end{enumerate}
 Informally, if $(i, p)\!\hookrightarrow_\pi$ then
 in every linearisation $\hat{\pi}$ of the
-happens-before relation (i.e. any sequence
+happens-before relation (i.e. every sequence
 obtained by swapping pairs of adjacent and
 independent transitions in $\pi$), then the next
 transition that process $p$ executes in
@@ -550,10 +551,72 @@ at some point before $\textit{last}(\hat{\pi})$.
 
 \subsection{The Algorithm}
 
+\begin{algorithm} \caption{Dynamic Partial-Order Reduction}
+	\label{dpor-outline} \begin{algorithmic}[1]
+		\Procedure{Explore}{$\pi$}
+		\Let{$\sigma$}{$\textit{last}(\pi)$}
+		\ForAll{$p \in \mathcal{P}$}
+			\Let{$R_1$}{$\{i \in \textit{dom}(\pi) \mid
+				\pi_i \text{ is dependent with } \textit{next}(\pi, p)\}$}
+			\Let{$R_2$}{$\{i \in R_1 \mid
+				\pi_i \text{ may be co-enabled with } \textit{next}(\pi, p)\}$}
+			\Let{$R_3$}{$\{i \in R_2 \mid (i, p)\!\not \hookrightarrow_\pi\}$}
+			\If{$R_3 \neq \emptyset$}
+				\Let{$i$}{$\text{max}(R_3)$}
+				\Let{$E$}{$\{q \in \textit{enabled}(\textit{pre}(\pi, i)) \mid
+					q = p \vee \exists j \in \textit{dom}(\pi).\; j > i \wedge
+					q = \textit{proc}(\pi_j) \wedge (j, p)\hookrightarrow_\pi
+					\}$}
+				\If{$E \neq \emptyset$}
+					add any $q \in E$ to $\textit{backtrack}(\textit{pre}(\pi, i))$
+				\Else {
+					add all $q \in \textit{enabled}(\textit{pre}(\pi, i))$
+					to $\textit{backtrack}(\textit{pre}(\pi, i))$
+				} \EndIf
+			\EndIf
+		\EndFor
+		\If{$\exists p \in \textit{enabled}(\pi)$}
+			\Let{$p$}{any $p \in \textit{enabled}(\pi)$}
+			\Let{$\textit{backtrack}(\sigma)$}{$\{p\}$}
+			\Let{$\textit{done}(\sigma)$}{$\emptyset$}
+			\While{$\exists q \in (\textit{backtrack}(\sigma)\setminus\textit{done}(\sigma))$}
+				\Let{$\pi'$}{$\pi.\textit{next}(\sigma,q)$}
+				\State $\textsc{Explore}(\pi')$
+				\State add $q$ to $\textit{done}(\sigma)$
+			\EndWhile
+		\EndIf
+		\EndProcedure
+		\State
+		\State Initially: $\textsc{Explore}(\emptyset)$
+	\end{algorithmic}
+\end{algorithm}
+
 \chapter{Implementation}
 
 \section{Development of Project Language (PL)}
 \subsection{Syntax and Semantics}
+I designed a simple ML-like language, PL (for 
+Project Language) which
+is used to specify the operations the execution
+of each thread. The local state of a thread at
+any instant consists of an expression
+$e : \textit{expr}$, which
+represents the remaining instructions that the
+thread will execute, and a local store
+$\gamma : \textit{loc} \to \textit{expr}$, which
+maps locations to expressions, and represents the
+data that the thread operates on.
+
+\begin{figure}
+	\begin{align*}
+		e := &\ e + e \\
+		\vert &\ e - e \\
+		\vert &\ !e \\
+		\vert &\ e e
+	\end{align*}
+	\caption{The BNF grammar for PL expressions}
+\end{figure}
+
 First design a simple but fairly practical sequential language.
 $(e, s) \longrightarrow^t (e', s')$
 Then using these as threads, add a global store, and read and CAS
@@ -565,7 +628,7 @@ $g$, and at any given time any of the threads can advance.
 See appendix for language definition.
 
 \subsection{Parser}
-Use <tool> and <tool> to specify the conversion of source code
+Use \emph{tool} and \emph{tool} to specify the conversion of source code
 into abstract expressions. Example?
 
 \subsection{Interpreter}
@@ -610,8 +673,13 @@ re-exploring from those we have already explored.
 \subsection{Dynamic Partial-Order Reduction}
 
 \subsubsection{Na\"{\i}ve Approach}
-The na\"{\i}ve approach is unsound.
-Give explanation.
+The same approach can be applied to
+the DPOR algorithm -- whenever we
+encounter a state from which we have already
+explored, return immediately because we
+already know the result. However, this
+na\"ive algorithm is unfortunately unsound.
+
 
 \subsubsection{Stateful Dynamic Partial-Order Reduction}
 Idea: conservatively add in necessary points to backtrack sets.
