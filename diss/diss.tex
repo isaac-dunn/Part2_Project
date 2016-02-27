@@ -276,7 +276,7 @@ algorithm that takes a transition system and returns
 two Boolean results, indicating whether that system
 is error-free and deadlock-free.
 
-\subsection{Simple Model Checking}
+\subsection{Simple Model Checking} \label{sec:simple-model-checking}
 As the definitions of both error-free and deadlock-free
 are of the form
 \[
@@ -298,7 +298,7 @@ is error-free, we have
 \[
 	\Phi((l, g)) = \forall p \in \mathcal{P}.\; \neg\,err(l(p)),
 \]
-so Algorithm \ref{simple-error-free} below decides whether a given transition system
+so Algorithm~\ref{simple-error-free} below decides whether a given transition system
 is error-free. At each
 state encountered, beginning with $\sigma_0$, first $\Phi$
 is checked to hold, then recursive calls implement a
@@ -331,7 +331,7 @@ is deadlock-free, we have
 	\exists\sigma' \in \textit{State}.\;(l, g) \longrightarrow \sigma'
 	\implies \forall p \in \mathcal{P}.\;\textit{val}(l(p)),
 \]
-so Algorithm \ref{simple-deadlock-free} below decides whether a given transition system
+so Algorithm~\ref{simple-deadlock-free} below decides whether a given transition system
 is deadlock-free. As $\Phi$ can only fail to hold at deadlock states, it is first
 checked whether the state has any transitions that can be executed. If not, then
 $\Phi$ is checked to hold, else as above, recursive calls implement a
@@ -371,7 +371,7 @@ depth-first search of the reachable state space.
 In plain English, two transitions are independent if executing one
 can never disable the other, and if they are commutative.
 
-More formally, uppose that $\mathcal{T}$ is the set of
+More formally, suppose that $\mathcal{T}$ is the set of
 transitions for some transition system, and
 that $I \subseteq \mathcal{T} \times \mathcal{T}$
 is a reflexive and symmetric relation. We say
@@ -395,6 +395,35 @@ all $(t_1, t_2) \in I$:
 Two transitions $t_1$ and $t_2$ are said to be \emph{independent}
 if there is a valid independency relation $I$ such that $(t_1, t_2) \in I$.
 If $t_1$ and $t_2$ are not independent, they are said to be \emph{dependent}.
+
+\subsubsection{Persistent Sets}
+Traditional partial-order algorithms perform a depth-first
+search (as the algorithms presented in
+section~ref{sec:simple-model-checking} do), but at each
+state $\sigma$ they compute a subset
+$T \subseteq \textit{enabled}(\sigma)$ and then explore
+only the transitions in $T$. Of course, the subsets
+$T$ must be computed in a way such that the search
+is still sound (i.e. it produces the correct result).
+
+One technique for computing such sound subsets is known
+as the \emph{persistent set} technique. Informally,
+a subset of transitions $T$ from a state $\sigma$
+is called \emph{persistent in $\sigma$} if every
+possible transition does not interact with the transitions
+in $T$.
+
+Formally, a a subset of transitions $T \subseteq \mathcal{T}$
+from a state $\sigma_1$
+is called \emph{persistent in $\sigma_1$} if and only if
+for all non-empty sequences of transitions
+\[
+	\sigma_1 \xrightarrow{t_1} \sigma_2 \xrightarrow{t_2} \ldots
+	\xrightarrow{t_{n-1}} \sigma_n,
+\]
+if for all $1 <= i <= n$, $t_i \not \in T$ then $t_n$ is
+independent with every transition in $T$.
+
 
 
 \subsection{Dynamic Partial-Order Reduction}
