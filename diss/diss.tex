@@ -362,10 +362,8 @@ depth-first search of the reachable state space.
 		\State Initially: $\textsc{SimpleDeadlockFree}(\sigma_0)$
 	\end{algorithmic} \end{algorithm}
 
-\section{Partial-Order Reduction}
+\subsection{Partial-Order Reduction}
 \textit{Some text revising the principles.}
-
-\subsection{Definitions}
 
 \subsubsection{Independence}
 In plain English, two transitions are independent if executing one
@@ -399,7 +397,7 @@ If $t_1$ and $t_2$ are not independent, they are said to be \emph{dependent}.
 \subsubsection{Persistent Sets}
 Traditional partial-order algorithms perform a depth-first
 search (as the algorithms presented in
-section~ref{sec:simple-model-checking} do), but at each
+section~\ref{sec:simple-model-checking} do), but at each
 state $\sigma$ they compute a subset
 $T \subseteq \textit{enabled}(\sigma)$ and then explore
 only the transitions in $T$. Of course, the subsets
@@ -410,25 +408,29 @@ One technique for computing such sound subsets is known
 as the \emph{persistent set} technique. Informally,
 a subset of transitions $T$ from a state $\sigma$
 is called \emph{persistent in $\sigma$} if every
-possible transition does not interact with the transitions
+possible transition $t \not \in T$ that is reachable
+from $\sigma$ by exploring only transitions not in
+$T$ does not interact with the transitions
 in $T$.
 
-Formally, a a subset of transitions $T \subseteq \mathcal{T}$
+Formally, a subset of transitions $T \subseteq \mathcal{T}$
 from a state $\sigma_1$
 is called \emph{persistent in $\sigma_1$} if and only if
-for all non-empty sequences of transitions
+for all sequences of transitions
 \[
-	\sigma_1 \xrightarrow{t_1} \sigma_2 \xrightarrow{t_2} \ldots
+	\sigma_1 \xrightarrow{\ t_1\ } \sigma_2 \xrightarrow{\ t_2\ } \ldots
 	\xrightarrow{t_{n-1}} \sigma_n,
 \]
-if for all $1 <= i <= n$, $t_i \not \in T$ then $t_n$ is
+if for all $1 \leq i \leq n$, $t_i \not \in T$ then each $t_i$ is
 independent with every transition in $T$.
 
+\section{Dynamic Partial-Order Reduction}
 
+\subsection{Definitions}
+\subsubsection{Notations}
+\subsubsection{The Happens-Before Relations}
 
-\subsection{Dynamic Partial-Order Reduction}
-
-
+\subsection{The Algorithm}
 
 \chapter{Implementation}
 
