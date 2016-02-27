@@ -7,6 +7,8 @@
 \usepackage{docmute}   % only needed to allow inclusion of proposal.tex
 \usepackage{amsmath}
 \usepackage{amsfonts}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
 
 \raggedbottom                           % try to avoid widows and orphans
 \sloppy
@@ -167,7 +169,7 @@ of concurrent threads or processes (I use ``thread" and
 Each thread has its own local state, $s \in \mathcal{S}$, and there
 is some shared global state, $g \in \mathcal{G}$. The overall
 state of the system at any instant is therefore a member of the set
-$ State = (\mathcal{P} \to \mathcal{S}) \times \mathcal{G} $.
+$ \textit{State} = (\mathcal{P} \to \mathcal{S}) \times \mathcal{G} $.
 
 Each process executes a sequence of operations, as
 specified in some programming language, each of which can
@@ -208,13 +210,20 @@ A state $\sigma$ is called a \emph{deadlock} when there is no transition
 $t$ such that $t$ is enabled in $\sigma$.
 
 In any state $\sigma = (l, g)$, let
-$next(\sigma, p) = t_{p,l(p)}$ denote the unique next transition
-to be executed by process $p$. For any transition $t_{p,s}$, let
-$proc(t_{p,s}) = p$ denote the unique process executing that transition.
+$\textit{next}(\sigma, p) = t_{p,l(p)}$ denote the unique next transition
+to be executed by process $p$, and let
+\[
+	\textit{enabled}(\sigma) = \{t_{p,s} \in \mathcal{T} \mid
+	p \in \mathcal{P} \wedge t_{p,s} = \textit{next}(\sigma, p)
+	\wedge t_{p,s} \text{ is enabled in } \sigma\}
+\]
+denote the set of enabled transitions that can be executed from $\sigma$.
+For any transition $t_{p,s}$, let $\textit{proc}(t_{p,s}) = p$
+denote the unique process executing that transition.
 
 \subsection{Systems}
 The behaviour of an entire \emph{transition system} is
-specified with the tuple $A = (State, \Delta, \sigma_0)$,
+specified with the tuple $A = (\textit{State}, \Delta, \sigma_0)$,
 where $\Delta \in State \to \mathbb{P}(State)$
 is the \emph{transition relation} defined by
 \[
@@ -224,30 +233,81 @@ is the \emph{transition relation} defined by
 
 \section{Model Checking}
 
+\subsection{Definition of Model Checking}
 When model checking, we are trying to establish whether a
 given transition system is \emph{error-free} and
 \emph{deadlock-free}. We therefore need to introduce two
 new concepts.
 
-We extend each transition system with a \emph{error relation}
-$err : \mathcal{S} \to \mathbb{B}$, and a \emph{value relation}
-$val : \mathcal{S} \to \mathbb{B}$, which decide whether a given
+We extend each transition system with a \emph{error relation},
+$\textit{err} : \mathcal{S} \to \mathbb{B}$, and a \emph{value relation},
+$\textit{val} : \mathcal{S} \to \mathbb{B}$, which decide whether a given
 local state is in error state or a value state (i.e. a result has
 been computed and no further operations are possible) respectively.
 
-We say that a transition system $A = (State, \Delta, \sigma_0)$ is
+We say that a transition system $A = (\textit{State}, \Delta, \sigma_0)$ is
 \emph{error-free} if
 \[
-	\forall (l, g) \in State. \ \sigma_0 \longrightarrow^* (l, g)
-	\implies \forall p \in \mathcal{P}.\ \neg\,err(l(p)),
+	\forall (l, g) \in \textit{State}. \ \sigma_0 \longrightarrow^* (l, g)
+	\implies \forall p \in \mathcal{P}.\ \neg\,\textit{err}(l(p));
 \]
-and is \emph{deadlock-free} if
+that is, if for any state $\sigma$ reachable from the initial state
+$\sigma_0$, no thread in $\sigma$ is in an error state.
+
+We say that a transition system is deadlock-free if
 \[
-	\forall (l, g) \in State. \;\sigma_0 \longrightarrow^* (l, g)
-	\wedge \neg \exists t \in \mathcal{T}.\;
-		\exists\sigma \in State.\;(l, g) \longrightarrow \sigma
-	\implies \forall p \in \mathcal{P}.\;val(l(p)).
+	\forall (l, g) \in \textit{State}. \;\sigma_0 \longrightarrow^* (l, g)
+	\implies \neg \exists t \in \mathcal{T}.\;
+		\exists\sigma \in \textit{State}.\;(l, g) \longrightarrow \sigma
+	\implies \forall p \in \mathcal{P}.\;\textit{val}(l(p));
 \]
+that is, if for any deadlock state $\sigma$ reachable from
+the initial state $\sigma_0$, all threads in $\sigma$ are
+in value states. This definition is useful because no
+system with a finite acyclic state space has no deadlocks,
+as technically, a system which has halted is in a deadlock,
+but we are interested in deciding whether a system has any
+deadlocks aside from these trivial halting ones.
+
+For our purposes, a model checking algorithm is an
+algorithm that takes a transition system and returns
+two Boolean results, indicating whether that system
+is error-free and deadlock-free.
+
+\section{Simple Model Checking}
+As the definitions of both error-free and deadlock-free
+are of the form
+\[
+	\forall \sigma \in \textit{State}.\; \sigma_0 \longrightarrow^* \sigma
+	\implies \Phi (\sigma)
+\]
+for some predicate $\Phi$, the simplest strategy is to
+perform an exhaustive search of the reachable state space,
+checking $\Phi$ at each state encountered on the search.
+
+\subsection{Detecting Errors}
+For example, when deciding whether the transition system
+is error-free, we have
+\[
+	\Phi((l, g)) = \forall p \in \mathcal{P}.\; \neg\,err(l(p)),
+\]
+so the below algorithm decided whether a transition system
+$A = (State, \Delta, \sigma_0)$ is error-free.
+
+\begin{algorithm} \caption{Deciding if transition system is error-free} \label{lbbbb} \begin{algorithmic}[1]
+	\State Initially: $\textsc{SimpleErrorFree}(\sigma_0)$
+	\State
+	\Procedure{SimpleErrorFree}{(l, g)}
+	\ForAll{$p \in \mathcal{P}$}
+		\If{$err(l(p))$}
+		\Return \textit{true}
+		\EndIf
+	\EndFor \ForAll{$p \in \mathcal{P}$}
+		
+	\EndFor
+	\EndProcedure
+\end{algorithmic} \end{algorithm}
+\subsection{Detecting Deadlocks}
 
 \section{Dynamic Partial-Order Reduction}
 
