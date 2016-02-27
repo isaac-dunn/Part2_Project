@@ -18,6 +18,8 @@
 \renewcommand{\baselinestretch}{1.1}    % adjust line spacing to make
                                         % more readable
 
+\newcommand{\Let}[2]{\State \textbf{let} #1 = #2 \textbf{in}}
+
 \begin{document}
 
 \bibliographystyle{plain}
@@ -49,12 +51,12 @@ Clare College \\[5mm]
 
 {\large
 \begin{tabular}{ll}
-Name:               & \bf Isaac Dunn                            			 \\
-College:            & \bf Clare College                    				     \\
-Project Title:      & \bf Dynamic Partial-Order Reduction for Model Checking \\
-Examination:        & \bf Computer Science Tripos -- Part II, June 2016      \\
-Word Count:         & \bf N    \\
-Project Supervisors:& Dr. Jonathan Hayman \& Prof. Glynn Winskel             \\ 
+Name:           & \bf Isaac Dunn                            			 \\
+College:        & \bf Clare College                    				     \\
+Project Title:	& \bf Dynamic Partial-Order Reduction for Model Checking \\
+Examination:    & \bf Computer Science Tripos -- Part II, June 2016      \\
+Word Count:     & \bf N    \\
+Supervisors:	& \bf Dr. Jonathan Hayman \& Prof. Glynn Winskel             \\ 
 \end{tabular}
 }
 
@@ -258,7 +260,7 @@ We say that a transition system is deadlock-free if
 \[
 	\forall (l, g) \in \textit{State}. \;\sigma_0 \longrightarrow^* (l, g)
 	\implies \neg \exists t \in \mathcal{T}.\;
-		\exists\sigma \in \textit{State}.\;(l, g) \longrightarrow \sigma
+		\exists\sigma' \in \textit{State}.\;(l, g) \longrightarrow \sigma'
 	\implies \forall p \in \mathcal{P}.\;\textit{val}(l(p));
 \]
 that is, if for any deadlock state $\sigma$ reachable from
@@ -274,7 +276,7 @@ algorithm that takes a transition system and returns
 two Boolean results, indicating whether that system
 is error-free and deadlock-free.
 
-\section{Simple Model Checking}
+\subsection{Simple Model Checking}
 As the definitions of both error-free and deadlock-free
 are of the form
 \[
@@ -285,31 +287,118 @@ for some predicate $\Phi$, the simplest strategy is to
 perform an exhaustive search of the reachable state space,
 checking $\Phi$ at each state encountered on the search.
 
-\subsection{Detecting Errors}
+In practice, algorithms are used which decide both
+properties in one exploration of the reachable state space,
+but a separate algorithms for each property are presented
+below for clarity.
+
+\subsubsection{Detecting Errors}
 For example, when deciding whether the transition system
 is error-free, we have
 \[
 	\Phi((l, g)) = \forall p \in \mathcal{P}.\; \neg\,err(l(p)),
 \]
-so the below algorithm decided whether a transition system
-$A = (State, \Delta, \sigma_0)$ is error-free.
+so Algorithm \ref{simple-error-free} below decides whether a given transition system
+is error-free. At each
+state encountered, beginning with $\sigma_0$, first $\Phi$
+is checked to hold, then recursive calls implement a
+depth-first search of the reachable state space.
 
-\begin{algorithm} \caption{Deciding if transition system is error-free} \label{lbbbb} \begin{algorithmic}[1]
-	\State Initially: $\textsc{SimpleErrorFree}(\sigma_0)$
-	\State
-	\Procedure{SimpleErrorFree}{(l, g)}
+\begin{algorithm} \caption{Deciding if a transition system is error-free}
+	\label{simple-error-free} \begin{algorithmic}[1]
+	\Procedure{SimpleErrorFree}{$\sigma$}
+	\Let{(l, g)}{$\sigma$}
 	\ForAll{$p \in \mathcal{P}$}
 		\If{$err(l(p))$}
-		\Return \textit{true}
+		\Return \textit{false}
 		\EndIf
-	\EndFor \ForAll{$p \in \mathcal{P}$}
-		
+	\EndFor \ForAll{$\sigma' \in \{\sigma' \mid \sigma \xrightarrow{t} \sigma' \wedge t \in \textit{enabled}(\sigma)\}$}
+		\If{$\textbf{not } \textsc{SimpleErrorFree}(\sigma')$}
+		\Return \textit{false}
+		\EndIf
 	\EndFor
+	\State \Return \textit{true}
 	\EndProcedure
+	\State
+	\State Initially: $\textsc{SimpleErrorFree}(\sigma_0)$
 \end{algorithmic} \end{algorithm}
-\subsection{Detecting Deadlocks}
 
-\section{Dynamic Partial-Order Reduction}
+\subsubsection{Detecting Deadlocks}
+For example, when deciding whether the transition system
+is deadlock-free, we have
+\[
+	\Phi((l, g)) =\neg \exists t \in \mathcal{T}.\;
+	\exists\sigma' \in \textit{State}.\;(l, g) \longrightarrow \sigma'
+	\implies \forall p \in \mathcal{P}.\;\textit{val}(l(p)),
+\]
+so Algorithm \ref{simple-deadlock-free} below decides whether a given transition system
+is deadlock-free. As $\Phi$ can only fail to hold at deadlock states, it is first
+checked whether the state has any transitions that can be executed. If not, then
+$\Phi$ is checked to hold, else as above, recursive calls implement a
+depth-first search of the reachable state space.
+
+\begin{algorithm} \caption{Deciding if a transition system is deadlock-free}
+	\label{simple-deadlock-free} \begin{algorithmic}[1]
+		\Procedure{SimpleDeadlockFree}{$\sigma$}
+		\Let{(l, g)}{$\sigma$}
+		\Let{SuccessorStates}{$\{\sigma' \mid \sigma \xrightarrow{t}
+			\sigma' \wedge t \in \textit{enabled}(\sigma)\}$}
+		\If{$\text{SuccessorStates} = \emptyset$}
+			\ForAll{$p \in \mathcal{P}$}
+				\If{$\textbf{not } val(l(p))$} \Return \textit{false}
+				\EndIf
+			\EndFor
+			\State \Return \textit{true}
+		\Else
+			\ForAll{$\sigma' \in \text{SuccessorStates}$}
+				\If{$\textbf{not } \textsc{SimpleDeadlockFree}(\sigma')$}
+					\Return \textit{false}
+				\EndIf
+			\EndFor
+		\State \Return \textit{true}
+		\EndIf
+		\EndProcedure
+		\State
+		\State Initially: $\textsc{SimpleDeadlockFree}(\sigma_0)$
+	\end{algorithmic} \end{algorithm}
+
+\section{Partial-Order Reduction}
+\textit{Some text revising the principles.}
+
+\subsection{Definitions}
+
+\subsubsection{Independence}
+In plain English, two transitions are independent if executing one
+can never disable the other, and if they are commutative.
+
+More formally, uppose that $\mathcal{T}$ is the set of
+transitions for some transition system, and
+that $I \subseteq \mathcal{T} \times \mathcal{T}$
+is a reflexive and symmetric relation. We say
+that $I$ is a valid \emph{independency relation}
+whenever the following two conditions hold for
+all $(t_1, t_2) \in I$:
+\begin{enumerate}
+	\item for all states $\sigma \in \textit{State}$,
+		if $t_1$ is enabled in $\sigma$ and
+		$\sigma \xrightarrow{t_1} \sigma'$, then
+		$t_2$ is enabled in $\sigma$ if and only if
+		$t_2$ is enabled in $\sigma'$; and
+	\item for all states $\sigma \in \textit{State}$,
+		if both $t_1$ and $t_2$ are enabled in $\sigma$
+		then there are unique states $\sigma_1$, $\sigma_2$ and
+		$\sigma'$ such that
+		$\sigma \xrightarrow{t_1} \sigma_1 \xrightarrow{t_2} \sigma'$
+		and
+		$\sigma \xrightarrow{t_2} \sigma_2 \xrightarrow{t_1} \sigma'$.
+\end{enumerate}
+Two transitions $t_1$ and $t_2$ are said to be \emph{independent}
+if there is a valid independency relation $I$ such that $(t_1, t_2) \in I$.
+If $t_1$ and $t_2$ are not independent, they are said to be \emph{dependent}.
+
+
+\subsection{Dynamic Partial-Order Reduction}
+
 
 
 \chapter{Implementation}
