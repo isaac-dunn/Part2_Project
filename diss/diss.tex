@@ -20,7 +20,13 @@
 \renewcommand{\baselinestretch}{1.1}    % adjust line spacing to make
                                         % more readable
 
+% "let a = b in" for use in algorithms
 \newcommand{\Let}[2]{\State \textbf{let} #1 = #2 \textbf{in}}
+
+% For use in the happens-before relation varient
+\newcommand{\longhookrightarrow}
+	{\ensuremath{\lhook\joinrel\longrightarrow}}
+
 
 \begin{document}
 
@@ -493,8 +499,54 @@ $\textit{last}(\pi) = \textit{last}(\pi')$.
 
 Such equivalent interleavings
 of transitions are precisely what we're interested in.
+We can think of a transition sequence as representing
+the equivalence class of transition sequences obtained
+by swapping adjacent pairs of independent transitions;
+if we can identify that two transition sequences are
+members of the same equivalence class, we need only
+explore one.
 
+To help us to reason about such equivalence classes,
+we will use a ``happens-before" relation to identify
+when one transition cannot be swapped with another.
+In particular, we define the \emph{happens-before}
+relation $\longrightarrow_\pi$ for a transition
+sequence $\pi$ to be the smallest relation on
+$\textit{dom}(\pi)$ such that
+\begin{enumerate}
+	\item if $i \leq j$ and $\pi_i$ is dependent with
+		$\pi_j$ then $i \longrightarrow_\pi j$; and
+	\item $\longrightarrow_\pi$ is transitively closed.
+\end{enumerate}
 
+By construction, the happens-before relation is a
+partial-order relation on the transitions in $\pi$,
+and $\pi$ is one of the linearisations of this
+partial order. The other linearisations of the
+partial order are the equivalent sequences of
+transitions which can be obtained by swapping
+adjacent pairs of independent transitions in $\pi$.
+
+In DPOR, we will also use a variant of the
+happens-before relation to determine when
+backtracking points are needed. Formally, 
+if $i \in \textit{dom}(\pi)$ and $p \in
+\mathcal{P}$ then we
+say that $(i, p)\!\hookrightarrow_\pi$ if
+either
+\begin{enumerate}
+	\item $\textit{proc}(\pi_i) = p$; or
+	\item $\exists k \in \{k \ in \mathbb{N} \mid i < k < n\}.\;
+		i \longrightarrow_\pi k \wedge \textit{proc}(\pi_k) = p$.
+\end{enumerate}
+Informally, if $(i, p)\!\hookrightarrow_\pi$ then
+in every linearisation $\hat{\pi}$ of the
+happens-before relation (i.e. any sequence
+obtained by swapping pairs of adjacent and
+independent transitions in $\pi$), then the next
+transition that process $p$ executes in
+state $\textit{pre}(\pi, i)$ is executed
+at some point before $\textit{last}(\hat{\pi})$.
 
 \subsection{The Algorithm}
 
