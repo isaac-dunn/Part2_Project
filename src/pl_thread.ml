@@ -187,3 +187,17 @@ let next_transition x = match next_transition_aux x with
                                }, enabled)
   | None -> None
 
+(* Returns pair of bools.
+    First is true iff an error is reached.
+    Second is true iff it stops at a non-value *)
+let rec check_local (ex, st, g) =
+    if ExpImp.is_error ex
+    then (true, false)
+    else match next_step (ex, st, g) with
+        None -> (false, not (ExpImp.is_value ex))
+      | Some (t_step, enabled) -> if not enabled then
+                raise (Failure "Should always be enabled") else
+                    (check_local (t_step.new_expr,
+                        (match t_step.s_update with
+                          None -> st
+                        | Some su -> StoreImp.update st su), g))

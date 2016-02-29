@@ -33,3 +33,8 @@ val next_step : ExpImp.expr * StoreImp.store * StoreImp.store -> (step * bool) o
 * local store update, global store update global location touched, and enabled bool *)
 val next_transition : ExpImp.expr * StoreImp.store * StoreImp.store -> (transition * bool) option
 
+
+(* Given expression, local store, global store, returns pair of bools.
+    First is true iff an error is reached.
+    Second is true iff it stops at a non-value *)
+val check_local : ExpImp.expr * StoreImp.store * StoreImp.store -> (bool * bool)
