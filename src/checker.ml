@@ -13,18 +13,18 @@ module SimpleChecker (Prog : Interfaces.Program) =
         if depth > !max_depth then max_depth := depth;
 
         let rec intersect l m  = match l with
-            [] -> m
-          | x::xs -> (match m with [] -> l
+            [] -> []
+          | x::xs -> (match m with [] -> []
               | y::ys -> if x = y then x::(intersect xs ys)
-                    else if x < y then intersect xs m
-                    else intersect l ys) in
+                    else if x < y then intersect xs (y::ys)
+                    else intersect (x::xs) ys) in
         let rec union l m = match l with
             [] -> m
           | x::xs -> (match m with 
                 [] -> l
               | y::ys -> if x = y then x::(union xs ys)
-                    else if x < y then x::(union xs m)
-                    else y::(union l ys)) in
+                    else if x < y then x::(union xs (y::ys))
+                    else y::(union (x::xs) ys)) in
  
         let (tds, g) = List.fold_left ProgImp.apply_transition init_prog t_seq in
         let curr_sleep = ref sleep_set in
