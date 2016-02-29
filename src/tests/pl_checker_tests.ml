@@ -376,7 +376,8 @@ module PLCorrectnessTest (Chk :
              if cas(Gx, read, read + 1)
                 then unlock SL0
                 else error(value unexpectedly changed)";
-        |], [("x", Integer 0)], (true, true));
+        |], [("x", Integer 0); ("0", Boolean false); ("1", Boolean false);],
+            (true, true));
 
         (* Test 25 *)
         ([| "lock SL0;
@@ -389,7 +390,7 @@ module PLCorrectnessTest (Chk :
              if cas(Gx, read, read + 1)
                 then skip
                 else error(value unexpectedly changed)";
-        |], [("x", Integer 0)], (false, true));
+        |], [("x", Integer 0); ("0", Boolean false);], (false, true));
 
         (* Test 26 *)
         (Array.make 7
@@ -399,7 +400,7 @@ module PLCorrectnessTest (Chk :
                   then unlock SL0
                   else error(value unexpectedly changed)
              else error(value should always be false)"
-        ,[("x", Boolean false)], (true, true));
+        ,[("x", Boolean false); ("0", Boolean false);], (true, true));
 
         (* Test 27 *)
         (* One thread doesn't bother locking *)
@@ -416,7 +417,7 @@ module PLCorrectnessTest (Chk :
                   then unlock SL0
                   else error(value unexpectedly changed)
              else error(value should always be false)")
-        , [("x", Boolean false)], (false, false));
+        , [("x", Boolean false); ("0", Boolean false);], (false, false));
 
         (* Test 28 *)
         (Array.make 2 (
@@ -440,35 +441,36 @@ module PLCorrectnessTest (Chk :
                 if ¬cas(location, vl, vl) then error(unexpected change)
                 else unlock (lf @ !ri)
             done")
-         , intloc_array_zero_store 128, (true, true));
+         , [("l0", Boolean false); ("l1", Boolean false); ("l2", Boolean false);]
+            @ intloc_array_zero_store 128, (true, true));
 
         (* Test 29 *)
         (* Deadlocks can happen *)
         ([| "lock SL0; lock SL1; unlock SL1; unlock SL0";
             "lock SL1; lock SL0; unlock SL0; unlock SL1";
-        |], [], (true, false));
+        |], [("0", Boolean false);("1", Boolean false);], (true, false));
 
         (* Test 30 *)
         (* But an ordering on the locks can avoid it *)
         ([| "lock SL0; lock SL1; unlock SL1; unlock SL0";
             "lock SL0; lock SL1; unlock SL1; unlock SL0";
-        |], [], (true, true));
+        |], [("0", Boolean false);("1", Boolean false);], (true, true));
 
         (* Test 31 *)
         (* Forgot to unlock, oops *)
         ([| "lock SL0; lock SL1; unlock SL1; unlock SL0";
             "lock SL0; lock SL1; unlock SL1";
-        |], [], (true, false));
+        |], [("0", Boolean false);("1", Boolean false);], (true, false));
 
         (* Test 32 *)
         ([| "lock SL1; lock SL0; unlock SL0; unlock SL1";
             "lock SL1; lock SL0; unlock SL1";
-        |], [], (true, false));
+        |], [("0", Boolean false);("1", Boolean false);], (true, false));
 
         (* Test 33 *)
         ([| "lock SL1; lock SL0; unlock SL1";
             "lock SL1; lock SL0; unlock SL0; unlock SL1";
-        |], [], (true, false));
+        |], [("0", Boolean false);("1", Boolean false);], (true, false));
 
         (* Test 34 *)
         (* File System Example from POPL'05 *)
@@ -500,7 +502,11 @@ module PLCorrectnessTest (Chk :
             unlock (locki @ i)" in
 
         (Array.init 2 test34_thread,
-              (array_store 32 (fun i -> "inode_"^(string_of_int i))
+              (array_store 32 (fun i -> "i"^(string_of_int i))
+                        (fun _ -> Boolean false))
+            @ (array_store 26 (fun i -> "b"^(string_of_int i))
+                        (fun _ -> Boolean false))
+            @ (array_store 32 (fun i -> "inode_"^(string_of_int i))
                         (fun _ -> Integer 0))
             @ (array_store 26 (fun i -> "busy_"^(string_of_int i))
                         (fun _ -> Boolean false)),
@@ -567,7 +573,10 @@ module PLCorrectnessTest (Chk :
         (Array.append
             (Array.make num_each prod_thread) (Array.make num_each cons_thread)
         , array_store buf_size (fun i -> "item"^(string_of_int i))
-                        (fun _ -> Integer 0), (true, true)));
+                        (fun _ -> Integer 0)
+        @ array_store buf_size (fun i -> "itemlock"^(string_of_int i))
+                        (fun _ -> Boolean false)
+        , (true, true)));
 
         (* Test 38 *)
         (* Shows that naive stateful DPOR is not sound *)
