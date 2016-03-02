@@ -478,6 +478,44 @@ independent with every transition in $T$.
 \subsubsection{Sleep Sets}
 \textbf{Introduce ideas behind and theory of sleep sets.}
 
+Another technique for addressing the state explosion
+problem is that of \emph{sleep sets}. Suppose that
+we are at state $\sigma$ when performing a search
+of the state space. Suppose that the first transition
+we explore is $t_1$, and the second is $t_2$, and
+that $\sigma \xrightarrow{t_2} \sigma'$. If
+$t_1$ and $t_2$ are independent, then in
+$\sigma'$, $t_1$ will be enabled, and as
+$t_1$ and $t_2$ are commutative, exploring
+$t_1$ from $\sigma'$ is exploring a part
+of the state space that we have already explored
+(when we explored $t_1$ from $\sigma$, we will
+have explored $t_2$ from the state after $\sigma$).
+There is therefore no need to explore $t_1$ from
+$\sigma'$.
+
+In fact, there is no need to consider executing
+$t_1$ in our recursive exploration from $\sigma'$
+until we execute some transition $t'$ which is
+\emph{not} independent of $t_1$, as following
+the execution of $t'$, exploring $t_1$ may
+now lead to states which have not yet been
+explored and therefore cannot be ignored.
+
+A \emph{sleep set} for a particular state
+is then the set of transitions which, when
+explored, is guaranteed by the above
+argument to lead to an already-explored
+section of the state space. The technique of
+sleep sets is orthogonal to the technique
+of persisent sets (i.e. they don't interact;
+they can both be used at the same time
+with no extra difficulties).
+
+\textbf{Use pictures to explain this,
+and also include algorithm showing how
+sleep sets are computed.}
+
 \section{Dynamic Partial-Order Reduction}
 \textbf{This section introduces the DPOR
 	algorithm, which is the main algorithm
@@ -778,6 +816,27 @@ Use visible operation dependency graph.
 \section{Counter-Example Traces?}
 \textbf{Assuming this gets implemented,
 	explain here, for both simple and DPOR.}
+
+It would be nice to, if an error or deadlock
+is unexpectedly found, give a trace showing
+the execution which led to the error/deadlock
+state. This is trivial -- is it just the
+transition sequence which is being passed around.
+
+It would be even nicer to present the user with
+a \emph{partial order} of the transitions which,
+whenever any linearisation of the partial order
+is executed, results in the error/deadlock state.
+The problem is then, given a sequence of
+transitions, give the most general partial order
+which, when linearised, results in the current
+state.
+
+This partial order is just the happens-before
+relation. Just execute the transition sequence
+from the beginning, keeping track of the relation.
+Then output it in a nice form, so we can display it
+as a graph maybe.
 
 \chapter{Evaluation}
 \textbf{This chapter presents evidence
