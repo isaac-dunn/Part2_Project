@@ -80,8 +80,7 @@ module SimpleChecker (Prog : Interfaces.Program) =
                     let (e', s') = Array.get tds j in
                     match ProgImp.ThrImp.next_transition (e',s',g) with
                         None -> () | Some (next_t', enabled') ->
-                        if enabled' &&
-                            not (next_t'.ProgImp.ThrImp.g_loc =
+                        if not (next_t'.ProgImp.ThrImp.g_loc =
                                 t_tran.ProgImp.ThrImp.g_loc) then
                         next_sleep := j::!next_sleep 
                 done;
@@ -92,8 +91,8 @@ module SimpleChecker (Prog : Interfaces.Program) =
                 error_free := !error_free && ef;
                    recursive_calls_deadlock_free := !recursive_calls_deadlock_free && df))
         ) done;
-        (!error_free, !recursive_calls_deadlock_free &&
-                (!one_thread_can_advance || !all_stopped_threads_are_values))
+        (!error_free, !recursive_calls_deadlock_free && (!one_thread_can_advance ||
+            List.length sleep_set > 0 || !all_stopped_threads_are_values))
 
     let error_and_deadlock_free init_prog =
         Hashtbl.reset hsleep;
