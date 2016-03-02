@@ -118,8 +118,12 @@ Put acknowledgements here.
 \pagestyle{headings}
 
 \chapter{Introduction}
+\textbf{This project implements DPOR. This
+	chapter motivates it.}
 
 \section{Model Checking}
+\textbf{Motivate the need for model checking}
+
 We want to be very sure that some computer
 programs are correct. Testing is not good
 enough -- all software products have been
@@ -128,10 +132,13 @@ tested, but according to Dijkstra,
 	not the absence, of bugs''}.
 
 Model checking is a category of formal
-methods, in which \emph{(basic explanation of
+methods, in which \textbf{(basic explanation of
 model checking)}
 
 \section{The State Explosion Problem}
+\textbf{Explain the motivation for techniques
+	to reduce the size of the state space explored}
+
 Concurrent software programs in practice often
 use threads as their model. The number of possible
 interleavings of concurrent threads blows up very 
@@ -141,6 +148,9 @@ Give some maths, some empirical results,
 and a state space diagram showing this.
 
 \section{Partial-Order Reduction}
+\textbf{Introduce POR as a technique that
+	addresses the state explosion problem}
+
 Idea: some interleavings are equivalent. If you
 can identifying which are equivalent, you only
 have to explore a subset. \emph{Give picture.}
@@ -150,6 +160,9 @@ that aim to identify such equivalences and so
 perform model checking more efficiently.
 
 \section{Dynamic Partial-Order Reduction}
+\textbf{Introduce DPOR as a particular
+	POR algorithm.}
+
 DPOR uses runtime information to identify
 equivalent interleavings. In fact, it assumes
 that all interleavings are equivalent, picks
@@ -159,6 +172,9 @@ interleavings, which are then explored on
 backtrack.
 
 \section{This Project}
+\textbf{Explain aims of project, and why I
+	chose it.}
+
 The aim of this project is to implement DPOR.
 
 It succeeded, and went further, implementing
@@ -168,9 +184,22 @@ re-visited, it is not re-explored. However, care
 must be taken to make sure that this approach is
 sound.
 
+I chose this project to see how theory is
+implemented in practice.
+
 \chapter{Preparation}
+\textbf{The project relies on a lot
+	of theory; the first thing I had
+	to do was to read and understand it.
+	This chapter presents the relevant
+	background theory.}
 
 \section{Background Definitions}
+\textbf{This section introduces the mathematical
+	structures we are considering and operating on
+	in this project.
+	Not sure how to do this -- currently too
+	abstract and unfriendly to read?}
 
 \subsection{Processes and States}
 We consider a system consisting of a finite set, $\mathcal{P}$,
@@ -248,6 +277,9 @@ whether a given transition system has certain
 properties.
 
 \section{Model Checking}
+\textbf{This section specifies exactly what it
+	means for a model checking algorithm to be
+	correct, and gives a simple example.}
 
 \subsection{Definition of Model Checking}
 When model checking, we are trying to establish whether a
@@ -378,7 +410,9 @@ depth-first search of the reachable state space.
 \end{algorithm}
 
 \subsection{Partial-Order Reduction}
-\textit{Some text revising the principles.}
+\textbf{To address the state space problem,
+	some further concepts are needed; these
+	are introduced in this section.}
 
 \subsubsection{Independence} \label{sec:independence}
 In plain English, two transitions are independent if executing one
@@ -439,9 +473,16 @@ for all sequences of transitions
 if for all $1 \leq i \leq n$, $t_i \not \in T$ then each $t_i$ is
 independent with every transition in $T$.
 
-\textbf{Why do we care? Is it true that persistent sets are sufficient?}
+\textbf{Why do we care? Is it true that persistent sets are sufficient? (I think so)}
+
+\subsubsection{Sleep Sets}
+\textbf{Introduce ideas behind and theory of sleep sets.}
 
 \section{Dynamic Partial-Order Reduction}
+\textbf{This section introduces the DPOR
+	algorithm, which is the main algorithm
+	of the project.	
+	Is this the best place for it?}
 
 \subsection{Definitions}
 
@@ -596,9 +637,23 @@ at some point before $\textit{last}(\hat{\pi})$.
 \end{algorithm}
 
 \chapter{Implementation}
+\textbf{This chapter explains how the mathematical
+	psuedocode in the literature was translated
+	into a working program which model checks a
+	given source file.}
 
 \section{Development of Project Language (PL)}
+\textbf{This section explains how I designed
+	and implemented the language in which the
+	concurrent programs to be model checked
+	are written.}
+
 \subsection{Syntax and Semantics}
+\textbf{First, the language had to be designed.
+	Explain design choices, give sense of what
+	the lanuage is, maybe an example program,
+	and point to the appendix for a full definition.}
+
 I designed a simple ML-like language, PL (for 
 Project Language) which
 is used to specify the operations the execution
@@ -616,30 +671,30 @@ data that the thread operates on.
 		e := &\ e + e \\
 		\vert &\ e - e \\
 		\vert &\ !e \\
-		\vert &\ e e
+		\vert &\ e\ e \\
+		\vert &\ \textbf{\textit{etc.}}
 	\end{align*}
 	\caption{The BNF grammar for PL expressions}
 \end{figure}
 
-First design a simple but fairly practical sequential language.
-$(e, s) \longrightarrow^t (e', s')$
-Then using these as threads, add a global store, and read and CAS
-operations on that store.
-$(e, s, g) \longrightarrow^t (e', s', g)$
-A program consists of multiple $(e, s)$ threads, and one global store,
-$g$, and at any given time any of the threads can advance.
-
-See appendix for language definition.
+See appendix for full language definition.
 
 \subsection{Parser}
+\textbf{Explain how a parser for PL was built,
+	and why it is a good thing to have.}
+
 Use \emph{tool} and \emph{tool} to specify the conversion of source code
 into abstract expressions. Example?
 
 \subsection{Interpreter}
+\textbf{Explain how the PL interpreter was implemented,
+	and why it is a good thing to have/how it is used
+	in the rest of the project}
+
 Auxiliary functions for things like substitution, deciding if
 an expression is a value, modifying de Bruijn indices.
 
-Stores simply implemented as (location, value) pairs.
+Stores simply implemented as (location, value) pair lists.
 
 Function for getting next local step of thread, given global store.
 
@@ -647,14 +702,28 @@ Function for getting the next transition of a thread; all the local
 steps up to and including a visible operation.
 
 \section{Simple Model Checker}
+\textbf{This section explains how the simple model
+	checker presented in the previous chapter was
+	implemented in practice}
 
 Depth first search of state space. Present algorithm used.
 Explain how errors and deadlocks are found.
 
 \section{Dynamic Partial-Order Reduction}
+\textbf{This section explains how the DPOR
+	alogorithm was implemented in practice.}
 
-\subsection{Clock Vectors}
+\subsection{Implementation}
+\subsubsection{Clock Vectors}
+\textbf{Used to decide the happens-before relation.}
+\subsubsection{Independence}
+\textbf{Keep track of last transition that accessed
+	each global object.}
+
 \subsection{Locks}
+\textbf{Difficulties faced adding locks;
+	how they were overcome.}
+
 Problem: many algorithms use locks. While \texttt{while locked do skip done}
 is good enough, it results in a cycle in the state space, which causes
 non-termination of DPOR.
@@ -668,15 +737,24 @@ Solution: pass around Boolean stating whether or not the transition
 is enabled.
 
 \section{Stateful Model Checking}
+\textbf{Keeping track of already-visited states.}
 
 \subsection{Simple Model Checker}
+\textbf{Straight-forward implementation for simple
+	checker. Give new algorithm.}
+
 When searching through state space, the same state is often
 re-encountered. Idea: keep track of visited states, and don't bother
 re-exploring from those we have already explored.
 
 \subsection{Dynamic Partial-Order Reduction}
+\textbf{Applying ideas to DPOR. Why na\"{i}ve
+	approach doesn't work; the solution.}
 
 \subsubsection{Na\"{\i}ve Approach}
+\textbf{What this approach is; why it doesn't
+	work; example.}
+
 The same approach can be applied to
 the DPOR algorithm -- whenever we
 encounter a state from which we have already
@@ -684,30 +762,65 @@ explored, return immediately because we
 already know the result. However, this
 na\"ive algorithm is unfortunately unsound.
 
-
 \subsubsection{Stateful Dynamic Partial-Order Reduction}
+\textbf{Present SDPOR algorithm.}
+
 Idea: conservatively add in necessary points to backtrack sets.
 Use visible operation dependency graph.
 
+\section{Sleep Sets}
+\textbf{Implementation of sleep
+	sets in both the simple checker
+	and in DPOR.}
+\subsection{Simple Model Checker}
+\subsection{DPOR}
+
+\section{Counter-Example Traces?}
+\textbf{Assuming this gets implemented,
+	explain here, for both simple and DPOR.}
+
 \chapter{Evaluation}
+\textbf{This chapter presents evidence
+	for the correctness of the
+	algorithm implementations in the
+	project, and evaluates their
+	performance.}
 
-\section{Soundness of Model Checking}
+\section{Soundness}
+\textbf{This section gives references
+	proving the soundness of the underlying
+	algorithm, then gives evidence that my
+	implementation is a sound implementation
+	of the theoretical algorithm.}
 
-\begin{itemize}
-	\item Evidence of correctness of language implementation
-	\item Example programs \& comparison to simple checker
-\end{itemize}
+\textbf{Is it best to be honest about the
+	possibility of incorrectness, or just
+	to persuade that everything is sound?}
 
-\section{Efficiency of Model Checking}
+\subsection{PL Interpreter}
+\subsection{Simple Model Checker}
+\subsection{DPOR}
+\subsection{Stateful Checking}
+\subsubsection{Simple}
+\subsubsection{DPOR}
+\subsection{Sleep Sets}
+\subsection{Counter-Example Traces}
 
-\begin{itemize}
-	\item Example programs
-	\item Performance tables/graphs
-\end{itemize}
+\section{Performance}
+\textbf{This section compares the
+	performance of the various algorithms
+	in the project. This is achieved by
+	looking at execution times, transitions
+	explored, and numbers of states explored
+	while model checking various example
+	programs. Comparison can be made with
+	published figures.}
 
 \chapter{Conclusions}
 
-This chapter is empty!
+\textbf{This chapter makes some
+	interesting conclusions, which I
+	haven't thought of yet.}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -719,13 +832,16 @@ This chapter is empty!
 % the appendices
 \appendix
 
-\chapter{First appendix}
+\chapter{PL Definition}
  
- This appendix is empty!
+\textbf{This will be the definition
+	of PL.}
  
-\chapter{Second appendix}
+\chapter{Example PL Programs}
 
-This appendix is empty!
+\textbf{This will contain various
+	example programs, in particular
+	those used for performance evaluation.}
 
 \chapter{Project Proposal}
 
