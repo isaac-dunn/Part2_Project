@@ -121,7 +121,7 @@ module PLCorrectnessTest (Chk :
                 m := !m + 1;
                 w := (getmsg @ skip);
                 h := (hash @ !w);
-                while (if cas(table @ !h, 0, !w) then false else true) do
+                while (cas(table @ !h, 0, !w) = false) do
                     h := (!h + 1) % size
                 done
             done" in
