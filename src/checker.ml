@@ -1,3 +1,18 @@
+let rec intersect l m  = match l with
+    [] -> []
+  | x::xs -> (match m with [] -> []
+      | y::ys -> if x = y then x::(intersect xs ys)
+            else if x < y then intersect xs (y::ys)
+            else intersect (x::xs) ys)
+
+let rec union l m = match l with
+    [] -> m
+  | x::xs -> (match m with 
+        [] -> l
+      | y::ys -> if x = y then x::(union xs ys)
+            else if x < y then x::(union xs (y::ys))
+            else y::(union (x::xs) ys))
+
 module SimpleChecker (Prog : Interfaces.Program) =
   struct
     module ProgImp = Prog
@@ -12,20 +27,6 @@ module SimpleChecker (Prog : Interfaces.Program) =
         let depth = List.length t_seq in
         if depth > !max_depth then max_depth := depth;
 
-        let rec intersect l m  = match l with
-            [] -> []
-          | x::xs -> (match m with [] -> []
-              | y::ys -> if x = y then x::(intersect xs ys)
-                    else if x < y then intersect xs (y::ys)
-                    else intersect (x::xs) ys) in
-        let rec union l m = match l with
-            [] -> m
-          | x::xs -> (match m with 
-                [] -> l
-              | y::ys -> if x = y then x::(union xs ys)
-                    else if x < y then x::(union xs (y::ys))
-                    else y::(union (x::xs) ys)) in
- 
         let (tds, g) = List.fold_left ProgImp.apply_transition init_prog t_seq in
         let curr_sleep = ref sleep_set in
 
@@ -105,12 +106,13 @@ module DPORChecker (Prog : Interfaces.Program) =
     module T = ProgImp.ThrImp
     let max_depth = ref 0
     let calls = ref 0
+    let hsleep = Hashtbl.create 5000
 
     (* Array for backtracking sets *)
     let backtracks = Var_array.empty()
 
     (* True iff error-free *)
-    let rec check init_prog t_seq proc_cvs obj_cvs last_ti =
+    let rec check init_prog t_seq proc_cvs obj_cvs last_ti sleep_set =
         (* Track execution info *)
         calls := !calls + 1;
         let depth = List.length t_seq in
@@ -134,6 +136,32 @@ module DPORChecker (Prog : Interfaces.Program) =
         (* let s = last(S) *)
         let (tds, g) = pre depth in
 
+        let curr_sleep = ref sleep_set in
+        let to_explore = ref [] in
+        (* (G95) if s is NOT already in H then *)
+        if not (Hashtbl.mem hsleep (tds, g)) then (
+            (* (G95) enter s (with sleep set) into H *)
+            Hashtbl.add hsleep (tds, g) !curr_sleep;
+            (* (G95) T = persistent_set(s) \ s.Sleep *)
+            for p = 0 to Array.length tds - 1 do
+                if not (List.mem p !curr_sleep)
+                then to_explore := p::!to_explore
+            done
+        (* (G95) else *)
+        ) else (
+            (* (G95) T = [t|t in H(s).Sleep & t not in s.Sleep] *)
+            for i = 0 to Array.length tds - 1 do
+                if List.mem i (Hashtbl.find hsleep (tds, g))
+                    && not (List.mem i !curr_sleep)
+                then to_explore := i::!to_explore
+            done;
+            (* (G95) s.Sleep = s.Sleep intersect H(s).Sleep *)
+            curr_sleep := intersect !curr_sleep (Hashtbl.find hsleep (tds, g));
+            (* (G95) H(s).Sleep = s.Sleep *)
+            Hashtbl.replace hsleep (tds, g) !curr_sleep
+        );
+
+
         (* for all processes p *)
         for p = 0 to Array.length tds - 1 do
 
@@ -154,7 +182,7 @@ module DPORChecker (Prog : Interfaces.Program) =
                 if enabled then
                     (* There is at least one transition to explore: this one *)
                     (one_thread_can_advance := true;
-                    transition_to_explore := Some p)
+                    if not (List.mem p !curr_sleep) then transition_to_explore := Some p)
                 else all_stopped_threads_are_values := false;
 
                 (* let i = L(alpha(next(s,p))) *)
@@ -170,20 +198,22 @@ module DPORChecker (Prog : Interfaces.Program) =
                         match ProgImp.ThrImp.next_transition (e', s', g') with
                         Some (_, b) -> b
                       | None -> false
-                    (* if p in enabled(pre(S, i)) *)
-                    in if is_enabled p prei
+                    (* if p in enabled(pre(S, i)) and p not in sleep set *)
+                    in if is_enabled p prei && not (List.mem p !curr_sleep)
                     (* then add p to backtrack(pre(S, i)) *)
                     then Var_array.set backtracks i (p::(Var_array.get backtracks i))
-                    (* else add enabled(pre(S,i)) to backtrack(pre(S,i)) *)
-                    else let rec ntoz n = if n = 0 then [0] else n::(ntoz (n-1))
-                         in let en_in_prei q = is_enabled q prei
-                         in Var_array.set backtracks i (List.filter en_in_prei
+                    (* else add enabled(pre(S,i))\Sleep to backtrack(pre(S,i)) *)
+                    else let rec ntoz n = if n = 0 then [0] else n::(ntoz (n-1)) in
+                         let sleep_prei = Hashtbl.find hsleep prei in
+                         let enabled_and_not_sleepy q =
+                             is_enabled q prei && not (List.mem q sleep_prei) in
+                         Var_array.set backtracks i
+                            (List.filter enabled_and_not_sleepy
                                 (ntoz (Array.length tds - 1)))
                     )
         done;
 
         (* if there is some p in enabled(s) *)
-        (* As we have no locks, all available transitions are enabled *)
         (match !transition_to_explore with None -> () | Some pi -> (
 
         (* backtrack(s) := {p} *)
@@ -195,6 +225,7 @@ module DPORChecker (Prog : Interfaces.Program) =
 
         (* let done = emptyset *)
         (* while there is some p in backtrack(s) but not done *)
+        (* (G95) for all t in T do *)
         let rec whileloop po dones = match po with None -> () | Some p -> ((
 
         let (e, s) = Array.get tds p in
@@ -205,6 +236,7 @@ module DPORChecker (Prog : Interfaces.Program) =
         if not enabled then raise (Failure "Only enabled transitions should be explored");
 
         (* let S' = S.next(s,p) *)
+        (* (G95) s' = succ(s) after t *)
         let new_t_seq = t_seq @ [(p, next_t)] in
 
         (* let o = alpha(next(s,p)) *) 
@@ -222,8 +254,24 @@ module DPORChecker (Prog : Interfaces.Program) =
         let new_last_ti oi = if oi = o then List.length new_t_seq - 1 (* index *)
                                        else last_ti oi in
 
+        (* (G95) s'.Sleep = {t' in s.Sleep | (t, t') independent} *)
+        let new_sleep = ref [] in
+        for j = 0 to Array.length tds - 1 do
+            if List.mem j !curr_sleep then
+            let (e', s') = Array.get tds j in
+            match T.next_transition (e', s', g) with
+                None -> () | Some (next_t', enabled') ->
+                if not (next_t'.T.g_loc = next_t.T.g_loc)
+                then new_sleep := j::!new_sleep
+        done;
+
         (* Explore(S', C', L') *)
-        let (ef, df) = check init_prog new_t_seq new_proc_cvs new_obj_cvs new_last_ti in
+        (* (G95) push (s') onto stack (with sleep set) *)
+        let (ef, df) = check init_prog new_t_seq new_proc_cvs new_obj_cvs new_last_ti !new_sleep in
+
+        (* (G95) s.Sleep = s.Sleep union {t} *)
+        curr_sleep := union !curr_sleep [p];
+
         error_free := !error_free && ef;
         recursive_calls_deadlock_free := !recursive_calls_deadlock_free && df;
 
@@ -239,7 +287,7 @@ module DPORChecker (Prog : Interfaces.Program) =
 
     let error_and_deadlock_free (tds, g) =
         let n = Array.length tds in
-        check (tds, g) [] (fun _ -> Clockvector.fresh n) (fun _ -> Clockvector.fresh n) (fun _ -> ~-1)
+        check (tds, g) [] (fun _ -> Clockvector.fresh n) (fun _ -> Clockvector.fresh n) (fun _ -> ~-1) []
   end
 
 module SimplePLChecker : (Interfaces.Checker
