@@ -22,20 +22,11 @@ module SimpleChecker (Prog : Interfaces.Program) =
             let (e, s) = Array.get tds i in
             match ProgImp.ThrImp.next_transition (e, s, g) with
               (* No futher transitions: check if this thread reaches a local error *)
-              None ->
-                let rec check_local (ex, st) =
-                    if ProgImp.ThrImp.ExpImp.is_error ex
-                    then error_free := false
-                    else match ProgImp.ThrImp.next_step (ex, st, g) with
-                        None -> if not (ProgImp.ThrImp.ExpImp.is_value ex)
-                                then all_stopped_threads_are_values := false
-                      | Some (t_step, enabled) -> if not enabled then
-                                raise (Failure "Should always be enabled") else
-                                    (check_local (t_step.ProgImp.ThrImp.new_expr,
-                                        (match t_step.ProgImp.ThrImp.s_update with
-                                          None -> st
-                                        | Some su -> ProgImp.ThrImp.StoreImp.update st su)))
-                in check_local (e, s)
+              None -> let (reaches_err, reaches_nonval) =
+                        ProgImp.ThrImp.check_local (e, s, g) in
+                      if reaches_err then error_free := false;
+                      if reaches_nonval then
+                        all_stopped_threads_are_values := false
               (* There is a transition: check if error; explore from the new state *)
             | Some (t_tran, enabled) -> (
                 if not enabled then all_stopped_threads_are_values := false else (
@@ -145,20 +136,11 @@ module DPORChecker (Prog : Interfaces.Program) =
             match ProgImp.ThrImp.next_transition (e, s, g) with
 
               (* No futher transitions: check if this thread reaches a local error *)
-              None ->
-                let rec check_local (ex, st) =
-                    if T.ExpImp.is_error ex
-                    then error_free := false
-                    else match T.next_step (ex, st, g) with
-                        None -> if not (T.ExpImp.is_value ex)
-                                then all_stopped_threads_are_values := false
-                      | Some (t_step, enabled) -> if not enabled then
-                                raise (Failure "Should always be enabled") else
-                                check_local (t_step.T.new_expr,
-                                        (match t_step.T.s_update with
-                                          None -> st
-                                        | Some su -> T.StoreImp.update st su))
-                in check_local (e, s)
+              None -> let (reaches_err, reaches_nonval) =
+                        ProgImp.ThrImp.check_local (e, s, g) in
+                      if reaches_err then error_free := false;
+                      if reaches_nonval then
+                        all_stopped_threads_are_values := false
 
               (* There is a transition *)
             | Some (next_t, enabled) ->

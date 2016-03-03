@@ -123,9 +123,10 @@ let rec next_step_aux (e, s, g)  = match e with
   | Spinlock _ -> None
   | Lock (Spinlock l) -> (match StoreImp.get g l with
                             Some (Boolean b) ->
+                                (* Move to Skip is next, but enabled iff not b *)
                                 Some (Skip, None, Some (l, Boolean true), Some (l, not b))
                           | Some _ -> raise (Failure "A lock has a non-Boolean value; oh dear")
-                          | None -> Some (Skip, None, Some (l, Boolean true), Some (l, true)))
+                          | None -> raise (Failure "A non-existent lock cannot be locked"))
   | Lock e1 -> (match next_step_aux (e1, s, g) with
                     Some (f, t, h, lo) -> Some (Lock f, t, h, lo)
                   | None -> None)
@@ -187,3 +188,17 @@ let next_transition x = match next_transition_aux x with
                                }, enabled)
   | None -> None
 
+(* Returns pair of bools.
+    First is true iff an error is reached.
+    Second is true iff it stops at a non-value *)
+let rec check_local (ex, st, g) =
+    if ExpImp.is_error ex
+    then (true, false)
+    else match next_step (ex, st, g) with
+        None -> (false, not (ExpImp.is_value ex))
+      | Some (t_step, enabled) -> if not enabled then
+                raise (Failure "Should always be enabled") else
+                    (check_local (t_step.new_expr,
+                        (match t_step.s_update with
+                          None -> st
+                        | Some su -> StoreImp.update st su), g))

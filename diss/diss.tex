@@ -1,0 +1,909 @@
+% Isaac Dunn Part II Computer Science Dissertation
+\documentclass[12pt,a4paper,twoside,openright]{report}
+\usepackage[pdfborder={0 0 0}]{hyperref}    % turns references into hyperlinks
+\usepackage[margin=25mm]{geometry}  % adjusts page layout
+\usepackage{graphicx}  % allows inclusion of PDF, PNG and JPG images
+\usepackage{verbatim}
+\usepackage{docmute}   % only needed to allow inclusion of proposal.tex
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{enumitem}
+
+
+\raggedbottom                           % try to avoid widows and orphans
+\sloppy
+\clubpenalty1000%
+\widowpenalty1000%
+
+\renewcommand{\baselinestretch}{1.1}    % adjust line spacing to make
+                                        % more readable
+
+% "let a = b in" for use in algorithms
+\newcommand{\Let}[2]{\State \textbf{let} #1 = #2 \textbf{in}}
+
+% For use in the happens-before relation varient
+\newcommand{\longhookrightarrow}
+	{\ensuremath{\lhook\joinrel\longrightarrow}}
+
+
+\begin{document}
+
+\bibliographystyle{plain}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Title page
+
+
+\pagestyle{empty}
+
+\rightline{\LARGE \textbf{Isaac Dunn}}
+
+\vspace*{60mm}
+\begin{center}
+\Huge
+\textbf{Dynamic Partial-Order Reduction for Model Checking} \\[5mm]
+Computer Science Tripos -- Part II \\[5mm]
+Clare College \\[5mm]
+\today  % today's date
+\end{center}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Proforma, table of contents and list of figures
+
+\pagestyle{plain}
+
+\chapter*{Proforma}
+
+{\large
+\begin{tabular}{ll}
+Name:           & \bf Isaac Dunn                            			 \\
+College:        & \bf Clare College                    				     \\
+Project Title:	& \bf Dynamic Partial-Order Reduction for Model Checking \\
+Examination:    & \bf Computer Science Tripos -- Part II, June 2016      \\
+Word Count:     & \bf N    \\
+Supervisors:	& \bf Dr. Jonathan Hayman \& Prof. Glynn Winskel             \\ 
+\end{tabular}
+}
+
+
+\section*{Original Aim of the Project}
+
+The original aim of the project was to build a system which
+used dynamic partial-order reduction to improve the performance
+of a model checking algorithm which could be used to find
+assertion violations and deadlocks.
+
+\section*{Work Completed}
+
+The original aim of the project was met and exceeded, with
+a stateful implementation of dynamic partial-order reduction
+also being produced.
+
+\section*{Special Difficulties}
+
+No special difficulties were encountered, only the usual dozens of
+difficult-to-find bugs.
+ 
+\newpage
+\section*{Declaration}
+
+I, Isaac Dunn of Clare College, being a candidate for Part II of the Computer
+Science Tripos, hereby declare
+that this dissertation and the work described in it are my own work,
+unaided except as may be specified below, and that the dissertation
+does not contain material that has already been used to any substantial
+extent for a comparable purpose.
+
+\bigskip
+\leftline{Signed:}
+
+\bigskip
+\leftline{Date:}
+
+\tableofcontents
+
+\listoffigures
+
+\newpage
+\section*{Acknowledgements}
+
+Put acknowledgements here.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% now for the body
+
+\pagestyle{headings}
+
+\chapter{Introduction}
+\textbf{This project implements DPOR. This
+	chapter motivates it.}
+
+\section{Model Checking}
+\textbf{Motivate the need for model checking}
+
+We want to be very sure that some computer
+programs are correct. Testing is not good
+enough -- all software products have been
+tested, but according to Dijkstra,
+\emph{``Testing shows the presence,
+	not the absence, of bugs''}.
+
+Model checking is a category of formal
+methods, in which \textbf{(basic explanation of
+model checking)}
+
+\section{The State Explosion Problem}
+\textbf{Explain the motivation for techniques
+	to reduce the size of the state space explored}
+
+Concurrent software programs in practice often
+use threads as their model. The number of possible
+interleavings of concurrent threads blows up very 
+quickly.
+
+Give some maths, some empirical results,
+and a state space diagram showing this.
+
+\section{Partial-Order Reduction}
+\textbf{Introduce POR as a technique that
+	addresses the state explosion problem}
+
+Idea: some interleavings are equivalent. If you
+can identifying which are equivalent, you only
+have to explore a subset. \emph{Give picture.}
+
+Partial-order reduction is a category of techniques
+that aim to identify such equivalences and so
+perform model checking more efficiently.
+
+\section{Dynamic Partial-Order Reduction}
+\textbf{Introduce DPOR as a particular
+	POR algorithm.}
+
+DPOR uses runtime information to identify
+equivalent interleavings. In fact, it assumes
+that all interleavings are equivalent, picks
+one arbitrarily, and takes note of backtracking
+points which might lead to un-equivalent
+interleavings, which are then explored on
+backtrack.
+
+\section{This Project}
+\textbf{Explain aims of project, and why I
+	chose it.}
+
+The aim of this project is to implement DPOR.
+
+It succeeded, and went further, implementing
+a stateful version of DPOR, in which a table
+of visited states is kept, and when a state is
+re-visited, it is not re-explored. However, care
+must be taken to make sure that this approach is
+sound.
+
+I chose this project to see how theory is
+implemented in practice.
+
+\chapter{Preparation}
+\textbf{The project relies on a lot
+	of theory; the first thing I had
+	to do was to read and understand it.
+	This chapter presents the relevant
+	background theory.}
+
+\section{Background Definitions}
+\textbf{This section introduces the mathematical
+	structures we are considering and operating on
+	in this project.
+	Not sure how to do this -- currently too
+	abstract and unfriendly to read?}
+
+\subsection{Processes and States}
+We consider a system consisting of a finite set, $\mathcal{P}$,
+of concurrent threads or processes (I use ``thread" and
+``process" interchangeably throughout).
+Each thread has its own local state, $s \in \mathcal{S}$, and there
+is some shared global state, $g \in \mathcal{G}$. The overall
+state of the system at any instant is therefore a member of the set
+$ \textit{State} = (\mathcal{P} \to \mathcal{S}) \times \mathcal{G} $.
+
+Each process executes a sequence of operations, as
+specified in some programming language, each of which can
+operate on the thread's local state $s$ or the shared
+state $g$. If an operation
+operates on $g$, it is said to be \emph{visible}, else it is said to be
+\emph{invisible}.
+
+\subsection{Transitions}
+A \emph{transition} moves the system from one state to another,
+by performing a finite sequence of invisible operations of some
+process $p$, followed by a visible operation of the same process.
+If process $p$ has local state $s$, then the transition $t_{p,s}$
+that $p$ can make is defined to be a partial function taking the current
+global state $g$ and giving $(s', g')$, the next local state for $p$
+and the next global state for the system. Let $\mathcal{T}$ denote the
+set of all transitions, so that
+	\[\mathcal{T} = \mathcal{G} \rightharpoonup
+				(\mathcal{S} \times \mathcal{G}).\]
+
+A transition $t_{p,s}$ is said to be \emph{enabled} in a state
+$(l, g)$ if and only if $l(p) = s$ and $t_{p,s}(g)$ is defined.
+If $t_{p,s}$ is enabled in $\sigma = (l, g)$ and 
+$t_{p,s}(g) = (s', g')$, then we say that the
+execution of $t_{p,s}$ from $\sigma$ results in the unique successor
+state $\sigma' = (l', g')$, where
+
+\[
+	l'(q) = \left\{\begin{array}{lr}
+				s' & \textmd{if } p = q, \\
+				l(q) &\textmd{if } p \neq q.
+			\end{array} \right.
+\]
+In this case we write $\sigma \xrightarrow{t_{p,s}} \sigma'$.
+We write $\longrightarrow^*$ to denote the transitive reflexive
+closure of $\longrightarrow$.
+A state $\sigma$ is called a \emph{deadlock} when there is no transition
+$t$ such that $t$ is enabled in $\sigma$. We say that $t_1$ and $t_2$
+may be \emph{co-enabled} if there is some state $\sigma \in \textit{State}$
+such that both $t_1$ and $t_2$ are enabled in $\sigma$.
+
+In any state $\sigma = (l, g)$, let
+$\textit{next}(\sigma, p) = t_{p,l(p)}$ denote the unique next transition
+to be executed by process $p$, and let
+\[
+	\textit{enabled}(\sigma) = \{t_{p,s} \in \mathcal{T} \mid
+	p \in \mathcal{P} \wedge t_{p,s} = \textit{next}(\sigma, p)
+	\wedge t_{p,s} \text{ is enabled in } \sigma\}
+\]
+denote the set of enabled transitions that can be executed from $\sigma$.
+For any transition $t_{p,s}$, let $\textit{proc}(t_{p,s}) = p$
+denote the unique process executing that transition.
+
+\subsection{Systems}
+The behaviour of an entire \emph{transition system} is
+specified with the tuple $A = (\textit{State}, \Delta, \sigma_0)$,
+where $\Delta \in State \to \mathbb{P}(State)$
+is the \emph{transition relation} defined by
+\[
+	\sigma' \in \Delta(\sigma) \iff
+	\exists t \in \mathcal{T}. \ \sigma \xrightarrow{t} \sigma'.
+\]
+Note that transitions are also known as models,
+so model checking is the process of deciding
+whether a given transition system has certain
+properties.
+
+\section{Model Checking}
+\textbf{This section specifies exactly what it
+	means for a model checking algorithm to be
+	correct, and gives a simple example.}
+
+\subsection{Definition of Model Checking}
+When model checking, we are trying to establish whether a
+given transition system is \emph{error-free} and
+\emph{deadlock-free}. We therefore need to introduce two
+new concepts.
+
+We extend each transition system with a \emph{error relation},
+$\textit{err} : \mathcal{S} \to \mathbb{B}$, and a \emph{value relation},
+$\textit{val} : \mathcal{S} \to \mathbb{B}$, which decide whether a given
+local state is in error state or a value state (i.e. a result has
+been computed and no further operations are possible) respectively.
+
+We say that a transition system $A = (\textit{State}, \Delta, \sigma_0)$ is
+\emph{error-free} if
+\[
+	\forall (l, g) \in \textit{State}. \ \sigma_0 \longrightarrow^* (l, g)
+	\implies \forall p \in \mathcal{P}.\ \neg\,\textit{err}(l(p));
+\]
+that is, if for any state $\sigma$ reachable from the initial state
+$\sigma_0$, no thread in $\sigma$ is in an error state.
+
+We say that a transition system is deadlock-free if
+\[
+	\forall (l, g) \in \textit{State}. \;\sigma_0 \longrightarrow^* (l, g)
+	\implies \neg \exists t \in \mathcal{T}.\;
+		\exists\sigma' \in \textit{State}.\;(l, g) \longrightarrow \sigma'
+	\implies \forall p \in \mathcal{P}.\;\textit{val}(l(p));
+\]
+that is, if for any deadlock state $\sigma$ reachable from
+the initial state $\sigma_0$, all threads in $\sigma$ are
+in value states. This definition is useful because no
+system with a finite acyclic state space has no deadlocks,
+as technically, a system which has halted is in a deadlock,
+but we are interested in deciding whether a system has any
+deadlocks aside from these trivial halting ones.
+
+For our purposes, a model checking algorithm is an
+algorithm that takes a transition system and returns
+two Boolean results, indicating whether that system
+is error-free and deadlock-free.
+
+\subsection{Simple Model Checking} \label{sec:simple-model-checking}
+As the definitions of both error-free and deadlock-free
+are of the form
+\[
+	\forall \sigma \in \textit{State}.\; \sigma_0 \longrightarrow^* \sigma
+	\implies \Phi (\sigma)
+\]
+for some predicate $\Phi$, the simplest strategy is to
+perform an exhaustive search of the reachable state space,
+checking $\Phi$ at each state encountered on the search.
+
+In practice, algorithms are used which decide both
+properties in one exploration of the reachable state space,
+but a separate algorithms for each property are presented
+below for clarity.
+
+\subsubsection{Detecting Errors}
+For example, when deciding whether the transition system
+is error-free, we have
+\[
+	\Phi((l, g)) = \forall p \in \mathcal{P}.\; \neg\,err(l(p)),
+\]
+so Algorithm~\ref{simple-error-free} below decides whether a given transition system
+is error-free. At each
+state encountered, beginning with $\sigma_0$, first $\Phi$
+is checked to hold, then recursive calls implement a
+depth-first search of the reachable state space.
+
+\begin{algorithm} \caption{Deciding if a transition system is error-free}
+	\label{simple-error-free} \begin{algorithmic}[1]
+	\Procedure{SimpleErrorFree}{$\sigma$}
+	\Let{(l, g)}{$\sigma$}
+	\ForAll{$p \in \mathcal{P}$}
+		\If{$err(l(p))$}
+		\Return \textit{false}
+		\EndIf
+	\EndFor \ForAll{$\sigma' \in \{\sigma' \mid \sigma \xrightarrow{t} \sigma' \wedge t \in \textit{enabled}(\sigma)\}$}
+		\If{$\textbf{not } \textsc{SimpleErrorFree}(\sigma')$}
+		\Return \textit{false}
+		\EndIf
+	\EndFor
+	\State \Return \textit{true}
+	\EndProcedure
+	\State
+	\State Initially: $\textsc{SimpleErrorFree}(\sigma_0)$
+\end{algorithmic} \end{algorithm}
+
+\subsubsection{Detecting Deadlocks}
+For example, when deciding whether the transition system
+is deadlock-free, we have
+\[
+	\Phi((l, g)) =\neg \exists t \in \mathcal{T}.\;
+	\exists\sigma' \in \textit{State}.\;(l, g) \longrightarrow \sigma'
+	\implies \forall p \in \mathcal{P}.\;\textit{val}(l(p)),
+\]
+so Algorithm~\ref{simple-deadlock-free} below decides whether a given transition system
+is deadlock-free. As $\Phi$ can only fail to hold at deadlock states, it is first
+checked whether the state has any transitions that can be executed. If not, then
+$\Phi$ is checked to hold, else as above, recursive calls implement a
+depth-first search of the reachable state space.
+
+\begin{algorithm} \caption{Deciding if a transition system is deadlock-free}
+	\label{simple-deadlock-free} \begin{algorithmic}[1]
+		\Procedure{SimpleDeadlockFree}{$\sigma$}
+		\Let{(l, g)}{$\sigma$}
+		\Let{SuccessorStates}{$\{\sigma' \mid \sigma \xrightarrow{t}
+			\sigma' \wedge t \in \textit{enabled}(\sigma)\}$}
+		\If{$\text{SuccessorStates} = \emptyset$}
+			\ForAll{$p \in \mathcal{P}$}
+				\If{$\textbf{not } val(l(p))$} \Return \textit{false}
+				\EndIf
+			\EndFor
+			\State \Return \textit{true}
+		\Else
+			\ForAll{$\sigma' \in \text{SuccessorStates}$}
+				\If{$\textbf{not } \textsc{SimpleDeadlockFree}(\sigma')$}
+					\Return \textit{false}
+				\EndIf
+			\EndFor
+		\State \Return \textit{true}
+		\EndIf
+		\EndProcedure
+		\State
+		\State Initially: $\textsc{SimpleDeadlockFree}(\sigma_0)$
+	\end{algorithmic}
+\end{algorithm}
+
+\subsection{Partial-Order Reduction}
+\textbf{To address the state space problem,
+	some further concepts are needed; these
+	are introduced in this section.}
+
+\subsubsection{Independence} \label{sec:independence}
+In plain English, two transitions are independent if executing one
+can never disable the other, and if they are commutative.
+
+More formally, suppose that $\mathcal{T}$ is the set of
+transitions for some transition system, and
+that $I \subseteq \mathcal{T} \times \mathcal{T}$
+is a reflexive and symmetric relation. We say
+that $I$ is a valid \emph{independency relation}
+whenever the following two conditions hold for
+all $(t_1, t_2) \in I$:
+\begin{enumerate}
+	\item for all states $\sigma \in \textit{State}$,
+		if $t_1$ is enabled in $\sigma$ and
+		$\sigma \xrightarrow{t_1} \sigma'$, then
+		$t_2$ is enabled in $\sigma$ if and only if
+		$t_2$ is enabled in $\sigma'$; and
+	\item for all states $\sigma \in \textit{State}$,
+		if both $t_1$ and $t_2$ are enabled in $\sigma$
+		then there are unique states $\sigma_1$, $\sigma_2$ and
+		$\sigma'$ such that
+		$\sigma \xrightarrow{t_1} \sigma_1 \xrightarrow{t_2} \sigma'$
+		and
+		$\sigma \xrightarrow{t_2} \sigma_2 \xrightarrow{t_1} \sigma'$.
+\end{enumerate}
+Two transitions $t_1$ and $t_2$ are said to be \emph{independent}
+if there is a valid independency relation $I$ such that $(t_1, t_2) \in I$.
+If $t_1$ and $t_2$ are not independent, they are said to be \emph{dependent}.
+
+\subsubsection{Persistent Sets}
+Traditional partial-order algorithms perform a depth-first
+search (as the algorithms presented in
+section~\ref{sec:simple-model-checking} do), but at each
+state $\sigma$ they compute a subset
+$T \subseteq \textit{enabled}(\sigma)$ and then explore
+only the transitions in $T$. Of course, the subsets
+$T$ must be computed in a way such that the search
+is still sound (i.e. it produces the correct result).
+
+One technique for computing such sound subsets is known
+as the \emph{persistent set} technique. Informally,
+a subset of transitions $T$ from a state $\sigma$
+is called \emph{persistent in $\sigma$} if every
+possible transition $t \not \in T$ that is reachable
+from $\sigma$ by exploring only transitions not in
+$T$ does not interact with the transitions
+in $T$.
+
+Formally, a subset of transitions $T \subseteq \mathcal{T}$
+from a state $\sigma_1$
+is called \emph{persistent in $\sigma_1$} if and only if
+for all sequences of transitions
+\[
+	\sigma_1 \xrightarrow{\ t_1\ } \sigma_2 \xrightarrow{\ t_2\ } \ldots
+	\xrightarrow{t_{n-1}} \sigma_n,
+\]
+if for all $1 \leq i \leq n$, $t_i \not \in T$ then each $t_i$ is
+independent with every transition in $T$.
+
+\textbf{Why do we care? Is it true that persistent sets are sufficient? (I think so)}
+
+\subsubsection{Sleep Sets}
+\textbf{Introduce ideas behind and theory of sleep sets.}
+
+Another technique for addressing the state explosion
+problem is that of \emph{sleep sets}. Suppose that
+we are at state $\sigma$ when performing a search
+of the state space. Suppose that the first transition
+we explore is $t_1$, and the second is $t_2$, and
+that $\sigma \xrightarrow{t_2} \sigma'$. If
+$t_1$ and $t_2$ are independent, then in
+$\sigma'$, $t_1$ will be enabled, and as
+$t_1$ and $t_2$ are commutative, exploring
+$t_1$ from $\sigma'$ is exploring a part
+of the state space that we have already explored
+(when we explored $t_1$ from $\sigma$, we will
+have explored $t_2$ from the state after $\sigma$).
+There is therefore no need to explore $t_1$ from
+$\sigma'$.
+
+In fact, there is no need to consider executing
+$t_1$ in our recursive exploration from $\sigma'$
+until we execute some transition $t'$ which is
+\emph{not} independent of $t_1$, as following
+the execution of $t'$, exploring $t_1$ may
+now lead to states which have not yet been
+explored and therefore cannot be ignored.
+
+A \emph{sleep set} for a particular state
+is then the set of transitions which, when
+explored, is guaranteed by the above
+argument to lead to an already-explored
+section of the state space. The technique of
+sleep sets is orthogonal to the technique
+of persisent sets (i.e. they don't interact;
+they can both be used at the same time
+with no extra difficulties).
+
+\textbf{Use pictures to explain this,
+and also include algorithm showing how
+sleep sets are computed.}
+
+\section{Dynamic Partial-Order Reduction}
+\textbf{This section introduces the DPOR
+	algorithm, which is the main algorithm
+	of the project.	
+	Is this the best place for it?}
+
+\subsection{Definitions}
+
+\subsubsection{Transition Sequences}
+Instead of keeping track of just the current state, as
+the algorithms in section~\ref{sec:simple-model-checking}
+did, the DPOR algorithm keeps track of a \emph{transition
+sequence} $\pi \in \mathcal{T}^*$. This transition
+sequence is implicitly executed from the initial state of
+the transition system, $\sigma_0$, so that in practice,
+$\pi = t_0, t_1, \ldots, t_{n-1}$ specifies a sequence of states
+$\sigma_0, \sigma_1, \ldots, \sigma_n$ such that
+\[
+	\sigma_0 \xrightarrow{\ t_0\ } \sigma_1 \xrightarrow{\ t_1\ }
+	\ldots \xrightarrow{t_{n-1}} \sigma_n.
+\]
+
+Given a transition sequence $\pi = t_0, t_1, \ldots, t_{n-1}$,
+we use the following notation:
+\begin{itemize}[label={}]
+	\newcommand{\defsindent}{3.5em}
+	\item{\makebox[\defsindent]{\hfill$\pi_i$}
+		--- the transition $t_i$;}
+	\item{\makebox[\defsindent]{\hfill$\pi.t$}
+		--- the transition sequence $\pi$ extended with
+		an additional transition $t$;}
+	\item{\makebox[\defsindent]{\hfill$\textit{dom}(\pi)$}
+		--- the set $\{i \in \mathbb{N} \mid 0 \leq i < n \}$;}
+	\item{\makebox[\defsindent]{\hfill$\textit{pre}(\pi, i)$}
+		--- the state $\sigma_i$ (i.e. the state before transition $t_i$); and}
+	\item{\makebox[\defsindent]{\hfill$\textit{last}(\pi)$}
+		--- the state $\sigma_n$.}
+\end{itemize}
+
+\subsubsection{The Happens-Before Relations}
+
+Suppose that two adjacent transitions, $\pi_i$ and $\pi_{i+1}$,
+are swapped in a
+transition sequence, $\pi$, to give a new
+transition sequence, $\pi'$. Suppose further
+that $\pi_i$ and $\pi_{i+1}$ are independent.
+
+Since $\pi_{i+1}$ is enabled in $\textit{pre}(\pi, i+1)$,
+$\pi_{i+1}$ must also be enabled in $\textit{pre}(\pi, i)$,
+by the first condition of independence
+(cf. section~\ref{sec:independence}). If $\pi_{i+1}$
+is executed in $\textit{pre}(\pi, i)$ (as we now know
+it can be), it results in a state in which $\pi_i$
+can be executed, again by the first condition of
+independence.
+
+By the second
+condition of independence, the state reached by
+executing $\pi_i$ followed by $\pi_{i+1}$ is the same
+as the state reached by executing $\pi_{i+1}$ followed
+by $\pi_i$.
+So $\textit{pre}(\pi, i+2) = \textit{pre}(\pi', i+2)$. Since 
+for all $j \geq i + 2$, $\pi_j = \pi'_j$, it follows that
+$\textit{last}(\pi) = \textit{last}(\pi')$.
+
+Such equivalent interleavings
+of transitions are precisely what we're interested in.
+We can think of a transition sequence as representing
+the equivalence class of transition sequences obtained
+by swapping adjacent pairs of independent transitions;
+if we can identify that two transition sequences are
+members of the same equivalence class, we need only
+explore one.
+
+To help us to reason about such equivalence classes,
+we will use a ``happens-before" relation to identify
+when one transition cannot be swapped with another.
+In particular, we define the \emph{happens-before}
+relation $\longrightarrow_\pi$ for a transition
+sequence $\pi$ to be the smallest relation on
+$\textit{dom}(\pi)$ such that
+\begin{enumerate}
+	\item if $i \leq j$ and $\pi_i$ is dependent with
+		$\pi_j$ then $i \longrightarrow_\pi j$; and
+	\item $\longrightarrow_\pi$ is transitively closed.
+\end{enumerate}
+
+By construction, the happens-before relation is a
+partial-order relation on the transitions in $\pi$,
+and $\pi$ is one of the linearisations of this
+partial order. The other linearisations of the
+partial order are the equivalent sequences of
+transitions which can be obtained by swapping
+adjacent pairs of independent transitions in $\pi$.
+
+In DPOR, we will also use a variant of the
+happens-before relation to determine when
+backtracking points are needed. Formally, 
+if $i \in \textit{dom}(\pi)$ and $p \in
+\mathcal{P}$ then we
+say that $(i, p)\!\hookrightarrow_\pi$ if
+either
+\begin{enumerate}
+	\item $\textit{proc}(\pi_i) = p$; or
+	\item $\exists k \in \{k \ in \mathbb{N} \mid i < k < n\}.\;
+		i \longrightarrow_\pi k \wedge \textit{proc}(\pi_k) = p$.
+\end{enumerate}
+Informally, if $(i, p)\!\hookrightarrow_\pi$ then
+in every linearisation $\hat{\pi}$ of the
+happens-before relation (i.e. every sequence
+obtained by swapping pairs of adjacent and
+independent transitions in $\pi$), then the next
+transition that process $p$ executes in
+state $\textit{pre}(\pi, i)$ is executed
+at some point before $\textit{last}(\hat{\pi})$.
+
+\subsection{The Algorithm}
+
+\begin{algorithm} \caption{Dynamic Partial-Order Reduction}
+	\label{dpor-outline} \begin{algorithmic}[1]
+		\Procedure{Explore}{$\pi$}
+		\Let{$\sigma$}{$\textit{last}(\pi)$}
+		\ForAll{$p \in \mathcal{P}$}
+			\Let{$R_1$}{$\{i \in \textit{dom}(\pi) \mid
+				\pi_i \text{ is dependent with } \textit{next}(\pi, p)\}$}
+			\Let{$R_2$}{$\{i \in R_1 \mid
+				\pi_i \text{ may be co-enabled with } \textit{next}(\pi, p)\}$}
+			\Let{$R_3$}{$\{i \in R_2 \mid (i, p)\!\not \hookrightarrow_\pi\}$}
+			\If{$R_3 \neq \emptyset$}
+				\Let{$i$}{$\text{max}(R_3)$}
+				\Let{$E$}{$\{q \in \textit{enabled}(\textit{pre}(\pi, i)) \mid
+					q = p \vee \exists j \in \textit{dom}(\pi).\; j > i \wedge
+					q = \textit{proc}(\pi_j) \wedge (j, p)\hookrightarrow_\pi
+					\}$}
+				\If{$E \neq \emptyset$}
+					add any $q \in E$ to $\textit{backtrack}(\textit{pre}(\pi, i))$
+				\Else {
+					add all $q \in \textit{enabled}(\textit{pre}(\pi, i))$
+					to $\textit{backtrack}(\textit{pre}(\pi, i))$
+				} \EndIf
+			\EndIf
+		\EndFor
+		\If{$\exists p \in \textit{enabled}(\pi)$}
+			\Let{$p$}{any $p \in \textit{enabled}(\pi)$}
+			\Let{$\textit{backtrack}(\sigma)$}{$\{p\}$}
+			\Let{$\textit{done}(\sigma)$}{$\emptyset$}
+			\While{$\exists q \in (\textit{backtrack}(\sigma)\setminus\textit{done}(\sigma))$}
+				\Let{$\pi'$}{$\pi.\textit{next}(\sigma,q)$}
+				\State $\textsc{Explore}(\pi')$
+				\State add $q$ to $\textit{done}(\sigma)$
+			\EndWhile
+		\EndIf
+		\EndProcedure
+		\State
+		\State Initially: $\textsc{Explore}(\emptyset)$
+	\end{algorithmic}
+\end{algorithm}
+
+\chapter{Implementation}
+\textbf{This chapter explains how the mathematical
+	psuedocode in the literature was translated
+	into a working program which model checks a
+	given source file.}
+
+\section{Development of Project Language (PL)}
+\textbf{This section explains how I designed
+	and implemented the language in which the
+	concurrent programs to be model checked
+	are written.}
+
+\subsection{Syntax and Semantics}
+\textbf{First, the language had to be designed.
+	Explain design choices, give sense of what
+	the lanuage is, maybe an example program,
+	and point to the appendix for a full definition.}
+
+I designed a simple ML-like language, PL (for 
+Project Language) which
+is used to specify the operations the execution
+of each thread. The local state of a thread at
+any instant consists of an expression
+$e : \textit{expr}$, which
+represents the remaining instructions that the
+thread will execute, and a local store
+$\gamma : \textit{loc} \to \textit{expr}$, which
+maps locations to expressions, and represents the
+data that the thread operates on.
+
+\begin{figure}
+	\begin{align*}
+		e := &\ e + e \\
+		\vert &\ e - e \\
+		\vert &\ !e \\
+		\vert &\ e\ e \\
+		\vert &\ \textbf{\textit{etc.}}
+	\end{align*}
+	\caption{The BNF grammar for PL expressions}
+\end{figure}
+
+See appendix for full language definition.
+
+\subsection{Parser}
+\textbf{Explain how a parser for PL was built,
+	and why it is a good thing to have.}
+
+Use \emph{tool} and \emph{tool} to specify the conversion of source code
+into abstract expressions. Example?
+
+\subsection{Interpreter}
+\textbf{Explain how the PL interpreter was implemented,
+	and why it is a good thing to have/how it is used
+	in the rest of the project}
+
+Auxiliary functions for things like substitution, deciding if
+an expression is a value, modifying de Bruijn indices.
+
+Stores simply implemented as (location, value) pair lists.
+
+Function for getting next local step of thread, given global store.
+
+Function for getting the next transition of a thread; all the local
+steps up to and including a visible operation.
+
+\section{Simple Model Checker}
+\textbf{This section explains how the simple model
+	checker presented in the previous chapter was
+	implemented in practice}
+
+Depth first search of state space. Present algorithm used.
+Explain how errors and deadlocks are found.
+
+\section{Dynamic Partial-Order Reduction}
+\textbf{This section explains how the DPOR
+	alogorithm was implemented in practice.}
+
+\subsection{Implementation}
+\subsubsection{Clock Vectors}
+\textbf{Used to decide the happens-before relation.}
+\subsubsection{Independence}
+\textbf{Keep track of last transition that accessed
+	each global object.}
+
+\subsection{Locks}
+\textbf{Difficulties faced adding locks;
+	how they were overcome.}
+
+Problem: many algorithms use locks. While \texttt{while locked do skip done}
+is good enough, it results in a cycle in the state space, which causes
+non-termination of DPOR.
+
+Solution: add locks. New problem: no distinction between
+transition not existing and not being enabled. Without
+locks, all existing transitions were enabled; no longer
+the case.
+
+Solution: pass around Boolean stating whether or not the transition
+is enabled.
+
+\section{Stateful Model Checking}
+\textbf{Keeping track of already-visited states.}
+
+\subsection{Simple Model Checker}
+\textbf{Straight-forward implementation for simple
+	checker. Give new algorithm.}
+
+When searching through state space, the same state is often
+re-encountered. Idea: keep track of visited states, and don't bother
+re-exploring from those we have already explored.
+
+\subsection{Dynamic Partial-Order Reduction}
+\textbf{Applying ideas to DPOR. Why na\"{i}ve
+	approach doesn't work; the solution.}
+
+\subsubsection{Na\"{\i}ve Approach}
+\textbf{What this approach is; why it doesn't
+	work; example.}
+
+The same approach can be applied to
+the DPOR algorithm -- whenever we
+encounter a state from which we have already
+explored, return immediately because we
+already know the result. However, this
+na\"ive algorithm is unfortunately unsound.
+
+\subsubsection{Stateful Dynamic Partial-Order Reduction}
+\textbf{Present SDPOR algorithm.}
+
+Idea: conservatively add in necessary points to backtrack sets.
+Use visible operation dependency graph.
+
+\section{Sleep Sets}
+\textbf{Implementation of sleep
+	sets in both the simple checker
+	and in DPOR.}
+\subsection{Simple Model Checker}
+\subsection{DPOR}
+
+\section{Counter-Example Traces?}
+\textbf{Assuming this gets implemented,
+	explain here, for both simple and DPOR.}
+
+It would be nice to, if an error or deadlock
+is unexpectedly found, give a trace showing
+the execution which led to the error/deadlock
+state. This is trivial -- is it just the
+transition sequence which is being passed around.
+
+It would be even nicer to present the user with
+a \emph{partial order} of the transitions which,
+whenever any linearisation of the partial order
+is executed, results in the error/deadlock state.
+The problem is then, given a sequence of
+transitions, give the most general partial order
+which, when linearised, results in the current
+state.
+
+This partial order is just the happens-before
+relation. Just execute the transition sequence
+from the beginning, keeping track of the relation.
+Then output it in a nice form, so we can display it
+as a graph maybe.
+
+\chapter{Evaluation}
+\textbf{This chapter presents evidence
+	for the correctness of the
+	algorithm implementations in the
+	project, and evaluates their
+	performance.}
+
+\section{Soundness}
+\textbf{This section gives references
+	proving the soundness of the underlying
+	algorithm, then gives evidence that my
+	implementation is a sound implementation
+	of the theoretical algorithm.}
+
+\textbf{Is it best to be honest about the
+	possibility of incorrectness, or just
+	to persuade that everything is sound?}
+
+\subsection{PL Interpreter}
+\subsection{Simple Model Checker}
+\subsection{DPOR}
+\subsection{Stateful Checking}
+\subsubsection{Simple}
+\subsubsection{DPOR}
+\subsection{Sleep Sets}
+\subsection{Counter-Example Traces}
+
+\section{Performance}
+\textbf{This section compares the
+	performance of the various algorithms
+	in the project. This is achieved by
+	looking at execution times, transitions
+	explored, and numbers of states explored
+	while model checking various example
+	programs. Comparison can be made with
+	published figures.}
+
+\chapter{Conclusions}
+
+\textbf{This chapter makes some
+	interesting conclusions, which I
+	haven't thought of yet.}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% the bibliography
+\addcontentsline{toc}{chapter}{Bibliography}
+\bibliography{refs}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% the appendices
+\appendix
+
+\chapter{PL Definition}
+ 
+\textbf{This will be the definition
+	of PL.}
+ 
+\chapter{Example PL Programs}
+
+\textbf{This will contain various
+	example programs, in particular
+	those used for performance evaluation.}
+
+\chapter{Project Proposal}
+
+\input{proposal_without_title}
+
+\end{document}
