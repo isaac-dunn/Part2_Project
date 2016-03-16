@@ -111,6 +111,9 @@ module type Program = sig
     (** A thread transition with the index of the thread *)
     type transition = int * ThrImp.transition
 
+    (** Gives process of transition *)
+    val proc_of_transition : transition -> int
+
     (** Gives a string representation of a program *)
     val string_of_program : state -> string
 
@@ -119,6 +122,12 @@ module type Program = sig
 
     (* Given a program transition and a program state, gives the next program state *)
     val apply_transition : state -> transition -> state
+
+    (* Get edges in t_seq indices happens-before Hasse diagram *)
+    val get_hasse_trace : transition list -> (int * int) list
+
+    (* Given filename, t_seq, index Hasse diagram, write graphviz file *)
+    val output_hasse_image : string -> transition list -> unit
 end
 
 (** Checker Interface *)

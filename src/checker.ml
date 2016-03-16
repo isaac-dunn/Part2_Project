@@ -1,6 +1,7 @@
 module SimpleChecker (Prog : Interfaces.Program) =
   struct
     module ProgImp = Prog
+    let write_error_traces = true
     let max_depth = ref 0
     let calls = ref 0
 
@@ -20,9 +21,12 @@ module SimpleChecker (Prog : Interfaces.Program) =
               (* No futher transitions: check if this thread reaches a local error *)
               None -> let (reaches_err, reaches_nonval) =
                         ProgImp.ThrImp.check_local (e, s, g) in
-                      if reaches_err then error_free := false;
+                      if reaches_err then (
+                        error_free := false;
+                        ProgImp.output_hasse_image "errortrace.gv" t_seq
+                      );
                       if reaches_nonval then
-                        all_stopped_threads_are_values := false
+                         all_stopped_threads_are_values := false
               (* There is a transition: check if error; explore from the new state *)
             | Some (t_tran, enabled) -> (
                 if not enabled then all_stopped_threads_are_values := false else (
@@ -68,6 +72,20 @@ module DPORChecker (Prog : Interfaces.Program) =
                     (pre_aux (List.tl tran_list) (index+1)
                         (ProgImp.apply_transition state (List.hd tran_list)))
             in pre_aux t_seq 0 init_prog in
+
+        (* Gets edges in Hasse diagram (on indices in transition sequence)
+           for happens-before relation of transition sequence *)
+        let rec get_hasse_trace ts =
+
+            (* lasts is L:proc->N in paper, hasse is the result *)
+            let rec aux to_explore curr_index lasts hasse =
+                match to_explore with
+                  [] -> hasse
+                | (p, t)::ts ->
+                    aux ts (curr_index + 1)
+                      (fun i -> if i = p then curr_index else lasts i)
+                        (if lasts p = -1 then hasse else ((lasts p, t)::hasse))
+            in aux ts 0 (fun _ -> -1) [] in
 
         (* let s = last(S) *)
         let (tds, g) = pre depth in

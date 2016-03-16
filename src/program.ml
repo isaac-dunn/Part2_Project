@@ -12,6 +12,8 @@ module Program (Thr : Interfaces.Thread) = struct
     (* A thread transition with the index of the thread *)
     type transition = int * ThrImp.transition
 
+    let proc_of_transition (p, _) = p
+
     let string_of_program (tds, g) =
         let acc = ref "" in
         for i = 0 to Array.length tds - 1 do
@@ -34,6 +36,30 @@ module Program (Thr : Interfaces.Thread) = struct
         let (_, old_s) = Array.get tds i in
             Array.set new_tds i (t_tran.ThrImp.next_expr, ThrImp.StoreImp.extend old_s t_tran.ThrImp.s_updates);    
             (new_tds, ThrImp.StoreImp.extend g t_tran.ThrImp.g_updates)
+
+    (* Get edges in Hasse diagram for happens-before (graph on t_seq indices) *)
+    let rec get_hasse_trace t_seq =
+        (* lasts is L:proc->N in paper, hasse is the result *)
+        let rec aux to_explore curr_index lasts hasse =
+            match to_explore with
+              [] -> hasse
+            | t::ts -> let p = proc_of_transition t in
+                aux ts (curr_index + 1)
+                  (fun i -> if i = p then curr_index else lasts i)
+                    (if lasts p = -1 then hasse else ((lasts p, t)::hasse))
+        in aux t_seq 0 (fun _ -> -1) []
+
+    let rec output_hasse_image filename t_seq =
+        let out_chan = open_out filename in
+        let index_to_procnum i = proc_of_transition (List.nth t_seq i) in
+        let indices_to_procnums (i, j) = (index_to_procnum i, index_to_procnum j) in
+        let write_edge (i, j) =
+          let message = (string_of_int i) ^ " -> " ^ (string_of_int j) in
+          Printf.fprintf out_chan "  %s\n" message in
+        Printf.fprintf out_chan "%s\n" "digraph Trace {";
+        List.iter write_edge (List.map indices_to_procnums (get_hasse_trace t_seq));
+        Printf.fprintf out_chan "%s\n" "}";
+        close_out out_chan
 end
 
 module PLProgram : (Interfaces.Program
