@@ -39,25 +39,34 @@ module Program (Thr : Interfaces.Thread) = struct
 
     (* Get edges in Hasse diagram for happens-before (graph on t_seq indices) *)
     let rec get_hasse_trace t_seq =
-        (* lasts is L:proc->N in paper, hasse is the result *)
-        let rec aux to_explore curr_index lasts hasse =
+        (* last_{proc,obj} are L:{proc,loc}->N, hasse is the result *)
+        let rec aux to_explore curr_index last_proc last_obj hasse =
             match to_explore with
               [] -> hasse
-            | t::ts -> let p = proc_of_transition t in
+            | (p, t)::ts ->
+                let o = t.ThrImp.g_loc in
+                let option_extend_list ou xs = match ou with
+                    None -> xs | Some u -> u::xs in
+                let proc_opt = if last_proc p = -1 then None
+                               else Some (last_proc p, curr_index) in
+                let obj_opt = if last_obj o = -1 then None
+                               else Some (last_obj o, curr_index) in
                 aux ts (curr_index + 1)
-                  (fun i -> if i = p then curr_index else lasts i)
-                    (if lasts p = -1 then hasse else ((lasts p, t)::hasse))
-        in aux t_seq 0 (fun _ -> -1) []
+                  (fun i -> if i = p then curr_index else last_proc i)
+                  (fun l -> if l = o then curr_index else last_obj l)
+                  (option_extend_list proc_opt (option_extend_list obj_opt hasse))
+        in aux t_seq 0 (fun _ -> -1) (fun _ -> -1) []
 
     let rec output_hasse_image filename t_seq =
         let out_chan = open_out filename in
-        let index_to_procnum i = proc_of_transition (List.nth t_seq i) in
-        let indices_to_procnums (i, j) = (index_to_procnum i, index_to_procnum j) in
-        let write_edge (i, j) =
-          let message = (string_of_int i) ^ " -> " ^ (string_of_int j) in
+        let write_node i t =
+            Printf.fprintf out_chan "%s\n" ((string_of_int i) ^ " [label=\""
+                ^ (string_of_int (proc_of_transition t)) ^ "\"]") in
+        let write_edge (i, j) = let message = (string_of_int i) ^ " -> " ^ (string_of_int j) in
           Printf.fprintf out_chan "  %s\n" message in
         Printf.fprintf out_chan "%s\n" "digraph Trace {";
-        List.iter write_edge (List.map indices_to_procnums (get_hasse_trace t_seq));
+        List.iteri write_node t_seq;
+        List.iter write_edge (get_hasse_trace t_seq);
         Printf.fprintf out_chan "%s\n" "}";
         close_out out_chan
 end
