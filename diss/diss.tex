@@ -2,6 +2,7 @@
 \documentclass[12pt,a4paper,twoside,openright]{report}
 \usepackage[pdfborder={0 0 0}]{hyperref}    % turns references into hyperlinks
 \usepackage[margin=25mm]{geometry}  % adjusts page layout
+\usepackage{mathpazo}  % style
 \usepackage{graphicx}  % allows inclusion of PDF, PNG and JPG images
 \usepackage{verbatim}
 \usepackage{docmute}   % only needed to allow inclusion of proposal.tex
@@ -10,6 +11,29 @@
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
 \usepackage{enumitem}
+\usepackage{color}
+\usepackage{listings}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{grey}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+\lstset{ % style of code listings
+	frame=tb,
+	language=ML,
+	aboveskip=3mm,
+	belowskip=3mm,
+	showstringspaces=false,
+	columns=flexible,
+	basicstyle={\small\ttfamily},
+	numbers=none,
+	numberstyle=\tiny\color{grey},
+	keywordstyle=\color{blue},
+	commentstyle=\color{dkgreen},
+	stringstyle=\color{mauve},
+	breaklines=true,
+	breakatwhitespace=true,
+	tabsize=4
+	}
 
 
 \raggedbottom                           % try to avoid widows and orphans
@@ -44,10 +68,10 @@
 \vspace*{60mm}
 \begin{center}
 \Huge
-\textbf{Dynamic Partial-Order Reduction for Model Checking} \\[5mm]
-Computer Science Tripos -- Part II \\[5mm]
-Clare College \\[5mm]
-\today  % today's date
+\textbf{Dynamic Partial-Order Reduction for Model Checking} \\[7mm]
+Computer Science Tripos -- Part II \\[6mm]
+Clare College \\[7mm]
+\LARGE \today  % today's date
 \end{center}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -473,7 +497,18 @@ for all sequences of transitions
 if for all $1 \leq i \leq n$, $t_i \not \in T$ then each $t_i$ is
 independent with every transition in $T$.
 
-\textbf{Why do we care? Is it true that persistent sets are sufficient? (I think so)}
+It can be shown that if a deadlock state is reachable by an exhaustive
+search of the state space, then by computing a persistent set $T$ at
+each state $\sigma$ and exploring only those transitions from
+$\sigma$ that are in $T$, that deadlock state is still reachable
+(cf. Theorem 4.3 in \textbf{Godefroid thesis}). It can also be shown
+that by exploring only transitions in persistent sets, all reachable
+local states of each process are explored (cf. Theorem 6.14 in
+\textbf{Godefroid thesis}). Therefore, if we are interested in
+the definition of model checking given in 
+section~\ref{sec:simple-model-checking}, then it is sufficient
+to explore transitions from the persistent sets of the states we
+encounter.
 
 \subsubsection{Sleep Sets}
 \textbf{Introduce ideas behind and theory of sleep sets.}
@@ -555,7 +590,7 @@ we use the following notation:
 		--- the state $\sigma_n$.}
 \end{itemize}
 
-\subsubsection{The Happens-Before Relations}
+\subsubsection{The Happens-Before Relations}\label{sec:happens-before}
 
 Suppose that two adjacent transitions, $\pi_i$ and $\pi_{i+1}$,
 are swapped in a
@@ -689,11 +724,11 @@ at some point before $\textit{last}(\hat{\pi})$.
 \subsection{Syntax and Semantics}
 \textbf{First, the language had to be designed.
 	Explain design choices, give sense of what
-	the lanuage is, maybe an example program,
+	the language is, maybe an example program,
 	and point to the appendix for a full definition.}
 
-I designed a simple ML-like language, PL (for 
-Project Language) which
+I designed a simple ML-like language, PL
+(Project Language) which
 is used to specify the operations the execution
 of each thread. The local state of a thread at
 any instant consists of an expression
@@ -705,13 +740,46 @@ maps locations to expressions, and represents the
 data that the thread operates on.
 
 \begin{figure}
-	\begin{align*}
-		e := &\ e + e \\
-		\vert &\ e - e \\
-		\vert &\ !e \\
-		\vert &\ e\ e \\
-		\vert &\ \textbf{\textit{etc.}}
-	\end{align*}
+	\centering
+	\setlength{\tabcolsep}{2pt}
+	\begin{tabular}{rl}
+		\textit{expr} $:=$ & \textit{int} $\vert$ \textit{bool}
+			$\vert$ \textit{identifier} $\vert$ \textit{var} \\
+		$\vert$ & \textit{expr op expr} $\vert$ $\neg$ \textit{expr} $\vert$ \\
+		$\vert$ & \textbf{skip} $\vert$ \textit{expr; expr}\\
+		$\vert$ & \textbf{if} \textit{expr}
+			\textbf{then} \textit{expr} \textbf{else} \textit{expr} \\
+		$\vert$ & \textbf{while} \textit{expr}
+			\textbf{do} \textit{expr} \\
+		$\vert$ & \textit{expr} $:=$ \textit{expr} $\vert$ !\textit{expr} 
+			$\vert$ \textbf{ref} \textit{expr} \\
+		$\vert$ & \textbf{fn} \textit{var}
+			$\rightarrow$ \textit{expr} $\vert$ \textit{e\ e} \\
+		$\vert$ & \textbf{let} \textit{var} $=$
+			\textit{expr} \textbf{in} \textit{expr} \\
+		$\vert$ & \textbf{let rec} \textit{var} $=$
+			\textbf{fn} \textit{var} $\rightarrow$
+			\textit{expr} \textbf{in} \textit{expr} \\
+		$\vert$ & \textbf{lock} \textit{expr} $\vert$
+			\textbf{unlock} \textit{expr} \\
+		$\vert$ & \textbf{cas}(\textit{expr}, \textit{expr}, \textit{expr}) \\
+		$\vert$ & \textbf{error}(\textit{message})
+	\end{tabular}
+	\qquad\quad
+	\begin{tabular}{rcl}
+		\textit{op} $:=$ & $+$ &\\
+		$\vert$ & $-$ &\\
+		$\vert$ & $\ast$ &\\
+		$\vert$ & $/$ &\\
+		$\vert$ & $\%$ &\\
+		$\vert$ & $>$ &\\
+		$\vert$ & $<$ &\\
+		$\vert$ & $=$ &\\
+		$\vert$ & $\&$ &\\
+		$\vert$ & $\mid$ &\\
+		& &\\
+		\textit{var} & $\in$ & $\{x, y, z, \ldots\}$
+	\end{tabular}
 	\caption{The BNF grammar for PL expressions}
 \end{figure}
 
@@ -738,6 +806,12 @@ Function for getting next local step of thread, given global store.
 
 Function for getting the next transition of a thread; all the local
 steps up to and including a visible operation.
+
+\section{Structure of the Software}
+
+The project uses the OCaml module constructs
+to implement layers of abstraction.
+See figure.
 
 \section{Simple Model Checker}
 \textbf{This section explains how the simple model
@@ -813,30 +887,43 @@ Use visible operation dependency graph.
 \subsection{Simple Model Checker}
 \subsection{DPOR}
 
-\section{Counter-Example Traces?}
-\textbf{Assuming this gets implemented,
-	explain here, for both simple and DPOR.}
+\section{Counter-Example Traces}
 
-It would be nice to, if an error or deadlock
-is unexpectedly found, give a trace showing
-the execution which led to the error/deadlock
-state. This is trivial -- is it just the
-transition sequence which is being passed around.
+One of the advantages of model checking as
+a formal method is that, in the case that
+an error is found, it is trivial to give
+an example of an execution of the given
+program which leads to an error state; in
+our case, this is just the sequence of
+transitions executed at the point when
+an error state it found.
 
-It would be even nicer to present the user with
-a \emph{partial order} of the transitions which,
+To give more insight into the reason for the
+error state being entered, it would be preferable
+to instead present the use with a
+\emph{partial order} of the transitions which,
 whenever any linearisation of the partial order
 is executed, results in the error/deadlock state.
-The problem is then, given a sequence of
-transitions, give the most general partial order
-which, when linearised, results in the current
-state.
+Given a sequence of transitions which lead to
+some error state, the problem is
+then to give the most general partial order
+which, however linearised, results a sequence
+of transitions 
 
 This partial order is just the happens-before
-relation. Just execute the transition sequence
+relation (cf. \ref{sec:happens-before}). As
+discussed above  (\textbf{where?}), this can
+be decided using clock vectors.
+Just execute the transition sequence
 from the beginning, keeping track of the relation.
 Then output it in a nice form, so we can display it
 as a graph maybe.
+
+\begin{figure}	
+	\lstinputlisting[firstline=39,lastline=57]{prog.ml}
+	\caption{The function giving the partial order from
+		a given transition sequence}
+\end{figure}
 
 \chapter{Evaluation}
 \textbf{This chapter presents evidence
@@ -904,6 +991,7 @@ as a graph maybe.
 
 \chapter{Project Proposal}
 
-\input{proposal_without_title}
+Project proposal here
+% \input{proposal_without_title}
 
 \end{document}
