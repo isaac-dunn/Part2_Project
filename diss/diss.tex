@@ -818,25 +818,23 @@ figure~\ref{fig:functors}.
 	the language is, maybe an example program,
 	and point to the appendix for a full definition.}
 
-I designed a simple ML-like language, PL
-(Project Language) which
-is used to specify the operations the execution
-of each thread. The local state of a thread at
-any instant consists of an expression
-$e : \textit{expr}$, which
-represents the remaining instructions that the
-thread will execute, and a local store
-$\gamma : \textit{loc} \to \textit{expr}$, which
-maps locations to expressions, and represents the
-data that the thread operates on.
+Although, as mentioned above, any programming language
+could be used to express transition systems for model
+checking, I chose to design and implement a simple
+ML-like language, PL (Project Language), to avoid
+the unnecessary complexity of implementing a full
+industrial language.
+The grammar for valid PL expressions is given in
+figure~\ref{fig:pl-expressions}.
 
 \begin{figure}
 	\centering
 	\setlength{\tabcolsep}{2pt}
 	\begin{tabular}{rl}
-		\textit{expr} $:=$ & \textit{int} $\vert$ \textit{bool}
-			$\vert$ \textit{identifier} $\vert$ \textit{var} \\
-		$\vert$ & \textit{expr op expr} $\vert$ $\neg$ \textit{expr} $\vert$ \\
+		\textit{expr} $:=$ & \textit{int} $\vert$ \textit{bool} $\vert$ \textit{var} \\
+		$\vert$ & \textit{local} $\vert$ \textit{global}
+			$\vert$ \textit{spinlock} \\ 
+		$\vert$ & \textit{expr op expr} $\vert$ $\neg\,$\textit{expr} \\
 		$\vert$ & \textbf{skip} $\vert$ \textit{expr; expr}\\
 		$\vert$ & \textbf{if} \textit{expr}
 			\textbf{then} \textit{expr} \textbf{else} \textit{expr} \\
@@ -845,7 +843,7 @@ data that the thread operates on.
 		$\vert$ & \textit{expr} $:=$ \textit{expr} $\vert$ !\textit{expr} 
 			$\vert$ \textbf{ref} \textit{expr} \\
 		$\vert$ & \textbf{fn} \textit{var}
-			$\rightarrow$ \textit{expr} $\vert$ \textit{e\ e} \\
+			$\rightarrow$ \textit{expr} $\vert$ \textit{expr expr} \\
 		$\vert$ & \textbf{let} \textit{var} $=$
 			\textit{expr} \textbf{in} \textit{expr} \\
 		$\vert$ & \textbf{let rec} \textit{var} $=$
@@ -854,7 +852,11 @@ data that the thread operates on.
 		$\vert$ & \textbf{lock} \textit{expr} $\vert$
 			\textbf{unlock} \textit{expr} \\
 		$\vert$ & \textbf{cas}(\textit{expr}, \textit{expr}, \textit{expr}) \\
-		$\vert$ & \textbf{error}(\textit{message})
+		$\vert$ & \textbf{error}(\textit{message}) \\
+		& \\
+		\textit{int} $\in$ & $\{\ldots, -1, 0, 1, \ldots\}$ \\
+		\textit{bool} $\in$ & $\{\textbf{true}, \textbf{false}\}$ \\
+		\textit{var} $\in$ & \textit{Variable}
 	\end{tabular}
 	\qquad\quad
 	\begin{tabular}{rcl}
@@ -869,12 +871,60 @@ data that the thread operates on.
 		$\vert$ & $\&$ &\\
 		$\vert$ & $\mid$ &\\
 		& &\\
-		\textit{var} & $\in$ & $\{x, y, z, \ldots\}$
+		\textit{local} & $\in$ & \textit{Location} \\
+		\textit{global} & $\in$ & \textit{Location} \\
+		\textit{spinlock} & $\in$ & \textit{Location} \\
+		& &\\
+		\textit{Location} & $=$ & $\{a, b, c, \ldots\}^\ast$\\
+		\textit{Variable} & $=$& $\{x, y, z, \ldots\}$ \\
 	\end{tabular}
-	\caption{The BNF grammar for PL expressions}
+	\caption{The grammar for PL expressions.}
+	\label{fig:pl-expressions}
 \end{figure}
 
-See appendix for full language definition.
+As required by the \emph{Thread} interface, each
+PL thread has access to both its local store $s$
+and the global store $g$. Both $s$ and $g$ are
+maps from locations to expressions.
+To express the semantics
+of PL, then, we need to give whether or not an
+expression $e$ reduces for local store $s$ and
+global store $g$, and if it does, we need to give
+the expression $e'$ that it reduces to in one ``step",
+as well as any updates to $s$ and $g$ that result.
+Note that each such ``step" is assumed to be atomic.
+The semantics of PL expressions are as you would expect
+(see \textbf{THE APPENDIX} for a full definition), but
+the rules for the reduction of expressions that interact
+with the global store $g$ are given in figure~\ref{fig:pl-rules}.
+
+\begin{figure}
+	\begin{gather*}
+		\frac{g(\textit{spin}) = \textbf{true}}
+			{(\textbf{unlock}\ \textit{spin},\ s,\ g)
+				\longrightarrow (\textbf{skip},\ s,\
+				g[\textit{spin} \mapsto \textbf{false}])} \\
+		\\
+		\frac{g(\textit{spin}) = \textbf{false}}
+		{(\textbf{lock}\ \textit{spin},\ s,\ g)
+			\longrightarrow (\textbf{skip},\ s,\
+			g[\textit{spin} \mapsto \textbf{true}])} \\
+		\\
+		\frac{g(\textit{glob}) = e_\textit{curr}}
+			 {(\textbf{cas}(\textit{glob},\, e_\textit{curr},\, e_\textit{new})
+			 	,\ s,\ g) \longrightarrow (\textbf{true},\ s,
+			 	\ g[\textit{glob} \mapsto e_\textit{new}])} \\
+		\\
+		\frac{g(\textit{glob}) \neq e_\textit{curr}}
+			{(\textbf{cas}(\textit{glob},\, e_\textit{curr},\, e_\textit{new})
+				,\ s,\ g) \longrightarrow
+				(\textbf{false},\ s,\ g)} 
+	\end{gather*}
+	\caption{Rules for the atomic reduction of PL
+		expressions that interact with the shared store.}
+	\label{fig:pl-rules}
+\end{figure}
+
 
 \subsection{Parser}
 \textbf{Explain how a parser for PL was built,
@@ -883,7 +933,7 @@ See appendix for full language definition.
 Use \emph{tool} and \emph{tool} to specify the conversion of source code
 into abstract expressions. Example?
 
-\subsection{Interpreter}
+\subsection{Implementation}
 \textbf{Explain how the PL interpreter was implemented,
 	and why it is a good thing to have/how it is used
 	in the rest of the project}
