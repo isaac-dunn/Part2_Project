@@ -1,0 +1,8 @@
+digraph SoftDesign {
+    node [fontname="Palatino"]
+    Store -> Expression;
+    Thread -> Expression;
+    Thread -> Store;
+    Program -> Thread;
+    Checker -> Program;
+}
