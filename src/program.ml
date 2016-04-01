@@ -12,8 +12,6 @@ module Program (Thr : Interfaces.Thread) = struct
     (* A thread transition with the index of the thread *)
     type transition = int * ThrImp.transition
 
-    let proc_of_transition (p, _) = p
-
     let string_of_program (tds, g) =
         let acc = ref "" in
         for i = 0 to Array.length tds - 1 do
@@ -59,9 +57,9 @@ module Program (Thr : Interfaces.Thread) = struct
 
     let rec output_hasse_image filename t_seq =
         let out_chan = open_out filename in
-        let write_node i t =
+        let write_node i (p, _) =
             Printf.fprintf out_chan "%s\n" ((string_of_int i) ^ " [label=\""
-                ^ (string_of_int (proc_of_transition t)) ^ "\"]") in
+                ^ (string_of_int p) ^ "\"]") in
         let write_edge (i, j) = let message = (string_of_int i) ^ " -> " ^ (string_of_int j) in
           Printf.fprintf out_chan "  %s\n" message in
         Printf.fprintf out_chan "%s\n" "digraph Trace {";

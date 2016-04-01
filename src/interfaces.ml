@@ -111,9 +111,6 @@ module type Program = sig
     (** A thread transition with the index of the thread *)
     type transition = int * ThrImp.transition
 
-    (** Gives process of transition *)
-    val proc_of_transition : transition -> int
-
     (** Gives a string representation of a program *)
     val string_of_program : state -> string
 

@@ -73,20 +73,6 @@ module DPORChecker (Prog : Interfaces.Program) =
                         (ProgImp.apply_transition state (List.hd tran_list)))
             in pre_aux t_seq 0 init_prog in
 
-        (* Gets edges in Hasse diagram (on indices in transition sequence)
-           for happens-before relation of transition sequence *)
-        let rec get_hasse_trace ts =
-
-            (* lasts is L:proc->N in paper, hasse is the result *)
-            let rec aux to_explore curr_index lasts hasse =
-                match to_explore with
-                  [] -> hasse
-                | (p, t)::ts ->
-                    aux ts (curr_index + 1)
-                      (fun i -> if i = p then curr_index else lasts i)
-                        (if lasts p = -1 then hasse else ((lasts p, t)::hasse))
-            in aux ts 0 (fun _ -> -1) [] in
-
         (* let s = last(S) *)
         let (tds, g) = pre depth in
 
