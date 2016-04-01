@@ -4,6 +4,8 @@
 \usepackage[margin=25mm]{geometry}  % adjusts page layout
 \usepackage{mathpazo}  % style
 \usepackage{graphicx}  % allows inclusion of PDF, PNG and JPG images
+\graphicspath{ {./figs/} }
+\DeclareGraphicsExtensions{.pdf,.png,.jpg}
 \usepackage{verbatim}
 \usepackage{docmute}   % only needed to allow inclusion of proposal.tex
 \usepackage{amsmath}
@@ -13,6 +15,8 @@
 \usepackage{enumitem}
 \usepackage{color}
 \usepackage{listings}
+\usepackage{subcaption}
+\usepackage{caption}
 
 \definecolor{dkgreen}{rgb}{0,0.6,0}
 \definecolor{grey}{rgb}{0.5,0.5,0.5}
@@ -715,7 +719,94 @@ at some point before $\textit{last}(\hat{\pi})$.
 	into a working program which model checks a
 	given source file.}
 
-\section{Development of Project Language (PL)}
+\section{Design of the Software}
+
+The project was implemented in OCaml, which
+offers a few key advantages:
+\begin{itemize}
+	\item a clean, functional
+	style, which is particularly appropriate for
+	this project, given its mathematical nature;
+	\item a strong, safe type system, which makes
+	impossible a large class of runtime errors;
+	\item parametric polymorphism, a module system,
+	and other higher-order programming features,
+	facilitating abstraction and generalisation; and
+	\item established libraries, providing efficient
+	implementations of basic data structures and algorithms.
+\end{itemize}
+I took particular advantage of the module system when
+designing and implementing the project. OCaml modules
+are used to encapsulate related definitions and hide
+information -- \emph{signatures} are software interfaces
+providing declarations,
+and \emph{structures} are implementations which 
+provide definitions. A structure \emph{matches} a
+signature if it has a definition for each declaration
+in the signature. \emph{Functors} can be thought of
+as functions from structures to structures. If a
+module matches a given signatures, then it can be
+passed to a functor to give a new structure.
+
+\begin{figure}
+	\centering
+	\begin{subfigure}{.4\textwidth}
+		\centering
+		\includegraphics[height=9cm]{interfaces}
+		\caption{Diagram showing which signatures declare
+			which other signatures as nested sub-structures.}
+		\label{fig:interfaces}
+	\end{subfigure}%
+	\quad
+	\begin{subfigure}{.5\textwidth}
+		\centering
+		\includegraphics[height=12cm]{functors}
+		\caption{Diagram showing generation of
+			structures using functors. The blue files must be provided;
+			the functors are part of this project; the remaining files
+			are generated using the functors.}
+		\label{fig:functors}
+	\end{subfigure}
+	\caption{The interactions between the software modules.}
+	\label{fig:design}
+\end{figure}
+
+In the project, there are five main signatures:
+\begin{enumerate}
+	\item a structure that matches \emph{Expression}
+	contains information about the structure of expressions
+	in the programming language of interest;
+	\item a structure that matches \emph{Store}
+	implements a store (i.e. a mapping from locations
+	to expressions) for some implementation of \emph{Expression};
+	\item a structure that matches \emph{Thread} contains
+	the information about the semantics of expressions
+	for a programming language;
+	\item a structure that matches \emph{Program}
+	contains declarations relating to
+	transition systems as expressed in some programming
+	language; and
+	\item a structure that matches \emph{Checker}
+	contains a function which performs model checking.
+\end{enumerate}
+
+While I did implement a simple programming language
+(see section~\ref{sec:language}), the model checking
+algorithms that are the focus of this project are of
+course entirely independent of any particular language.
+I therefore ensured that, in order to use
+my project to perform model checking for programs
+in any other language, the work that would have to
+be done would be minimal. In particular, given implementations
+of \emph{Expression} and \emph{Thread} (effectively
+specifying the semantics of a programming language), my system uses
+functors to automatically generate implementations of
+\emph{Store}, \emph{Program} and \emph{Checker}, the
+last of which can then be used to immediately perform
+model checking. This process is shown explicitly in
+figure~\ref{fig:functors}.
+
+\section{Development of Project Language (PL)}\label{sec:language}
 \textbf{This section explains how I designed
 	and implemented the language in which the
 	concurrent programs to be model checked
@@ -806,12 +897,6 @@ Function for getting next local step of thread, given global store.
 
 Function for getting the next transition of a thread; all the local
 steps up to and including a visible operation.
-
-\section{Structure of the Software}
-
-The project uses the OCaml module constructs
-to implement layers of abstraction.
-See figure.
 
 \section{Simple Model Checker}
 \textbf{This section explains how the simple model
