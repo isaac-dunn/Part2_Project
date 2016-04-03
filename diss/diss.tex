@@ -467,6 +467,31 @@ all $(t_1, t_2) \in I$:
 		and
 		$\sigma \xrightarrow{t_2} \sigma_2 \xrightarrow{t_1} \sigma'$.
 \end{enumerate}
+
+\begin{figure}
+	\centering
+	\begin{subfigure}{\textwidth}
+		\centering
+		\includegraphics*[width=0.45\textwidth]{independence1}
+		\caption{Transitions $t_1$ and $t_2$ are independent if
+			they commute and cannot disable one another.}
+	\end{subfigure}
+	\begin{subfigure}{.45\textwidth}
+		\centering
+		\includegraphics*[width=\textwidth]{independence2}
+		\caption{If $t_1$ disables $t_2$ then $t_1$ and $t_2$
+			are not independent.}
+	\end{subfigure}
+	\quad
+	\begin{subfigure}{.45\textwidth}
+		\centering
+		\includegraphics*[width=\textwidth]{independence3}
+		\caption{If $t_1$ and $t_2$ do not commute then they
+			are not independent.}
+	\end{subfigure}
+	\caption{Illustration of transition independence}
+	\label{fig:independence}
+\end{figure}
 Two transitions $t_1$ and $t_2$ are said to be \emph{independent}
 if there is a valid independency relation $I$ such that $(t_1, t_2) \in I$.
 If $t_1$ and $t_2$ are not independent, they are said to be \emph{dependent}.
