@@ -1,0 +1,31 @@
+digraph Sleep {
+    rankdir=TB;
+    node [shape=circle, fixedsize=true, fontname="Palatino-Italic"];
+    edge [fontname="Palatino-Italic"];
+
+    subgraph cluster_explored {
+        style=dotted;
+        b [label=<&#963;<sub>1</sub>>];
+        d [label=<&#963;&#8242;>];
+        dum2, dum3, dum4, dum5 [height=0.2, style=invis, label=""];
+    }
+
+    a [label=<&#963;>];
+    c [label=<&#963;<sub>2</sub>>];
+    dum0, dum1, dumx [style=invis, label="", height=0.2];
+    a -> b [label=<t<sub>1</sub>>];
+    a -> c [label=<t<sub>2</sub>>];
+    c -> dumx [style=dashed];
+    dumx -> dum0 [style=invis];
+    c -> dum1 [style=dashed];
+    dum1 -> dum0 [style=invis];
+    dum1 -> dum3 [style=invis];
+
+    b -> d [label=< t<sub>2</sub>>];
+    b -> dum4 [style=dashed];
+    c -> d [label=<t<sub>1</sub>>];
+    dum4 -> dum2 [style=invis];
+    d -> dum2 [style=dashed];
+    d -> dum3 [style=dashed];
+    {dum0, dum1, dum2, dum3} -> dum5 [style=invis];
+}
