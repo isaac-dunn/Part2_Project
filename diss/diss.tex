@@ -526,7 +526,33 @@ for all sequences of transitions
 if for all $1 \leq i \leq n$, $t_i \not \in T$ then each $t_i$ is
 independent with every transition in $T$.
 
-It can be shown that if a deadlock state is reachable by an exhaustive
+\begin{figure}[h]
+	\centering
+	\includegraphics[height=9cm]{persistent1}
+	\caption{An example state space, for
+		the illustration of persistent sets.}
+	\label{fig:persistent}
+\end{figure}
+
+For illustration, in the state space shown in
+figure~\ref{fig:persistent}, $T = \{t_1\}$ is
+a persistent set in the initial state, as each
+transition reachable following only transitions
+not in $T$ is independent with $t_1$.
+Likewise, $T = \{t_2, t_3\}$ is
+a persistent set in the initial state, as the
+only transition reachable from the initial state
+without executing any transitions in $T$ is $t_1$,
+and $t_1$ is independent with both $t_2$ and $t_3$.
+However, $T = \{t_2\}$ is not a persistent set in the
+initial state, as $t_2$ and $t_3$ are not independent.
+As we might hope, if we choose only transitions
+in a persistent set (either $\{t_1\}$ or $\{t_2, t_3\}$)
+from the initial state to begin
+an otherwise exhaustive search of the state space, then
+both deadlock states are reachable.
+
+Indeed, it can be shown that if a deadlock state is reachable by an exhaustive
 search of the state space, then by computing a persistent set $T$ at
 each state $\sigma$ and exploring only those transitions from
 $\sigma$ that are in $T$, that deadlock state is still reachable
