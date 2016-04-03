@@ -1,0 +1,14 @@
+digraph Independence1 {
+    rankdir=LR;
+    node [shape=circle, fixedsize=true, fontname="Palatino-Italic"];
+    edge [fontname="Palatino-Italic"];
+    a [label=<&#963;>];
+    b [label=<&#963;<sub>1</sub>>];
+    c [label=<&#963;<sub>2</sub>>];
+    d [label=<&#963;<sub>1</sub>&#8242;>];
+    e [label=<&#963;<sub>2</sub>&#8242;>];
+    a -> b [label=<  t<sub>1</sub>  >];
+    b -> d [label=<  t<sub>2</sub>  >];
+    a -> c [label=<  t<sub>2</sub>  >];
+    c -> e [label=<  t<sub>1</sub>  >];
+}
