@@ -16,7 +16,7 @@
 \usepackage{color}
 \usepackage{listings}
 \usepackage{subcaption}
-\usepackage{caption}
+\usepackage[labelfont=bf]{caption}
 
 \definecolor{dkgreen}{rgb}{0,0.6,0}
 \definecolor{grey}{rgb}{0.5,0.5,0.5}
@@ -1024,19 +1024,79 @@ unbound in the store. This is used to generate a location
 to use when a new local reference is created using the
 \textbf{ref} keyword.
 
-\begin{itemize}
-	\item As mentioned, is a functor from Exp to Sto
-	\item Uses list implementation; other, more efficient are possible
-	\item Talk through functions? (remember too much detail is irrelevant)
-\end{itemize}
 \subsubsection{The Thread Module}
-	\begin{itemize}
-		\item Main PL code here, implementing operational semantics
-		\item Next step function. Explain why enabled hacked on.
-		\item Explain derivation of next transition from next step.
-			Could this be a functor instead?
-		\item Why is \texttt{check local} here?
-	\end{itemize}
+The \emph{Thread} module consists mostly of
+the \texttt{next\char`_step} and \texttt{next\char`_transition}
+functions. The \texttt{next\char`_step} function uses pattern
+matching on PL expressions to determine what the next atomic
+operation, if any, to be executed in the reduction
+of the expression is. There is a close correspondence
+between the
+rules of the operational semantics (see \textbf{APPENDIX})
+and the different cases in the pattern matching. This is
+because each rule specifies that an expression of a
+particular form, perhaps with some conditions on the
+states of the local and shared stores, reduces in a
+particular way. For illustration, one rule and its
+corresponding pattern matching case is shown in 
+figure~\ref{fig:step-rule-correspondence}.
+
+\begin{figure}
+	\begin{subfigure}{\textwidth}
+		\begin{gather*}
+		\frac{}
+		{(\textbf{if true then } e_2 \textbf{ else }
+				e_3,\,s,\,g) \rightarrow (e_2,\,s,\,g)}
+		\qquad
+		\frac{}
+		{(\textbf{if false then } e_2 \textbf{ else }
+			e_3,\,s,\,g) \rightarrow (e_3,\,s,\,g)} \\
+		\\
+		\frac{(e_1,\,s,\,g) \rightarrow
+			(e_1^{\prime},\,s^{\prime},\,g^{\prime})}
+		{(\textbf{if } e_1 \textbf{ then }
+			e_2 \textbf{ else } e_3,\,s,\,g)
+			\rightarrow (\textbf{if } e_1^{\prime}
+			 \textbf{ then }
+			e_2 \textbf{ else } e_3,\,
+			s^{\prime},\,g^{\prime})}
+		\end{gather*}
+		\caption{Rules relating to
+			the reduction of if-then-else expressions.}
+	\end{subfigure}
+	\\ \\ \\
+	\begin{subfigure}{\textwidth}
+		\lstinputlisting[frame=none, firstline=59, lastline=63]
+			{../src/pl_thread.ml}
+		\caption{Pattern matching case for if-then-else expressions.
+			If \texttt{e1} is a Boolean, then reduce to \texttt{e2} or
+			\texttt{e3},
+			otherwise use a recursive call to try to reduce \texttt{e1}.}
+	\end{subfigure}
+	\caption{A concrete illustration of the correspondence
+		between the rules of the operational semantics
+		and the pattern matching statements of the
+		\texttt{next\char`_step} function.}
+	\label{fig:step-rule-correspondence}
+\end{figure}
+
+As a transition for a thread is defined as a
+finite sequence of \emph{invisible} (i.e. entirely local)
+operations, followed by one \emph{visible} (i.e. accesses
+the shared store) operation, the \texttt{next\char`_transition}
+function simply repeatedly calls the \texttt{next\char`_step}
+function, reducing the initial expression and modifying
+the local store, until either the resulting step accesses the shared
+store, or no further reduction is possible. Noting that this
+process is independent of the object language (PL, in this case),
+the most general implementation of this project would require
+only the  \texttt{next\char`_step} function to be provided by
+the user, with a functor being used to automatically
+produce the \texttt{next\char`_transition} function. However,
+in this case, I decided that the additional design complexity
+cost was not worth the slight improvement to the abstraction
+of the project.
+
 \subsubsection{The Program Module}
 	\begin{itemize}
 		\item Functor. Not much to it, really: applying steps and
@@ -1057,6 +1117,8 @@ to use when a new local reference is created using the
 \textbf{This section explains how the simple model
 	checker presented in the previous chapter was
 	implemented in practice}
+
+Include why \texttt{check local} was put in Thread.
 
 \subsection{Implementation}
 \begin{itemize}
