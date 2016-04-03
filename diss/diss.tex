@@ -222,7 +222,7 @@ implemented in practice.
 	This chapter presents the relevant
 	background theory.}
 
-\section{Background Definitions}
+\section{Background Definitions} \label{sec:background-defs}
 \textbf{This section introduces the mathematical
 	structures we are considering and operating on
 	in this project.
@@ -1081,9 +1081,9 @@ figure~\ref{fig:step-rule-correspondence}.
 \end{figure}
 
 As a transition for a thread is defined as a
-finite sequence of \emph{invisible} (i.e. entirely local)
-operations, followed by one \emph{visible} (i.e. accesses
-the shared store) operation, the \texttt{next\char`_transition}
+finite sequence of \emph{invisible} local
+operations, followed by one \emph{visible} operation
+which accesses the shared store, the \texttt{next\char`_transition}
 function simply repeatedly calls the \texttt{next\char`_step}
 function, reducing the initial expression and modifying
 the local store, until either the resulting step accesses the shared
@@ -1098,19 +1098,32 @@ cost was not worth the slight improvement to the abstraction
 of the project.
 
 \subsubsection{The Program Module}
-	\begin{itemize}
-		\item Functor. Not much to it, really: applying steps and
-			transitions, and partial-order traces.
-	\end{itemize}
+The \emph{Program} module is a small functor which,
+when given a \emph{Thread} implementation, provides 
+the few additional definitions and auxiliary
+functions necessary to fully represent
+transition systems (cf. section~\ref{sec:background-defs}.)
+In particular, a state $\sigma \in \textit{State}$ is
+represented by an instance of the \texttt{state} type:
+\lstinputlisting[frame=none, firstline=107, lastline=107]
+	{../src/interfaces.ml}
+
 \subsubsection{Testing}
-	\begin{itemize}
-		\item Tests to verify next step function
-		\item Tests to verify next transition function
-		\item Nothing too rigorous: just enough to convince
-			me that it is probably okay.
-		\item Even if not correct, should be easy to fix; priority
-			is the more interesting part of the project
-	\end{itemize}
+To ensure that the implementation of the PL
+language was correct, I wrote unit tests for
+the \texttt{next\char`_transition} and
+\texttt{next\char`_step} functions. These tests
+consisted of a series of inputs and expected outputs
+to these functions. My aim in writing these tests
+was to ensure that most of the code was covered,
+so that any obvious bugs could be corrected
+immediately. However, I did not invest time
+making these tests very rigorous for two reasons:
+any bugs found later would be relatively straightforward
+to correct; and getting the PL implementation
+fully correct was not the aim of the project, but
+just a necessary step before the main work on the
+model checking algorithms.
 
 
 \section{Simple Model Checker}
