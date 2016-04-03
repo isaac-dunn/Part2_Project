@@ -52,7 +52,8 @@ module Program (Thr : Interfaces.Thread) = struct
                 aux ts (curr_index + 1)
                   (fun i -> if i = p then curr_index else last_proc i)
                   (fun l -> if l = o then curr_index else last_obj l)
-                  (option_extend_list proc_opt (option_extend_list obj_opt hasse))
+                  (option_extend_list proc_opt
+                    (option_extend_list obj_opt hasse))
         in aux t_seq 0 (fun _ -> -1) (fun _ -> -1) []
 
     let rec output_hasse_image filename t_seq =
