@@ -1,0 +1,34 @@
+digraph Parsing {
+    node [fontname="Palatino"];
+
+    subgraph lexing {
+        rank="same";
+        "Lexing Specification" [shape=note, fontname="Courier"];
+        "OCamllex" [style=rounded, shape=box, fontname="Palatino-Bold"];
+        "PL Lexer" [style=rounded, shape=box];
+        "Lexing Specification" -> "OCamllex" -> "PL Lexer";
+    }
+
+    subgraph parsing {
+        rank="same";
+        "PL Precedence\n and Grammar" [shape=note, fontname="Courier"];
+        "Menhir" [style=rounded, shape=box, fontname="Palatino-Bold"];
+        "PL Parser" [style=rounded, shape=box];
+        "PL Precedence\n and Grammar" -> "Menhir" -> "PL Parser";
+
+    }
+
+    subgraph infoflow {
+        "PL Code" [shape=note, fontname="Courier"];
+        "Tokens", "Abstract Syntax Tree" [shape = box];
+        "PL Code" -> "PL Lexer" -> "Tokens" -> "PL Parser";
+        "PL Parser" -> "Abstract Syntax Tree";
+
+    }
+
+    subgraph structure {
+        edge [style=invis];
+        "Lexing Specification" -> "PL Precedence\n and Grammar";
+        "OCamllex" -> "Menhir";
+    }
+}

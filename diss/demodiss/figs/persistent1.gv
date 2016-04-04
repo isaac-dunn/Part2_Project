@@ -1,0 +1,19 @@
+digraph Independence1 {
+    rankdir=TB;
+    node [shape=circle, fixedsize=true, fontname="Palatino"];
+    edge [fontname="Palatino-Italic"];
+    0 [label=""];
+    0 -> 1[label=< t<sub>1</sub>>];
+    1 -> 12[label=<t<sub>2</sub>>];
+    12 -> 124[label=<t<sub>4</sub>>];
+    0 -> 2[label=<t<sub>2</sub>>];
+    2 -> 12[label=<t<sub>1</sub>>];
+    2 -> 24[label=<t<sub>4</sub>>];
+    24 -> 124[label=<t<sub>1</sub>>];
+    1 -> 13[label=<t<sub>3</sub>>];
+    13 -> 135[label=<t<sub>5</sub>>];
+    0 -> 3[label=<t<sub>3</sub>>];
+    3 -> 13[label=<t<sub>1</sub>>];
+    3 -> 35[label=<t<sub>5</sub>>];
+    35 -> 135[label=<t<sub>1</sub>>];
+}
