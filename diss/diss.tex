@@ -284,7 +284,7 @@ state $\sigma' = (l', g')$, where
 In this case we write $\sigma \xrightarrow{t_{p,s}} \sigma'$.
 We write $\longrightarrow^*$ to denote the transitive reflexive
 closure of $\longrightarrow$.
-A state $\sigma$ is called a \emph{deadlock} when there is no transition
+A state $\sigma$ is called a \emph{stopped state} when there is no transition
 $t$ such that $t$ is enabled in $\sigma$. We say that $t_1$ and $t_2$
 may be \emph{co-enabled} if there is some state $\sigma \in \textit{State}$
 such that both $t_1$ and $t_2$ are enabled in $\sigma$.
@@ -325,49 +325,52 @@ to tackle the state explosion problem.
 Model checking is the process of deciding
 whether a
 given transition system is \emph{error-free} and
-\emph{deadlock-free}. To specify exactly what
-this means, we extend each transition system
-with two new relations,
-$\textit{err} : \mathcal{S} \to \mathbb{B}$, and 
-$\textit{term} : \mathcal{S} \to \mathbb{B}$, which decide
-whether, in some given state, a thread has encountered an
-error or successfully terminated its computation, respectively.
-For example, \textit{term} will hold when there are no transitions
+\emph{deadlock-free}.
 
-\textbf{Is this relation really necessary? Or it is sufficient
-	to just talk about transitions being enabled or not?}
-
+To specify exactly what it means for a system to
+be error-free, we extend each transition system
+with a relation
+$\textit{err} : \mathcal{S} \to \mathbb{B}$, which states
+whether, in some given state, a particular
+thread has encountered an error.
 
 We say that a transition system
-$A = (\textit{State}, \Delta, \sigma_0, \textit{err}, \textit{term})$
+$A = (\textit{State}, \Delta, \sigma_0, \textit{err})$
 is
 \emph{error-free} if
 \[
 	\forall\, (l, g) \in \textit{State}. \ \sigma_0 \longrightarrow^* (l, g)
 	\implies \forall p \in \mathcal{P}.\ \neg\,\textit{err}(l(p));
 \]
-that is, if for any state $\sigma$ reachable from the initial state
+that is, if for every state $\sigma$ reachable from the initial state
 $\sigma_0$, no thread in $\sigma$ is in an error state.
 
-We say that a transition system is deadlock-free if
-\[
-	\forall\, (l, g) \in \textit{State}. \;\sigma_0 \longrightarrow^* (l, g)
-	\implies \neg \exists t \in \mathcal{T}.\;
-		\exists\sigma' \in \textit{State}.\;(l, g) \longrightarrow \sigma'
-	\implies \forall p \in \mathcal{P}.\;\textit{val}(l(p));
-\]
-that is, if for any deadlock state $\sigma$ reachable from
-the initial state $\sigma_0$, all threads in $\sigma$ are
-in value states. This definition is useful because no
-system with a finite acyclic state space has no deadlocks,
-as technically, a system which has halted is in a deadlock,
-but we are interested in deciding whether a system has any
-deadlocks aside from these trivial halting ones.
+We say that a transition system
+$A = (\textit{State}, \Delta, \sigma_0, \textit{err})$
+is deadlock-free if
+\begin{align*}
+	\forall\, (l, g) \in \textit{State}. \;\, (&\sigma_0
+	 \longrightarrow^* (l, g))
+	\wedge (\neg \exists t \in \mathcal{T}.\;
+	t \in \textit{enabled}((l, g)) \\
+	&\implies \forall t_{p,s} \in \mathcal{T}.\;
+	(l(p) = s \implies \forall g' \in \mathcal{G}. \;
+		t_{p,s}(g')\!\uparrow),
+\end{align*}
+
+where $\uparrow$ denotes that a partial function is
+undefined at the given value.
+That is, for all stopped states $\sigma$ reachable from
+the initial state $\sigma_0$, if the shared store of
+$\sigma$ was different, it would still be a stopped state.
 
 For our purposes, a model checking algorithm is an
 algorithm that takes a transition system and returns
 two Boolean results, indicating whether that system
-is error-free and deadlock-free.
+is error-free and deadlock-free. In general, more
+powerful concepts of model checking are possible,
+but the algorithms used in this project sacrifice
+this expressive power for performance.
 
 \subsection{Simple Model Checking} \label{sec:simple-model-checking}
 As the definitions of both error-free and deadlock-free
@@ -424,11 +427,12 @@ For example, when deciding whether the transition system
 is deadlock-free, we have
 \[
 	\Phi((l, g)) =\neg \exists t \in \mathcal{T}.\;
-	\exists\sigma' \in \textit{State}.\;(l, g) \longrightarrow \sigma'
+	\exists\sigma' \in \textit{State}.\;(l, g) \xrightarrow{t} \sigma'
 	\implies \forall p \in \mathcal{P}.\;\textit{val}(l(p)),
 \]
 so Algorithm~\ref{simple-deadlock-free} below decides whether a given transition system
-is deadlock-free. As $\Phi$ can only fail to hold at deadlock states, it is first
+is deadlock-free. As $\Phi$ can only fail to hold
+at stopped states, it is first
 checked whether the state has any transitions that can be executed. If not, then
 $\Phi$ is checked to hold, else as above, recursive calls implement a
 depth-first search of the reachable state space.
@@ -574,12 +578,12 @@ As we might hope, if we choose only transitions
 in a persistent set (either $\{t_1\}$ or $\{t_2, t_3\}$)
 from the initial state to begin
 an otherwise exhaustive search of the state space, then
-both deadlock states are reachable.
+both stopped states are reachable.
 
-Indeed, it can be shown that if a deadlock state is reachable by an exhaustive
+Indeed, it can be shown that if a stopped state is reachable by an exhaustive
 search of the state space, then by computing a persistent set $T$ at
 each state $\sigma$ and exploring only those transitions from
-$\sigma$ that are in $T$, that deadlock state is still reachable
+$\sigma$ that are in $T$, that stopped state is still reachable
 (cf. Theorem 4.3 in \textbf{Godefroid thesis}). It can also be shown
 that by exploring only transitions in persistent sets, all reachable
 local states of each process are explored (cf. Theorem 6.14 in
@@ -604,11 +608,11 @@ $\sigma \xrightarrow{t_1} \sigma_1
 \xrightarrow{t_2} \sigma'$ and
 $\sigma \xrightarrow{t_2} \sigma_2
 \xrightarrow{t_1} \sigma'$.
-Any deadlock state reachable from $\sigma'$
+Any stopped state reachable from $\sigma'$
 is reachable from $\sigma_1$, as $\sigma_1$
 is reachable from $\sigma'$. By assumption,
 when the search is at $\sigma_2$, we have already
-explored all the deadlock states reachable from
+explored all the stopped states reachable from
 $\sigma_1$ (the dotted area in figure~\ref{fig:sleep}),
 in particular those reachable from
 $\sigma'$. Therefore, there is no need to
