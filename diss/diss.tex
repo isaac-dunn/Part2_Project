@@ -18,6 +18,8 @@
 \usepackage{subcaption}
 \usepackage[labelfont=bf]{caption}
 
+\captionsetup[algorithm]{labelformat=empty}
+
 \definecolor{dkgreen}{rgb}{0,0.6,0}
 \definecolor{grey}{rgb}{0.5,0.5,0.5}
 \definecolor{mauve}{rgb}{0.58,0,0.82}
@@ -216,11 +218,20 @@ I chose this project to see how theory is
 implemented in practice.
 
 \chapter{Preparation}
-\textbf{The project relies on a lot
-	of theory; the first thing I had
-	to do was to read and understand it.
-	This chapter presents the relevant
-	background theory.}
+The main preparation that was necessary before
+the implementation of the project was the
+development of a firm understanding of an
+area of computer science that was new to me,
+and in particular an understanding of the
+DPOR algorithm itself. This was achieved
+by study of the literature -- I began with
+the paper introducing DPOR, and mostly
+recursively followed references.
+
+This chapter gives an overview of
+the theoretical background, states precisely
+what I mean by model checking, and briefly
+introduces the DPOR algorithm.
 
 \section{Background Definitions} \label{sec:background-defs}
 \textbf{This section introduces the mathematical
@@ -305,26 +316,34 @@ whether a given transition system has certain
 properties.
 
 \section{Model Checking}
-\textbf{This section specifies exactly what it
-	means for a model checking algorithm to be
-	correct, and gives a simple example.}
+This section specifies exactly what I mean by
+a model checking algorithm, gives a simple
+example, and introduces some concepts used
+to tackle the state explosion problem.
 
 \subsection{Definition of Model Checking}
-When model checking, we are trying to establish whether a
+Model checking is the process of deciding
+whether a
 given transition system is \emph{error-free} and
-\emph{deadlock-free}. We therefore need to introduce two
-new concepts.
+\emph{deadlock-free}. To specify exactly what
+this means, we extend each transition system
+with two new relations,
+$\textit{err} : \mathcal{S} \to \mathbb{B}$, and 
+$\textit{term} : \mathcal{S} \to \mathbb{B}$, which decide
+whether, in some given state, a thread has encountered an
+error or successfully terminated its computation, respectively.
+For example, \textit{term} will hold when there are no transitions
 
-We extend each transition system with a \emph{error relation},
-$\textit{err} : \mathcal{S} \to \mathbb{B}$, and a \emph{value relation},
-$\textit{val} : \mathcal{S} \to \mathbb{B}$, which decide whether a given
-local state is in error state or a value state (i.e. a result has
-been computed and no further operations are possible) respectively.
+\textbf{Is this relation really necessary? Or it is sufficient
+	to just talk about transitions being enabled or not?}
 
-We say that a transition system $A = (\textit{State}, \Delta, \sigma_0)$ is
+
+We say that a transition system
+$A = (\textit{State}, \Delta, \sigma_0, \textit{err}, \textit{term})$
+is
 \emph{error-free} if
 \[
-	\forall (l, g) \in \textit{State}. \ \sigma_0 \longrightarrow^* (l, g)
+	\forall\, (l, g) \in \textit{State}. \ \sigma_0 \longrightarrow^* (l, g)
 	\implies \forall p \in \mathcal{P}.\ \neg\,\textit{err}(l(p));
 \]
 that is, if for any state $\sigma$ reachable from the initial state
@@ -332,7 +351,7 @@ $\sigma_0$, no thread in $\sigma$ is in an error state.
 
 We say that a transition system is deadlock-free if
 \[
-	\forall (l, g) \in \textit{State}. \;\sigma_0 \longrightarrow^* (l, g)
+	\forall\, (l, g) \in \textit{State}. \;\sigma_0 \longrightarrow^* (l, g)
 	\implies \neg \exists t \in \mathcal{T}.\;
 		\exists\sigma' \in \textit{State}.\;(l, g) \longrightarrow \sigma'
 	\implies \forall p \in \mathcal{P}.\;\textit{val}(l(p));
@@ -367,7 +386,7 @@ but a separate algorithms for each property are presented
 below for clarity.
 
 \subsubsection{Detecting Errors}
-For example, when deciding whether the transition system
+When deciding whether the transition system
 is error-free, we have
 \[
 	\Phi((l, g)) = \forall p \in \mathcal{P}.\; \neg\,err(l(p)),
@@ -378,8 +397,8 @@ state encountered, beginning with $\sigma_0$, first $\Phi$
 is checked to hold, then recursive calls implement a
 depth-first search of the reachable state space.
 
-\begin{algorithm} \caption{Deciding if a transition system is error-free}
-	\label{simple-error-free} \begin{algorithmic}[1]
+\begin{figure}
+	\begin{algorithmic}[1]
 	\Procedure{SimpleErrorFree}{$\sigma$}
 	\Let{(l, g)}{$\sigma$}
 	\ForAll{$p \in \mathcal{P}$}
@@ -395,7 +414,10 @@ depth-first search of the reachable state space.
 	\EndProcedure
 	\State
 	\State Initially: $\textsc{SimpleErrorFree}(\sigma_0)$
-\end{algorithmic} \end{algorithm}
+	\end{algorithmic}
+	\caption{Algorithm deciding if a transition system is error-free}
+	\label{simple-error-free}
+\end{figure}
 
 \subsubsection{Detecting Deadlocks}
 For example, when deciding whether the transition system
@@ -411,8 +433,8 @@ checked whether the state has any transitions that can be executed. If not, then
 $\Phi$ is checked to hold, else as above, recursive calls implement a
 depth-first search of the reachable state space.
 
-\begin{algorithm} \caption{Deciding if a transition system is deadlock-free}
-	\label{simple-deadlock-free} \begin{algorithmic}[1]
+\begin{figure}
+	\begin{algorithmic}[1]
 		\Procedure{SimpleDeadlockFree}{$\sigma$}
 		\Let{(l, g)}{$\sigma$}
 		\Let{SuccessorStates}{$\{\sigma' \mid \sigma \xrightarrow{t}
@@ -435,7 +457,9 @@ depth-first search of the reachable state space.
 		\State
 		\State Initially: $\textsc{SimpleDeadlockFree}(\sigma_0)$
 	\end{algorithmic}
-\end{algorithm}
+	\caption{Algorithm deciding if a transition system is deadlock-free}
+	\label{simple-deadlock-free}
+\end{figure}
 
 \subsection{Partial-Order Reduction}
 \textbf{To address the state space problem,
@@ -468,7 +492,7 @@ all $(t_1, t_2) \in I$:
 		$\sigma \xrightarrow{t_2} \sigma_2 \xrightarrow{t_1} \sigma'$.
 \end{enumerate}
 
-\begin{figure}
+\begin{figure}[h]
 	\centering
 	\begin{subfigure}{\textwidth}
 		\centering
@@ -529,7 +553,7 @@ independent with every transition in $T$.
 \begin{figure}[h]
 	\centering
 	\includegraphics[height=9cm]{persistent1}
-	\caption{An example state space, for
+	\caption{Diagram of an example state space, for
 		the illustration of persistent sets.}
 	\label{fig:persistent}
 \end{figure}
@@ -566,31 +590,36 @@ to explore transitions from the persistent sets of the states we
 encounter.
 
 \subsubsection{Sleep Sets}
-\textbf{Introduce ideas behind and theory of sleep sets.}
 
 Another technique for addressing the state explosion
 problem is that of \emph{sleep sets}. Suppose that
-we are at state $\sigma$ when performing a search
-of the state space. Suppose that the first transition
-we explore is $t_1$, and the second is $t_2$, and
-that $\sigma \xrightarrow{t_2} \sigma'$. If
-$t_1$ and $t_2$ are independent, then in
-$\sigma'$, $t_1$ will be enabled, and as
-$t_1$ and $t_2$ are commutative, exploring
-$t_1$ from $\sigma'$ is exploring a part
-of the state space that we have already explored
-(when we explored $t_1$ from $\sigma$, we will
-have explored $t_2$ from the state after $\sigma$).
-There is therefore no need to explore $t_1$ from
-$\sigma'$.
+we are at state $\sigma_0$ when performing a search
+of the state space (see figure~\ref{fig:sleep}).
+Suppose that the first transition
+we explore is $t_1$, reaching $\sigma_1$,
+and the second is $t_2$, reaching $\sigma_2$.
+If $t_1$ and $t_2$ are independent, then there
+is a state $\sigma'$ reachable by both
+$\sigma \xrightarrow{t_1} \sigma_1
+\xrightarrow{t_2} \sigma'$ and
+$\sigma \xrightarrow{t_2} \sigma_2
+\xrightarrow{t_1} \sigma'$.
+Any deadlock state reachable from $\sigma'$
+is reachable from $\sigma_1$, as $\sigma_1$
+is reachable from $\sigma'$. By assumption,
+when the search is at $\sigma_2$, we have already
+explored all the deadlock states reachable from
+$\sigma_1$ (the dotted area in figure~\ref{fig:sleep}),
+in particular those reachable from
+$\sigma'$. Therefore, there is no need to
+explore $t_1$ from $\sigma_2$.
 
 In fact, there is no need to consider executing
-$t_1$ in our recursive exploration from $\sigma'$
+$t_1$ in our recursive exploration from $\sigma_2$
 until we execute some transition $t'$ which is
-\emph{not} independent of $t_1$, as following
+\emph{not} independent of $t_1$, as after
 the execution of $t'$, exploring $t_1$ may
-now lead to states which have not yet been
-explored and therefore cannot be ignored.
+now lead to an unexplored area of the state space.
 
 A \emph{sleep set} for a particular state
 is then the set of transitions which, when
@@ -598,13 +627,18 @@ explored, is guaranteed by the above
 argument to lead to an already-explored
 section of the state space. The technique of
 sleep sets is orthogonal to the technique
-of persisent sets (i.e. they don't interact;
-they can both be used at the same time
-with no extra difficulties).
+of persistent sets -- there is no interaction
+between the two techniques, so implementing
+both simultaneously can be achieved with
+no extra difficulty.
 
-\textbf{Use pictures to explain this,
-and also include algorithm showing how
-sleep sets are computed.}
+\begin{figure}[h]
+	\centering
+	\includegraphics[height=8cm]{sleep}
+	\caption{Diagram illustrating of the theory
+		of sleep sets.}
+	\label{fig:sleep}
+\end{figure}
 
 \section{Dynamic Partial-Order Reduction}
 \textbf{This section introduces the DPOR
@@ -724,45 +758,48 @@ at some point before $\textit{last}(\hat{\pi})$.
 
 \subsection{The Algorithm}
 
-\begin{algorithm} \caption{Dynamic Partial-Order Reduction}
-	\label{dpor-outline} \begin{algorithmic}[1]
-		\Procedure{Explore}{$\pi$}
-		\Let{$\sigma$}{$\textit{last}(\pi)$}
-		\ForAll{$p \in \mathcal{P}$}
+\begin{figure}
+		\begin{algorithmic}[1]
+			\Procedure{Explore}{$\pi$}
+			\Let{$\sigma$}{$\textit{last}(\pi)$}
+			\ForAll{$p \in \mathcal{P}$}
 			\Let{$R_1$}{$\{i \in \textit{dom}(\pi) \mid
 				\pi_i \text{ is dependent with } \textit{next}(\pi, p)\}$}
 			\Let{$R_2$}{$\{i \in R_1 \mid
 				\pi_i \text{ may be co-enabled with } \textit{next}(\pi, p)\}$}
 			\Let{$R_3$}{$\{i \in R_2 \mid (i, p)\!\not \hookrightarrow_\pi\}$}
 			\If{$R_3 \neq \emptyset$}
-				\Let{$i$}{$\text{max}(R_3)$}
-				\Let{$E$}{$\{q \in \textit{enabled}(\textit{pre}(\pi, i)) \mid
-					q = p \vee \exists j \in \textit{dom}(\pi).\; j > i \wedge
-					q = \textit{proc}(\pi_j) \wedge (j, p)\hookrightarrow_\pi
-					\}$}
-				\If{$E \neq \emptyset$}
-					add any $q \in E$ to $\textit{backtrack}(\textit{pre}(\pi, i))$
-				\Else {
-					add all $q \in \textit{enabled}(\textit{pre}(\pi, i))$
-					to $\textit{backtrack}(\textit{pre}(\pi, i))$
-				} \EndIf
+			\Let{$i$}{$\text{max}(R_3)$}
+			\Let{$E$}{$\{q \in \textit{enabled}(\textit{pre}(\pi, i)) \mid
+				q = p \vee \exists j \in \textit{dom}(\pi).\; j > i \wedge
+				q = \textit{proc}(\pi_j) \wedge (j, p)\hookrightarrow_\pi
+				\}$}
+			\If{$E \neq \emptyset$}
+			add any $q \in E$ to $\textit{backtrack}(\textit{pre}(\pi, i))$
+			\Else {
+				add all $q \in \textit{enabled}(\textit{pre}(\pi, i))$
+				to $\textit{backtrack}(\textit{pre}(\pi, i))$
+			} \EndIf
 			\EndIf
-		\EndFor
-		\If{$\exists p \in \textit{enabled}(\pi)$}
+			\EndFor
+			\If{$\exists p \in \textit{enabled}(\pi)$}
 			\Let{$p$}{any $p \in \textit{enabled}(\pi)$}
 			\Let{$\textit{backtrack}(\sigma)$}{$\{p\}$}
 			\Let{$\textit{done}(\sigma)$}{$\emptyset$}
 			\While{$\exists q \in (\textit{backtrack}(\sigma)\setminus\textit{done}(\sigma))$}
-				\Let{$\pi'$}{$\pi.\textit{next}(\sigma,q)$}
-				\State $\textsc{Explore}(\pi')$
-				\State add $q$ to $\textit{done}(\sigma)$
+			\Let{$\pi'$}{$\pi.\textit{next}(\sigma,q)$}
+			\State $\textsc{Explore}(\pi')$
+			\State add $q$ to $\textit{done}(\sigma)$
 			\EndWhile
-		\EndIf
-		\EndProcedure
-		\State
-		\State Initially: $\textsc{Explore}(\emptyset)$
-	\end{algorithmic}
-\end{algorithm}
+			\EndIf
+			\EndProcedure
+			\State
+			\State Initially: $\textsc{Explore}(\emptyset)$
+		\end{algorithmic}
+	\caption{The DPOR algorithm}
+	\label{dpor-outline} 
+\end{figure}
+
 
 \chapter{Implementation}
 \textbf{This chapter explains how the mathematical
@@ -818,7 +855,8 @@ passed to a functor to give a new structure.
 			are generated using the functors.}
 		\label{fig:functors}
 	\end{subfigure}
-	\caption{The interactions between the software modules.}
+	\caption{Diagrams showing the interactions between
+		the software modules.}
 	\label{fig:design}
 \end{figure}
 
@@ -1178,9 +1216,17 @@ model checking algorithms.
 
 
 \section{Simple Model Checker}
-\textbf{This section explains how the simple model
-	checker presented in the previous chapter was
-	implemented in practice}
+
+In order to ensure the correctness of my implementation
+of the DPOR algorithm, to have a baseline to use
+for performance comparison, and to reaffirm my understanding
+of the implementation of model checking, I first wrote the
+SimpleChecker functor, which takes an implementation of
+\emph{Program} as its input, and outputs a structure
+which includes the definition of
+a function that performs model checking by performing
+an exhaustive depth-first search of the state space --
+the simplest possible model checking algorithm.
 
 Include why \texttt{check local} was put in Thread.
 
@@ -1304,7 +1350,7 @@ as a graph maybe.
 \begin{figure}	
 	\lstinputlisting[firstline=39,lastline=57]{prog.ml}
 	\caption{The function giving the partial order from
-		a given transition sequence}
+		a given transition sequence.}
 \end{figure}
 
 \chapter{Evaluation}
