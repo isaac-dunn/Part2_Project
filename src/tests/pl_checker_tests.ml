@@ -621,6 +621,84 @@ module PLCorrectnessTest (Chk :
              done";
         |], [("d", Integer 0); ("n", Integer 9)], (true, true));
 
+        (* Test 40 *)
+        (* Fig. 10 from Cartesian POR by Gueta et al. *)
+        (let n = 64 in
+        ([| "let N = " ^ (string_of_int n) ^ " in
+             let A = " ^ (array_pl_fun n
+                (fun i -> "Garray"^(string_of_int i))) ^ " in
+             while !Gidx0 < N do
+                lock SLatom;
+                let read = !Gidx0 in
+                if cas(A @ read, !(A @ read), !Gcounter + read)
+                then cas(Gidx0, read, read + 2); unlock SLatom
+                else error(has lock so no interruptions expected) 
+            done;
+            lock SLatom;
+            let read = !Gcounter in
+            cas(Gcounter, read, read + 1 + !Gidx1);
+            if !Gcounter > 2*N + 4
+            then error(assertion fail)
+            else unlock SLatom";
+            "let N = " ^ (string_of_int n) ^ " in
+             let A = " ^ (array_pl_fun n
+                (fun i -> "Garray"^(string_of_int i))) ^ " in
+             while !Gidx1 < N do
+                lock SLatom;
+                let read = !Gidx1 in
+                if cas(A @ read, !(A @ read), !Gcounter + read)
+                then cas(Gidx1, read, read + 2); unlock SLatom
+                else error(has lock so no interruptions expected) 
+            done;
+            lock SLatom;
+            let read = !Gcounter in
+            cas(Gcounter, read, read + 1 + !Gidx0);
+            if !Gcounter > 2*N + 4
+            then error(assertion fail)
+            else unlock SLatom";
+        |], [("idx0", Integer 0); ("idx1", Integer 1);
+             ("counter", Integer 1); ("atom", Boolean false);]
+            @ (array_store n (fun i -> "array"^(string_of_int i)))
+                    (fun _ -> Integer 0), (true, true)));
+
+        (* Test 41 *)
+        (* Dining Philosophers Unsolved *)
+        (let n = 4 in
+         let test41_thread i =
+            "lock SL" ^ (string_of_int i) ^ ";
+             lock SL" ^ (string_of_int 
+                (if i = 0 then (n-1) else i-1)) ^ ";
+             unlock SL" ^ (string_of_int
+                (if i = 0 then (n-1) else i-1)) ^ ";
+             unlock SL" ^ (string_of_int i) in
+         ((Array.init n test41_thread),
+            array_store n (fun i -> (string_of_int i))
+                (fun _ -> Boolean false),
+          (true, false)));
+
+        (* Test 42 *)
+        (* Dining Philosophers Solved *)
+        (let n = 2 in
+         let test42_thread i =
+            "let i = " ^ (string_of_int i) ^ " in
+             if i % 2 = 0 then
+                lock SL" ^ (string_of_int i) ^ ";
+                lock SL" ^ (string_of_int
+                    (if i = 0 then (n-1) else i-1)) ^ ";
+                unlock SL" ^ (string_of_int
+                    (if i = 0 then (n-1) else i-1)) ^ ";
+                unlock SL" ^ (string_of_int i) ^ "
+             else
+                lock SL" ^ (string_of_int
+                    (if i = 0 then (n-1) else i-1)) ^ ";
+                lock SL" ^ (string_of_int i) ^ ";
+                unlock SL" ^ (string_of_int i) ^ ";
+                unlock SL" ^ (string_of_int
+                    (if i = 0 then (n-1) else i-1)) in
+         ((Array.init n test42_thread),
+            array_store n (fun i -> (string_of_int i))
+                (fun _ -> Boolean false),
+          (true, true)));
     ]
 
     let call_counter = ref 0
