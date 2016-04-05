@@ -1506,7 +1506,54 @@ conditions are notoriously difficult to find
 using conventional tests, techniques such
 as partial-order reduction allow model
 checking of such systems with reasonable
-efficiency. 
+efficiency.
+
+\subsection{Evidence for Soundness}
+Nevertheless, the more evidence that
+can be given for the soundness of an
+implementation, the more confidence
+can be taken in its soundness, meaning
+it is more likely to accept only
+error-free and deadlock-free programs,
+and find an error or deadlock state
+if one exists. This section gives
+some evidence that my implementations
+of the algorithms are sound.
+
+\subsubsection{Tests}
+As part of the development process,
+I wrote over forty test cases, each 
+consisting of a transition system
+represented as a PL program, and
+the expected
+$(\textit{error-free},\, \textit{deadlock-free})$
+result of model checking that program.
+Running an implementation of a model
+checking algorithm on the program should
+give the expected result: if not, then
+either the result I expected was wrong
+(usually due to an incorrect encoding
+of the transition system in PL),
+or the implementation was incorrect.
+To ensure the former was not a possibility,
+I used the Simple model checker, whose
+correctness I have confidence in due
+to its simplicity, to check that the
+result I expected was in fact the
+result that a correct implementation
+should give.
+
+\subsubsection{Examination of Source Code}
+Programming in a high-level language such as
+OCaml allowed me to keep the source code
+relatively simple, and write it in such
+a way that the correspondence between
+the published pseudocode for an algorithm
+and my source code implementing it was
+as simple as possible, so that it
+is easier to convince yourself that
+some part of my source code correctly
+implements the published algorithm.
 
 \section{Performance}
 \textbf{This section compares the
