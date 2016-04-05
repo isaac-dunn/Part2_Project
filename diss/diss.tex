@@ -1296,30 +1296,66 @@ Solution: pass around Boolean stating whether or not the transition
 is enabled.
 
 \section{Stateful Model Checking}
-\textbf{Keeping track of already-visited states.}
+When explored a state space, the same state may be
+encountered twice. However, the part of the state
+space from that state onwards need only be explored
+once. An obvious technique for improving the
+time complexity of a model checking algorithm
+at the cost of using extra space is to notice
+when we visit a state twice, by making a note
+of which states we have explored.
 
 \subsection{Simple Model Checker}
 \textbf{Straight-forward implementation for simple
 	checker. Give new algorithm.}
 
-When searching through state space, the same state is often
-re-encountered. Idea: keep track of visited states, and don't bother
-re-exploring from those we have already explored.
+Applying this technique to the Simple model
+checking algorithm is straightforward: whenever
+we visit a state, add it to some data structure,
+then don't re-explore those states which are
+present in that data structure. As the operations
+of checking if a state is in the data structure
+and of adding a state to the data structure will
+be used at every state visited, we would like them
+to be as efficient as possible. The typical costs
+for these operations for a hash table are both
+constant, so I used the OCaml library implementation
+of hash tables for this function.
+
+The pseudocode for the Simple model checking
+algorithm with this technique applied is given
+in \textbf{FIGURE TO DO}.
 
 \subsection{Dynamic Partial-Order Reduction}
-\textbf{Applying ideas to DPOR. Why na\"{i}ve
-	approach doesn't work; the solution.}
+Although it is not obvious, na\"{\i}vely
+applying this technique results in an
+unsound model checking algorithm. Instead,
+a new algorithm, SDPOR, is used.
 
 \subsubsection{Na\"{\i}ve Approach}
 \textbf{What this approach is; why it doesn't
 	work; example.}
 
-The same approach can be applied to
-the DPOR algorithm -- whenever we
-encounter a state from which we have already
-explored, return immediately because we
-already know the result. However, this
-na\"ive algorithm is unfortunately unsound.
+Suppose that we applied the approach
+given above to the DPOR algorithm,
+resulting in the pseudocode in \textbf{FIGURE TO DO}.
+The following example shows that the resulting
+algorithm is not sound.
+
+\begin{figure}
+	\begin{subfigure}{\textwidth}
+		\includegraphics[width=\textwidth]{sdpor}
+	\end{subfigure}
+	\begin{subfigure}{\textwidth}
+		Thread 0: $x := x \times 2; x := x + 1$ \\
+		Thread 1: $x := x \times 3; x := x + 4$
+	\end{subfigure}
+	\caption{SDPOR motivation}
+	\label{fig:sdpor-motivation}
+\end{figure}
+
+
+
 
 \subsubsection{Stateful Dynamic Partial-Order Reduction}
 \textbf{Present SDPOR algorithm.}
