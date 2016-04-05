@@ -1334,7 +1334,7 @@ Use visible operation dependency graph.
 \subsection{Simple Model Checker}
 \subsection{DPOR}
 
-\section{Counter-Example Traces}
+\section{Counter-Example Traces} \label{sec:traces}
 
 One of the advantages of model checking as
 a formal method is that, in the case that
@@ -1373,31 +1373,140 @@ as a graph maybe.
 \end{figure}
 
 \chapter{Evaluation}
-\textbf{This chapter presents evidence
-	for the correctness of the
-	algorithm implementations in the
-	project, and evaluates their
-	performance.}
+
+This chapter discusses the soundness
+of the implementation of the model checking
+algorithms, and analyses the performances
+of both the model checking algorithms and
+my implementations of them.
 
 \section{Soundness}
-\textbf{This section gives references
-	proving the soundness of the underlying
-	algorithm, then gives evidence that my
-	implementation is a sound implementation
-	of the theoretical algorithm.}
 
-\textbf{Is it best to be honest about the
-	possibility of incorrectness, or just
-	to persuade that everything is sound?}
+\begin{center}
+	\textit{But who will guard the guards themselves?} \\
+	\qquad\qquad\qquad --- Juvenal, \textit{Satire VI}
+\end{center}
 
-\subsection{PL Interpreter}
-\subsection{Simple Model Checker}
-\subsection{DPOR}
-\subsection{Stateful Checking}
-\subsubsection{Simple}
-\subsubsection{DPOR}
-\subsection{Sleep Sets}
-\subsection{Counter-Example Traces}
+Even though the algorithms
+used in this project have all be proved sound \textbf{REFS},
+there is no guarantee that my implementation
+is therefore also sound, just because it
+\emph{claims} to implement them; the isomorphism
+between mathematical concepts in a research paper
+and the manipulation of bits by a computer
+is complex enough that bugs in the
+implementation are more than just possible.
+Even if another system was used to formally verify
+the project, the obligation to trust
+a software program would still remain,
+not to mention the compiler, operating
+system and hardware that any execution
+of the program must use to run.
+
+Given that it is all but impossible to
+be fully convinced of its soundness,
+what use is a model checking
+system? If it might be unsound, then surely
+none of its results can be trusted,
+rendering it useless?
+
+\subsection{Applications of Model Checking}
+A model checking system does not have to be
+formally proven to be sound to be of practical use.
+
+\subsubsection{Proof as a Social Process}
+\begin{itemize}
+	\item Formal proofs aren't that great
+	\item Proof is a social process whereby
+	people become convinced of something
+	\item In this case, convinced of its
+	soundness by use over time and by
+	examining source code and its
+	relationship to published algorithms
+	\item Particularly useful is using
+	multiple systems to verify same code;
+	it can be argued that if they agree
+	then it is more likely that they are
+	all correct than that they share the
+	same implementation bugs.
+\end{itemize}
+\subsubsection{Unsound Systems Are Useful}
+\begin{itemize}
+	\item Even if a system isn't fully sound,
+	it can certainly still be of practical use
+	\item Errors localised, so can just consider
+	a system which forbids use of that language
+	feature
+	\item Actually other aspects like efficiency
+	and usability more important: a partially-sound
+	system is still useful, but an unusable or
+	really inefficient system is not
+	\item Can still provide traces, which are
+	the main advantage of model checking
+\end{itemize}
+\subsubsection{Model Checking as Rigorous Testing}
+Advantages clear if thought of as rigorous
+testing
+\begin{itemize}
+	\item Code coverage
+	\item Fully automatic, not ad hoc
+	\item Concurrency bugs
+	\item Efficient (POR)
+	\item Very useful traces; minimise detective work
+\end{itemize}
+
+\begin{center}
+	*******
+\end{center}
+
+Although a model checking  program does not present
+the user with any proof its claims when
+it says ``I have checked the program you
+gave me and it has no errors or deadlocks",
+if it instead finds an error or deadlock state
+in the system, its ability to present the
+user with an example execution leading
+to that state (cf. section~\ref{sec:traces})
+is immensely useful in practice. As well
+as identifying a previously-undiscovered
+bug, showing the circumstances in which
+the bug can arise gives an insight into
+the bug which immediately puts the
+developer on the track to
+understanding and fixing it.
+
+Therefore, even a model checking system that
+is known to be unsound can be very worthwhile.
+Suppose that there was a bug in my implementation
+of recursive functions in PL -- the system can
+still be fully utilised on any program (or
+subprogram) which does not use recursion.
+Thought of as an almost-watertight barrage
+of ordinary tests, the power of automatic
+model checking shines. With no human input
+in the model checking process (unlike some
+other formal methods, such as theorem
+proving), the system checks the behaviour
+of its inputs with full ``code coverage",
+using techniques such as partial-order
+reduction to do so as efficiently as possible.
+
+While conventional testing provides limited
+code coverage, model checking checks every
+possible system behaviour; while 
+many \textit{ad hoc} tests must
+be handwritten for each program that
+needs testing, model checking is fully automatic
+and general;
+while much detective work is often required to find
+the bug following failure of a unit test,
+model checking provides a clue leading straight to
+the bug; and while concurrency bugs and race
+conditions are notoriously difficult to find
+using conventional tests, techniques such
+as partial-order reduction allow model
+checking of such systems with reasonable
+efficiency. 
 
 \section{Performance}
 \textbf{This section compares the
