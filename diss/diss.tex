@@ -1518,6 +1518,48 @@ efficiency.
 	programs. Comparison can be made with
 	published figures.}
 
+\begin{itemize}
+	\item The performance depends strongly
+	on the program being checked, so that
+	analysing is difficult: there is no
+	obvious ``average case"
+	\item We will instead use several
+	benchmarks published in the literature
+	for analysis of model checking performance
+	\item As well as comparing the various
+	algorithms to each other, I will also
+	compare with published results
+	\item Transitions are one measure of
+	performance: the reduction in the size
+	of the state space is a property of the
+	algorithm, not the implementation, 
+	assuming the implementation is correct
+	\item (In fact transitions can therefore
+	be used as evidence for correctness)
+	\item Execution time is another measure
+	of performance: the relationship between
+	execution time and transitions explored
+	gives information about both the
+	intrinsic complexity of the algorithm
+	and specifically the efficiency of my
+	implementation. Separating these two
+	aspects will be done below.
+	\item Analysis will be done of the above
+	things as a function of number of threads,
+	and amount of computation in each thread.
+\end{itemize}
+
+\subsection{Reduction of State Space Searched}
+\subsubsection{Comparison with Each Other}
+Here, we will analyse the reduction in the size of the
+state space that each model checking algorithm
+offers in comparison to the simple model checker.
+\subsubsection{Comparison with Published Results}
+
+\subsection{Execution Times of Model Checking}
+\subsubsection{Comparison with Each Other}
+\subsubsection{Comparison with Published Results}
+
 \chapter{Conclusions}
 
 \textbf{This chapter makes some
