@@ -1296,36 +1296,128 @@ Solution: pass around Boolean stating whether or not the transition
 is enabled.
 
 \section{Stateful Model Checking}
-\textbf{Keeping track of already-visited states.}
+When explored a state space, the same state may be
+encountered twice. However, the part of the state
+space from that state onwards need only be explored
+once. An obvious technique for improving the
+time complexity of a model checking algorithm
+at the cost of using extra space is to notice
+when we visit a state twice, by making a note
+of which states we have explored.
 
 \subsection{Simple Model Checker}
 \textbf{Straight-forward implementation for simple
 	checker. Give new algorithm.}
 
-When searching through state space, the same state is often
-re-encountered. Idea: keep track of visited states, and don't bother
-re-exploring from those we have already explored.
+Applying this technique to the Simple model
+checking algorithm is straightforward: whenever
+we visit a state, add it to some data structure,
+then don't re-explore those states which are
+present in that data structure. As the operations
+of checking if a state is in the data structure
+and of adding a state to the data structure will
+be used at every state visited, we would like them
+to be as efficient as possible. The typical costs
+for these operations for a hash table are both
+constant, so I used the OCaml library implementation
+of hash tables for this function.
+
+The pseudocode for the Simple model checking
+algorithm with this technique applied is given
+in \textbf{FIGURE TO DO}.
 
 \subsection{Dynamic Partial-Order Reduction}
-\textbf{Applying ideas to DPOR. Why na\"{i}ve
-	approach doesn't work; the solution.}
+Although it is not obvious, na\"{\i}vely
+applying this technique results in an
+unsound model checking algorithm. Instead,
+a new algorithm, SDPOR, is used.
 
 \subsubsection{Na\"{\i}ve Approach}
 \textbf{What this approach is; why it doesn't
 	work; example.}
 
-The same approach can be applied to
-the DPOR algorithm -- whenever we
-encounter a state from which we have already
-explored, return immediately because we
-already know the result. However, this
-na\"ive algorithm is unfortunately unsound.
+Suppose that we applied the approach
+given above to the DPOR algorithm,
+resulting in the pseudocode in \textbf{FIGURE TO DO}.
+The following example shows that the resulting
+algorithm is not sound.
+
+Consider the execution of the algorithm on example
+ shown in figure~\ref{fig:sdpor-motivation},
+at the stage when all the stages in grey have been
+explored and so are present in the hash table,
+and the current transition sequence is the first
+transition of thread 1 followed by the first
+transition of thread 0. As this stage, the state
+with the bold outline is encountered, which is
+present in the hash table, so no exploration is
+made, and as no backtracking points have been added
+at either of the previous stages, the algorithm
+terminates. However, this leaves part of the state
+space entirely unexplored (the dotted section in
+the diagram), meaning that the algorithm is unsound:
+any error or deadlock in a dotted state would go
+undetected.
+
+The reason for the unsoundness is the failure to
+introduce backtracking points when necessary. If the
+search had not been cut short, then a backtracking point
+would have been added in the second state, causing the
+dotted section to be explored.
+
+\begin{figure}
+	\begin{subfigure}{\textwidth}
+		\includegraphics[width=\textwidth]{sdpor}
+	\end{subfigure}
+	\begin{subfigure}{\textwidth}
+		Thread 0: $x := x \times 2; x := x + 1$ \\
+		Thread 1: $x := x \times 3; x := x + 4$
+	\end{subfigure}
+	\caption{SDPOR motivation}
+	\label{fig:sdpor-motivation}
+\end{figure}
+
+
+
 
 \subsubsection{Stateful Dynamic Partial-Order Reduction}
-\textbf{Present SDPOR algorithm.}
+The most obvious solution to this problem is to simply
+add all possible backtracking points whenever we cut
+short a search. Although this does guarantee that all
+necessary backtracking points are added (and therefore
+that the algorithm is sound), in practice, the cost
+of exploring \emph{all} possible previous backtracking points
+dominates the benefit of cutting short searches when we
+encounter an already-visited state. To make use of this
+technique, we need a method of conservatively deciding which
+backtracking points must be added for soundness, but not
+so conservatively that all practical benefits are lost.
 
-Idea: conservatively add in necessary points to backtrack sets.
-Use visible operation dependency graph.
+One such method is to use a \emph{visible operation dependency
+graph}, and its use was proposed by \textbf{names} in an
+algorithm which I will refer to as Stateful Dynamic Partial-
+Order Reduction (SDPOR). The idea is that, when we first explore
+a section of the state space, we keep track of the visible operations
+that may be executed, so that if we encounter that section again,
+we can cut short the search, and use our knowledge of the
+visible operations that may be executed if the search was
+to continue to add backtracking points as necessary.
+
+In particular, a \emph{visible operation dependency
+graph} is a graph $G = \langle V, E \rangle$ whose
+nodes represent visible operations, and whose edges
+represent the ordering of those transitions; whenever
+a transition sequence of the form
+$\sigma_1 \xrightarrow{t} \sigma_2 \xrightarrow{t'}
+ \sigma_3$
+is encountered in a search of the state space, the
+edge $(t, t')$ is added to the visible operation
+dependency graph $G$. Then, when a state $\sigma$ is
+encountered which has already been explored on the
+search, the set
+$\{u \mid \exists t \in \textit{enabled}(\sigma).\;
+   u \text{ is reachable from node } t \text{ in graph } G\}$
+can be used to conservatively add backtracking points.
 
 \section{Sleep Sets}
 \textbf{Implementation of sleep
@@ -1334,7 +1426,7 @@ Use visible operation dependency graph.
 \subsection{Simple Model Checker}
 \subsection{DPOR}
 
-\section{Counter-Example Traces}
+\section{Counter-Example Traces} \label{sec:traces}
 
 One of the advantages of model checking as
 a formal method is that, in the case that
@@ -1367,37 +1459,193 @@ Then output it in a nice form, so we can display it
 as a graph maybe.
 
 \begin{figure}	
-	\lstinputlisting[firstline=39,lastline=57]{prog.ml}
+	\lstinputlisting[firstline=39,lastline=57]{../src/program.ml}
 	\caption{The function giving the partial order from
 		a given transition sequence.}
 \end{figure}
 
 \chapter{Evaluation}
-\textbf{This chapter presents evidence
-	for the correctness of the
-	algorithm implementations in the
-	project, and evaluates their
-	performance.}
+
+This chapter discusses the soundness
+of the implementation of the model checking
+algorithms, and analyses the performances
+of both the model checking algorithms and
+my implementations of them.
 
 \section{Soundness}
-\textbf{This section gives references
-	proving the soundness of the underlying
-	algorithm, then gives evidence that my
-	implementation is a sound implementation
-	of the theoretical algorithm.}
 
-\textbf{Is it best to be honest about the
-	possibility of incorrectness, or just
-	to persuade that everything is sound?}
+\begin{center}
+	\textit{But who will guard the guards themselves?} \\
+	\qquad\qquad\qquad --- Juvenal, \textit{Satire VI}
+\end{center}
 
-\subsection{PL Interpreter}
-\subsection{Simple Model Checker}
-\subsection{DPOR}
-\subsection{Stateful Checking}
-\subsubsection{Simple}
-\subsubsection{DPOR}
-\subsection{Sleep Sets}
-\subsection{Counter-Example Traces}
+Even though the algorithms
+used in this project have all be proved sound \textbf{REFS},
+there is no guarantee that my implementation
+is therefore also sound, just because it
+\emph{claims} to implement them; the isomorphism
+between mathematical concepts in a research paper
+and the manipulation of bits by a computer
+is complex enough that bugs in the
+implementation are more than just possible.
+Even if another system was used to formally verify
+the project, the obligation to trust
+a software program would still remain,
+not to mention the compiler, operating
+system and hardware that any execution
+of the program must use to run.
+
+Given that it is all but impossible to
+be fully convinced of its soundness,
+what use is a model checking
+system? If it might be unsound, then surely
+none of its results can be trusted,
+rendering it useless?
+
+\subsection{Applications of Model Checking}
+A model checking system does not have to be
+formally proven to be sound to be of practical use.
+
+\subsubsection{Proof as a Social Process}
+\begin{itemize}
+	\item Formal proofs aren't that great
+	\item Proof is a social process whereby
+	people become convinced of something
+	\item In this case, convinced of its
+	soundness by use over time and by
+	examining source code and its
+	relationship to published algorithms
+	\item Particularly useful is using
+	multiple systems to verify same code;
+	it can be argued that if they agree
+	then it is more likely that they are
+	all correct than that they share the
+	same implementation bugs.
+\end{itemize}
+\subsubsection{Unsound Systems Are Useful}
+\begin{itemize}
+	\item Even if a system isn't fully sound,
+	it can certainly still be of practical use
+	\item Errors localised, so can just consider
+	a system which forbids use of that language
+	feature
+	\item Actually other aspects like efficiency
+	and usability more important: a partially-sound
+	system is still useful, but an unusable or
+	really inefficient system is not
+	\item Can still provide traces, which are
+	the main advantage of model checking
+\end{itemize}
+\subsubsection{Model Checking as Rigorous Testing}
+Advantages clear if thought of as rigorous
+testing
+\begin{itemize}
+	\item Code coverage
+	\item Fully automatic, not ad hoc
+	\item Concurrency bugs
+	\item Efficient (POR)
+	\item Very useful traces; minimise detective work
+\end{itemize}
+
+\begin{center}
+	*******
+\end{center}
+
+Although a model checking  program does not present
+the user with any proof its claims when
+it says ``I have checked the program you
+gave me and it has no errors or deadlocks",
+if it instead finds an error or deadlock state
+in the system, its ability to present the
+user with an example execution leading
+to that state (cf. section~\ref{sec:traces})
+is immensely useful in practice. As well
+as identifying a previously-undiscovered
+bug, showing the circumstances in which
+the bug can arise gives an insight into
+the bug which immediately puts the
+developer on the track to
+understanding and fixing it.
+
+Therefore, even a model checking system that
+is known to be unsound can be very worthwhile.
+Suppose that there was a bug in my implementation
+of recursive functions in PL -- the system can
+still be fully utilised on any program (or
+subprogram) which does not use recursion.
+Thought of as an almost-watertight barrage
+of ordinary tests, the power of automatic
+model checking shines. With no human input
+in the model checking process (unlike some
+other formal methods, such as theorem
+proving), the system checks the behaviour
+of its inputs with full ``code coverage",
+using techniques such as partial-order
+reduction to do so as efficiently as possible.
+
+While conventional testing provides limited
+code coverage, model checking checks every
+possible system behaviour; while 
+many \textit{ad hoc} tests must
+be handwritten for each program that
+needs testing, model checking is fully automatic
+and general;
+while much detective work is often required to find
+the bug following failure of a unit test,
+model checking provides a clue leading straight to
+the bug; and while concurrency bugs and race
+conditions are notoriously difficult to find
+using conventional tests, techniques such
+as partial-order reduction allow model
+checking of such systems with reasonable
+efficiency.
+
+\subsection{Evidence for Soundness}
+Nevertheless, the more evidence that
+can be given for the soundness of an
+implementation, the more confidence
+can be taken in its soundness, meaning
+it is more likely to accept only
+error-free and deadlock-free programs,
+and find an error or deadlock state
+if one exists. This section gives
+some evidence that my implementations
+of the algorithms are sound.
+
+\subsubsection{Tests}
+As part of the development process,
+I wrote over forty test cases, each 
+consisting of a transition system
+represented as a PL program, and
+the expected
+$(\textit{error-free},\, \textit{deadlock-free})$
+result of model checking that program.
+Running an implementation of a model
+checking algorithm on the program should
+give the expected result: if not, then
+either the result I expected was wrong
+(usually due to an incorrect encoding
+of the transition system in PL),
+or the implementation was incorrect.
+To ensure the former was not a possibility,
+I used the Simple model checker, whose
+correctness I have confidence in due
+to its simplicity, to check that the
+result I expected was in fact the
+result that a correct implementation
+should give.
+
+\subsubsection{Examination of Source Code}
+Programming in a high-level language such as
+OCaml allowed me to keep the source code
+relatively simple, and write it in such
+a way that the correspondence between
+the published pseudocode for an algorithm
+and my source code implementing it was
+as simple as possible, so that it
+is easier to convince yourself that
+some part of my source code correctly
+implements the published algorithm.
 
 \section{Performance}
 \textbf{This section compares the
@@ -1408,6 +1656,48 @@ as a graph maybe.
 	while model checking various example
 	programs. Comparison can be made with
 	published figures.}
+
+\begin{itemize}
+	\item The performance depends strongly
+	on the program being checked, so that
+	analysing is difficult: there is no
+	obvious ``average case"
+	\item We will instead use several
+	benchmarks published in the literature
+	for analysis of model checking performance
+	\item As well as comparing the various
+	algorithms to each other, I will also
+	compare with published results
+	\item Transitions are one measure of
+	performance: the reduction in the size
+	of the state space is a property of the
+	algorithm, not the implementation, 
+	assuming the implementation is correct
+	\item (In fact transitions can therefore
+	be used as evidence for correctness)
+	\item Execution time is another measure
+	of performance: the relationship between
+	execution time and transitions explored
+	gives information about both the
+	intrinsic complexity of the algorithm
+	and specifically the efficiency of my
+	implementation. Separating these two
+	aspects will be done below.
+	\item Analysis will be done of the above
+	things as a function of number of threads,
+	and amount of computation in each thread.
+\end{itemize}
+
+\subsection{Reduction of State Space Searched}
+\subsubsection{Comparison with Each Other}
+Here, we will analyse the reduction in the size of the
+state space that each model checking algorithm
+offers in comparison to the simple model checker.
+\subsubsection{Comparison with Published Results}
+
+\subsection{Execution Times of Model Checking}
+\subsubsection{Comparison with Each Other}
+\subsubsection{Comparison with Published Results}
 
 \chapter{Conclusions}
 
