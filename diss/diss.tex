@@ -1342,6 +1342,29 @@ resulting in the pseudocode in \textbf{FIGURE TO DO}.
 The following example shows that the resulting
 algorithm is not sound.
 
+Consider the execution of the algorithm on example
+ shown in figure~\ref{fig:sdpor-motivation},
+at the stage when all the stages in grey have been
+explored and so are present in the hash table,
+and the current transition sequence is the first
+transition of thread 1 followed by the first
+transition of thread 0. As this stage, the state
+with the bold outline is encountered, which is
+present in the hash table, so no exploration is
+made, and as no backtracking points have been added
+at either of the previous stages, the algorithm
+terminates. However, this leaves part of the state
+space entirely unexplored (the dotted section in
+the diagram), meaning that the algorithm is unsound:
+any error or deadlock in a dotted state would go
+undetected.
+
+The reason for the unsoundness is the failure to
+introduce backtracking points when necessary. If the
+search had not been cut short, then a backtracking point
+would have been added in the second state, causing the
+dotted section to be explored.
+
 \begin{figure}
 	\begin{subfigure}{\textwidth}
 		\includegraphics[width=\textwidth]{sdpor}
@@ -1358,10 +1381,43 @@ algorithm is not sound.
 
 
 \subsubsection{Stateful Dynamic Partial-Order Reduction}
-\textbf{Present SDPOR algorithm.}
+The most obvious solution to this problem is to simply
+add all possible backtracking points whenever we cut
+short a search. Although this does guarantee that all
+necessary backtracking points are added (and therefore
+that the algorithm is sound), in practice, the cost
+of exploring \emph{all} possible previous backtracking points
+dominates the benefit of cutting short searches when we
+encounter an already-visited state. To make use of this
+technique, we need a method of conservatively deciding which
+backtracking points must be added for soundness, but not
+so conservatively that all practical benefits are lost.
 
-Idea: conservatively add in necessary points to backtrack sets.
-Use visible operation dependency graph.
+One such method is to use a \emph{visible operation dependency
+graph}, and its use was proposed by \textbf{names} in an
+algorithm which I will refer to as Stateful Dynamic Partial-
+Order Reduction (SDPOR). The idea is that, when we first explore
+a section of the state space, we keep track of the visible operations
+that may be executed, so that if we encounter that section again,
+we can cut short the search, and use our knowledge of the
+visible operations that may be executed if the search was
+to continue to add backtracking points as necessary.
+
+In particular, a \emph{visible operation dependency
+graph} is a graph $G = \langle V, E \rangle$ whose
+nodes represent visible operations, and whose edges
+represent the ordering of those transitions; whenever
+a transition sequence of the form
+$\sigma_1 \xrightarrow{t} \sigma_2 \xrightarrow{t'}
+ \sigma_3$
+is encountered in a search of the state space, the
+edge $(t, t')$ is added to the visible operation
+dependency graph $G$. Then, when a state $\sigma$ is
+encountered which has already been explored on the
+search, the set
+$\{u \mid \exists t \in \textit{enabled}(\sigma).\;
+   u \text{ is reachable from node } t \text{ in graph } G\}$
+can be used to conservatively add backtracking points.
 
 \section{Sleep Sets}
 \textbf{Implementation of sleep
