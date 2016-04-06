@@ -1366,12 +1366,17 @@ would have been added in the second state, causing the
 dotted section to be explored.
 
 \begin{figure}
+
 	\begin{subfigure}{\textwidth}
-		\includegraphics[width=\textwidth]{sdpor}
+		\begin{tabular}{lp{0cm}l}
+		Thread 0: && Thread 1: \\
+		\qquad\texttt{x := !x} $\times$ \texttt{2;}
+			&& \qquad\texttt{x := !x} $\times$ \texttt{3;} \\
+		\qquad\texttt{x := !x + 1} && \qquad\texttt{x := !x + 4}
+		\end{tabular}
 	\end{subfigure}
 	\begin{subfigure}{\textwidth}
-		Thread 0: $x := x \times 2; x := x + 1$ \\
-		Thread 1: $x := x \times 3; x := x + 4$
+		\includegraphics[width=\textwidth]{sdpor}
 	\end{subfigure}
 	\caption{SDPOR motivation}
 	\label{fig:sdpor-motivation}
