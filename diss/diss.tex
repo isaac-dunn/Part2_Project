@@ -782,38 +782,42 @@ either
 		\Procedure{Explore}{$\pi$}
 		\Let{$\sigma$}{$\textit{last}(\pi)$}
 		\ForAll{$p \in \mathcal{P}$}
-		\Let{$R_1$}{$\{i \in \textit{dom}(\pi) \mid
-			\pi_i \text{ is dependent with } \textit{next}(\pi, p)\}$}
-		\Let{$R_2$}{$\{i \in R_1 \mid
-			\pi_i \text{ may be co-enabled with } \textit{next}(\pi, p)\}$}
-		\Let{$R_3$}{$\{i \in R_2 \mid (i, p)\!\not \hookrightarrow_\pi\}$}
-		\If{$R_3 \neq \emptyset$}
-		\Let{$i$}{$\text{max}(R_3)$}
-		\Let{$E$}{$\{q \in \textit{enabled}(\textit{pre}(\pi, i)) \mid
-			q = p \vee \exists j \in \textit{dom}(\pi).\; j > i \wedge
-			q = \textit{proc}(\pi_j) \wedge (j, p)\hookrightarrow_\pi
-			\}$}
-		\If{$E \neq \emptyset$}
-		add any $q \in E$ to $\textit{backtrack}(\textit{pre}(\pi, i))$
-		\Else {
-			add all $q \in \textit{enabled}(\textit{pre}(\pi, i))$
-			to $\textit{backtrack}(\textit{pre}(\pi, i))$
-		} \EndIf
-		\EndIf
+			\State \Call{UpdateBacktrackSets}
+					{$\pi,\, \textit{next}(\sigma, p)$}
 		\EndFor
-		\If{$\exists p \in \textit{enabled}(\pi)$}
-		\Let{$p$}{any $p \in \textit{enabled}(\pi)$}
+		\If{$\textit{enabled}(\pi) \neq \emptyset$}
+		\Let{$t_{p,s}$}{any $t_{p,s} \in \textit{enabled}(\pi)$}
 		\Let{$\textit{backtrack}(\sigma)$}{$\{p\}$}
 		\Let{$\textit{done}(\sigma)$}{$\emptyset$}
-		\While{$\exists q \in (\textit{backtrack}(\sigma)\setminus\textit{done}(\sigma))$}
+		\While{$\textit{done}(\sigma)
+			 \neq \textit{backtrack}(\sigma)$}
+		\Let{$q$}{any $q \in (\textit{backtrack}(\sigma)
+			\setminus \textit{done}(\sigma))$}
 		\Let{$\pi'$}{$\pi.\textit{next}(\sigma,q)$}
-		\State $\textsc{Explore}(\pi')$
-		\State add $q$ to $\textit{done}(\sigma)$
+		\State add $q$ to $\textit{done}(\sigma);$
+		\State \Call{Explore}{$\pi'$}
+
 		\EndWhile
 		\EndIf
 		\EndProcedure
 		\State
-		\State Initially: $\textsc{Explore}(\emptyset)$
+		\Procedure{UpdateBacktrackSets}{$\pi,\, t_{p,s}$}
+			\Let{$D$}{$\{i \in \textit{dom}(\pi) \mid
+			\pi_i \text{ is dependent with } t_{p,s}
+			\text{ and } (i, p)\!\not \hookrightarrow_\pi \}$}
+			\If{$D \neq \emptyset$}
+			\Let{$\sigma_{\text{dep}}$}
+				{$\textit{pre}(\pi,\text{max}(D))$}
+			\If{$p \in \textit{enabled}(\sigma_{\text{dep}})$}
+			add $p$ to $\textit{backtrack}(\sigma_{\text{dep}})$
+			\Else {
+				add all of $\textit{enabled}(\sigma_{\text{dep}})$
+				to $\textit{backtrack}(\sigma_{\text{dep}})$
+			} \EndIf
+			\EndIf
+		\EndProcedure
+		\State
+		\State Initially: \Call{Explore}{$\emptyset$}
 	\end{algorithmic}
 	\caption{The DPOR algorithm}
 	\label{dpor-outline} 
