@@ -565,7 +565,7 @@ for all sequences of transitions
 	\sigma_1 \xrightarrow{\ t_1\ } \sigma_2 \xrightarrow{\ t_2\ } \ldots
 	\xrightarrow{t_{n-1}} \sigma_n,
 \]
-if for all $1 \leq i \leq n$, $t_i \not \in T$ then each $t_i$ is
+if for all $1 \leq i < n$, $t_i \not \in T$ then each $t_i$ is
 independent with every transition in $T$.
 
 \begin{figure}[h]
@@ -723,6 +723,13 @@ $\textit{last}(\pi) = \textit{last}(\pi')$. So swapping
 a pair of adjacent transitions results in the same
 final state if the transitions are independent.
 
+\begin{figure}
+	\centering
+	\includegraphics[width=\textwidth]{seqequiv}
+	\caption{Illustration}
+	\label{fig:sequence-equivalence}
+\end{figure}
+
 Such equivalent interleavings
 of transitions are precisely what we are interested in.
 We can think of a transition sequence as representing
@@ -770,8 +777,9 @@ say that $(i, p)\!\hookrightarrow_\pi$ if
 either
 \begin{enumerate}
 	\item $\textit{proc}(\pi_i) = p$; or
-	\item $\exists k \in \{k \ in \mathbb{N} \mid i < k < n\}.\;
-		i \longrightarrow_\pi k \wedge \textit{proc}(\pi_k) = p$.
+	\item $\exists k \in \mathbb{N}.\; i < k < n
+	\,\wedge\, \textit{proc}(\pi_k) = p
+	\,\wedge\, i \longrightarrow_\pi k $.
 \end{enumerate}
 
 
