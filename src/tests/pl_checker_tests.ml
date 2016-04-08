@@ -704,6 +704,16 @@ module PLCorrectnessTest (Chk :
                 (fun _ -> Boolean false),
           (true, true)));
 
+        (* Test 43 *)
+        (* Hopefully we will see the benefits of SPOR *)
+        ([|"cas(Gx, 0, 1)";
+           "cas(Gx, 0, 1)";
+           "cas(Gx, 0, 1)";
+           "cas(Gy, 0, 1)";
+           "cas(Gy, 0, 1)";
+           "cas(Gy, 0, 1)";
+        |], [("x", Integer 0); ("y", Integer 0)], (true, true));
+
     ]
 
     let run_test (es, g, (eef, edf)) =
