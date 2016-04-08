@@ -126,7 +126,7 @@ module PLCorrectnessTest (Chk :
                 done
             done" in
 
-        (Array.init 3 test13_thread, (intloc_array_zero_store 128),
+        (Array.init 1 test13_thread, (intloc_array_zero_store 128),
         (true, true)));
 
         (* Test 14 *)
@@ -322,7 +322,7 @@ module PLCorrectnessTest (Chk :
         (* Test 22 *)
         (* Use index 2k as mutex flag for index 2k+1 *)
         (let test22_thread n =
-            "let size = 6 in
+            "let size = 3 in
              let tid = " ^ (string_of_int (n+1)) ^ " in
              let table = " ^ (int_to_loc_str 128) ^ " in
              let i = ref 0 in
@@ -348,7 +348,7 @@ module PLCorrectnessTest (Chk :
 
         (* Test 23 *)
         (* Thread i sets indices j such that j === i (mod num_threads) *)
-        (let num_threads = 4 in
+        (let num_threads = 2 in
          let test23_thread n =
             "let size = 10 in
              let table = " ^ (int_to_loc_str 128) ^ " in
@@ -623,7 +623,7 @@ module PLCorrectnessTest (Chk :
 
         (* Test 40 *)
         (* Fig. 10 from Cartesian POR by Gueta et al. *)
-        (let n = 64 in
+        (let n = 3 in
         ([| "let N = " ^ (string_of_int n) ^ " in
              let A = " ^ (array_pl_fun n
                 (fun i -> "Garray"^(string_of_int i))) ^ " in
@@ -631,15 +631,17 @@ module PLCorrectnessTest (Chk :
                 lock SLatom;
                 let read = !Gidx0 in
                 if cas(A @ read, !(A @ read), !Gcounter + read)
-                then cas(Gidx0, read, read + 2); unlock SLatom
-                else error(has lock so no interruptions expected) 
+                then if cas(Gidx0, read, read + 2) then unlock SLatom
+                else error(has lock so no interruptions expected)
+                else error(has lock so no interruptions expected)
             done;
             lock SLatom;
             let read = !Gcounter in
-            cas(Gcounter, read, read + 1 + !Gidx1);
-            if !Gcounter > 2*N + 4
+            if cas(Gcounter, read, read + 1 + !Gidx1)
+            then (if !Gcounter > 2*N + 4
             then error(assertion fail)
-            else unlock SLatom";
+            else unlock SLatom)
+            else error(unexpectedly changed from read value)";
             "let N = " ^ (string_of_int n) ^ " in
              let A = " ^ (array_pl_fun n
                 (fun i -> "Garray"^(string_of_int i))) ^ " in
@@ -647,15 +649,17 @@ module PLCorrectnessTest (Chk :
                 lock SLatom;
                 let read = !Gidx1 in
                 if cas(A @ read, !(A @ read), !Gcounter + read)
-                then cas(Gidx1, read, read + 2); unlock SLatom
-                else error(has lock so no interruptions expected) 
+                then if cas(Gidx1, read, read + 2) then unlock SLatom
+                else error(has lock so no interruptions expected)
+                else error(has lock so no interruptions expected)
             done;
             lock SLatom;
             let read = !Gcounter in
-            cas(Gcounter, read, read + 1 + !Gidx0);
-            if !Gcounter > 2*N + 4
+            if cas(Gcounter, read, read + 1 + !Gidx0)
+            then (if !Gcounter > 2*N + 4
             then error(assertion fail)
-            else unlock SLatom";
+            else unlock SLatom)
+            else error(unexpectedly changed from read value)";
         |], [("idx0", Integer 0); ("idx1", Integer 1);
              ("counter", Integer 1); ("atom", Boolean false);]
             @ (array_store n (fun i -> "array"^(string_of_int i)))
@@ -699,6 +703,7 @@ module PLCorrectnessTest (Chk :
             array_store n (fun i -> (string_of_int i))
                 (fun _ -> Boolean false),
           (true, true)));
+
     ]
 
     let call_counter = ref 0
