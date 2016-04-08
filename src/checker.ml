@@ -233,9 +233,9 @@ module SPORChecker (Prog : Interfaces.Program) =
                 then (locs := union (locs_accsd i) !locs; pers := i::!pers)
             done
         done;
-        if List.for_all is_enabled !pers then (print_string"Y"; !pers) else
+        if List.for_all is_enabled !pers then !pers else
             let rec ntoz n = if n < 0 then [] else n::(ntoz (n-1)) in
-            (print_string"N"; ntoz (Array.length tds - 1))
+            ntoz (Array.length tds - 1)
 
     (* True iff error-free *)
     let rec check init_prog t_seq =
@@ -318,9 +318,9 @@ module SPORSleepChecker (Prog : Interfaces.Program) =
                 then (locs := union (locs_accsd i) !locs; pers := i::!pers)
             done
         done;
-        if List.for_all is_enabled !pers then (print_string"Y"; !pers) else
+        if List.for_all is_enabled !pers then !pers else
             let rec ntoz n = if n < 0 then [] else n::(ntoz (n-1)) in
-            (print_string"N"; ntoz (Array.length tds - 1))
+            ntoz (Array.length tds - 1)
 
     (* True iff error-free *)
     let rec check init_prog t_seq sleep_set =

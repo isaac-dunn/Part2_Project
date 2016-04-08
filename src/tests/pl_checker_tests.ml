@@ -126,7 +126,7 @@ module PLCorrectnessTest (Chk :
                 done
             done" in
 
-        (Array.init 1 test13_thread, (intloc_array_zero_store 128),
+        (Array.init 2 test13_thread, (intloc_array_zero_store 128),
         (true, true)));
 
         (* Test 14 *)
