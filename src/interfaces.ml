@@ -21,6 +21,9 @@ module type Expression = sig
     (** Returns true iff expression is a value *)
     val is_value : expr -> bool
 
+    (** Returns global locations accessible *)
+    val locations_accessed : expr -> loc list
+
     (** Substitutes first argument for outmost variable in second *)
     val substitute_outmost : expr -> expr -> expr
 
@@ -60,12 +63,17 @@ module type Store = sig
 
     (** Given store, gives location that maps to nothing in it *)
     val get_fresh_loc : store -> ExprImp.loc
+
+    (** Given store, gives all global locations in all stored expressions *)
+    val globals_stored : store -> ExprImp.loc list
 end
 
 (** Thread Interface *)
 module type Thread = sig
     module ExpImp : Expression
-    module StoreImp : Store
+    module StoreImp : (Store with
+        type ExprImp.expr = ExpImp.expr and
+        type ExprImp.loc = ExpImp.loc)
 
     (** A thread step is a new expression, optional updates to the stores, and
     * which global location, if any, was accessed *)
