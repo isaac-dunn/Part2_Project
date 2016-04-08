@@ -706,6 +706,8 @@ module PLCorrectnessTest (Chk :
 
     ]
 
+    let call_counter = ref 0
+
     let run_test (es, g, (eef, edf)) =
         C.max_depth := 0; C.calls := 0;
         let convert e = (Pl_parser.expr_of_string e, C.ProgImp.ThrImp.StoreImp.empty) in
@@ -722,6 +724,7 @@ module PLCorrectnessTest (Chk :
                         then print_string " (Unexpected deadlock)"
                         else print_string " (Unexpectedly deadlock-free)";
                     print_newline());
+        call_counter := !call_counter + !C.calls;
         print_endline (" Calls: " ^ (string_of_int !C.calls) ^ "\n"
         ^"  Time: " ^ (string_of_float
             (Sys.time() -. init_time)) ^ "\n"
@@ -731,13 +734,16 @@ module PLCorrectnessTest (Chk :
     let run_nth_test_case n = let _ = run_test (List.nth test_cases n) in ()
 
     let all_tests_passed () =
+        call_counter := 0;
         let rec conj l = match l with [] -> true | b::bs -> b && conj bs in
             conj (List.mapi (fun index ->
                 print_endline (" Index: " ^ (string_of_int index)); run_test)
                     test_cases)
 
-    let print_all_tests_passed () = print_endline ("Checker Correctness Tests All Passed: "
-                            ^ (string_of_bool (all_tests_passed ())))
+    let print_all_tests_passed () =
+            print_endline ("Checker Correctness Tests All Passed: "
+                            ^ (string_of_bool (all_tests_passed ())));
+            print_endline ("Total calls: " ^ (string_of_int !call_counter))
 end
 
 module SPLCheckerCorrectnessTest = PLCorrectnessTest (Checker.SimplePLChecker)

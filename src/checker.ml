@@ -16,9 +16,11 @@ let rec union l m = match l with
 module SimpleChecker (Prog : Interfaces.Program) =
   struct
     module ProgImp = Prog
-    let write_error_traces = true
+    let do_stateful = true
+    let write_error_traces = false
     let max_depth = ref 0
     let calls = ref 0
+    let ht = Hashtbl.create ~random:true 10000
 
     (* True iff error-free *)
     let rec check init_prog t_seq =
@@ -30,6 +32,8 @@ module SimpleChecker (Prog : Interfaces.Program) =
         let one_thread_can_advance = ref false in
         let all_stopped_threads_are_values = ref true in
         let recursive_calls_deadlock_free = ref true in
+        if do_stateful && Hashtbl.mem ht (tds, g) then () else (
+        if do_stateful then Hashtbl.add ht (tds, g) true;
         for i = 0 to Array.length tds - 1 do
             let (e, s) = Array.get tds i in
             match ProgImp.ThrImp.next_transition (e, s, g) with
@@ -49,19 +53,24 @@ module SimpleChecker (Prog : Interfaces.Program) =
                 let (ef, df) = check init_prog (t_seq @ [(i, t_tran)])
                 in error_free := !error_free && ef;
                    recursive_calls_deadlock_free := !recursive_calls_deadlock_free && df))
-        done;
+        done);
         (!error_free, !recursive_calls_deadlock_free &&
                 (!one_thread_can_advance || !all_stopped_threads_are_values))
 
-    let error_and_deadlock_free init_prog = check init_prog []
+    let error_and_deadlock_free init_prog =
+        Hashtbl.reset ht;
+        check init_prog []
   end
 
 module DPORChecker (Prog : Interfaces.Program) =
   struct
     module ProgImp = Prog
     module T = ProgImp.ThrImp
+    let do_stateful = true
     let max_depth = ref 0
     let calls = ref 0
+    let ht = Hashtbl.create ~random:true 10000
+    let vodg = Hashtbl.create ~random:true 1000
 
     (* Array for backtracking sets *)
     let backtracks = Var_array.empty()
@@ -91,6 +100,52 @@ module DPORChecker (Prog : Interfaces.Program) =
         (* let s = last(S) *)
         let (tds, g) = pre depth in
 
+        let update_backtrack_sets (p, next_tran) =
+                (* let i = L(alpha(next(s,p))) *)
+                let i = last_ti next_tran.T.g_loc in
+                (* if i =/= ~-1 and not i <= C(p)(proc(Si)) *)
+                if i > ~-1 then if
+                   i > Clockvector.get (proc_cvs p) (fst (List.nth t_seq i))
+                then (
+                    let prei = pre i in
+                    let is_enabled p' (tds', g') =
+                        let (e', s') = Array.get tds' p' in
+                        match ProgImp.ThrImp.next_transition (e', s', g') with
+                        Some (_, b) -> b
+                      | None -> false
+                    (* if p in enabled(pre(S, i)) *)
+                    in if is_enabled p prei
+                    (* then add p to backtrack(pre(S, i)) *)
+                    then Var_array.set backtracks i (p::(Var_array.get backtracks i))
+                    (* else add enabled(pre(S,i)) to backtrack(pre(S,i)) *)
+                    else let rec ntoz n = if n = 0 then [0] else n::(ntoz (n-1))
+                         in let en_in_prei q = is_enabled q prei
+                         in Var_array.set backtracks i (List.filter en_in_prei
+                                (ntoz (Array.length tds - 1)))
+                    )
+        in
+
+        if do_stateful && Hashtbl.mem ht (tds, g) then (
+        (* For each transition enabled from s *)
+        for p = 0 to Array.length tds - 1 do
+            let (e, s) = Array.get tds p in
+            match ProgImp.ThrImp.next_transition (e, s, g) with
+              None -> ()
+            | Some (next_t, enabled) -> if not enabled then () else
+                (* Do depth first search of G starting at next_t *)
+                let visited = Hashtbl.create 100 in
+                let rec search_and_update t =
+                    if Hashtbl.mem visited t then () else (
+                    Hashtbl.add visited t true;
+                    update_backtrack_sets t;
+                    let next_ts = if Hashtbl.mem vodg t then Hashtbl.find vodg t
+                                    else [] in
+                    List.iter search_and_update next_ts)
+                (* Update backtracking sets for each node reachable graph node *)
+                in search_and_update (p, next_t)
+        done);
+        if do_stateful then Hashtbl.add ht (tds, g) true;
+
         (* for all processes p *)
         for p = 0 to Array.length tds - 1 do
 
@@ -113,30 +168,7 @@ module DPORChecker (Prog : Interfaces.Program) =
                     (one_thread_can_advance := true;
                     transition_to_explore := Some p)
                 else all_stopped_threads_are_values := false;
-
-                (* let i = L(alpha(next(s,p))) *)
-                let i = last_ti next_t.T.g_loc in
-
-                (* if i =/= ~-1 and not i <= C(p)(proc(Si)) *)
-                if i > ~-1 then if
-                   i > Clockvector.get (proc_cvs p) (fst (List.nth t_seq i))
-                then (
-                    let prei = pre i in
-                    let is_enabled p' (tds', g') =
-                        let (e', s') = Array.get tds' p' in
-                        match ProgImp.ThrImp.next_transition (e', s', g') with
-                        Some (_, b) -> b
-                      | None -> false
-                    (* if p in enabled(pre(S, i)) *)
-                    in if is_enabled p prei
-                    (* then add p to backtrack(pre(S, i)) *)
-                    then Var_array.set backtracks i (p::(Var_array.get backtracks i))
-                    (* else add enabled(pre(S,i)) to backtrack(pre(S,i)) *)
-                    else let rec ntoz n = if n = 0 then [0] else n::(ntoz (n-1))
-                         in let en_in_prei q = is_enabled q prei
-                         in Var_array.set backtracks i (List.filter en_in_prei
-                                (ntoz (Array.length tds - 1)))
-                    )
+                update_backtrack_sets (p, next_t)
         done;
 
         (* if there is some p in enabled(s) *)
@@ -179,6 +211,32 @@ module DPORChecker (Prog : Interfaces.Program) =
         let new_last_ti oi = if oi = o then List.length new_t_seq - 1 (* index *)
                                        else last_ti oi in
 
+        (* Add appropriate edges to G *)
+        (* if there is some state sx along our transition sequence such that
+           transition tx takes sx to the current state then add (tx, next_t) to G *)
+        let process_and_apply_t (tds', g') (i', t') =
+            (* For each process p in each state along t_seq *)
+            for p' = 0 to Array.length tds - 1 do
+              let (e', s') = Array.get tds' p' in
+              match T.next_transition (e', s', g') with
+            (* If there is a transition from it *)
+                None -> ()
+              | Some (next_t', enabled') -> if enabled' then
+                    (* And that transition results in the current state *)
+                    if ProgImp.apply_transition (tds', g') (p', next_t') = (tds, g)
+                    (* Then add an arc from that transition to next_t *)
+                    then let new_range = if Hashtbl.mem vodg (p', next_t')
+                            then let old_r = Hashtbl.find vodg (p', next_t')
+                                in if List.mem (p, next_t) old_r then old_r
+                                        else (p, next_t)::old_r
+                            else [(p, next_t)] in
+                         Hashtbl.replace vodg (p', next_t') new_range
+            done; ProgImp.apply_transition  (tds', g') (i', t')
+        in let _ = if do_stateful
+                then List.fold_left process_and_apply_t init_prog t_seq
+                else init_prog in
+
+
         (* Explore(S', C', L') *)
         let (ef, df) = check init_prog new_t_seq new_proc_cvs new_obj_cvs new_last_ti in
         error_free := !error_free && ef;
@@ -195,6 +253,7 @@ module DPORChecker (Prog : Interfaces.Program) =
             (!one_thread_can_advance || !all_stopped_threads_are_values))
 
     let error_and_deadlock_free (tds, g) =
+        Hashtbl.reset ht;
         let n = Array.length tds in
         check (tds, g) [] (fun _ -> Clockvector.fresh n) (fun _ -> Clockvector.fresh n) (fun _ -> ~-1)
   end
