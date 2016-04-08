@@ -783,7 +783,38 @@ either
 \end{enumerate}
 
 
-\subsection{The Algorithm}
+\subsection{The DPOR Algorithm}
+
+\subsubsection{Overview}
+
+The Dynamic Partial-Order Reduction (DPOR) algorithm
+dynamically uses information gathered during its
+exploration of a search space to explore only
+transitions in a persistent set from each state
+encountered on the search -- a partial-order
+reduction technique. The idea is that the
+extra information which is available because
+the persistent sets are created dynamically
+allows smaller (and therefore more efficient)
+persistent sets to be chosen than an algorithm
+computing its persistent sets statically.
+
+In particular, at each state $\sigma$, the
+next transition
+to execute, $t$, is chosen at random, and it is
+initially assumed that that transition will
+be the only transition to be explored from
+that state. However, this is a persistent
+set only if $t$ is
+independent of every transition reachable
+by exploring any transitions
+from $\sigma$ other than $t$. Clearly,
+this isn't true in general, so, at each
+state $\sigma'$ encountered beyond
+$\sigma$, if there is a transition
+$t' \in \textit{enabled}(\sigma')$
+such that $t'$ is dependent with
+$t$ and 
 
 \begin{figure}
 	\begin{algorithmic}[1]
@@ -793,8 +824,8 @@ either
 			\State \Call{UpdateBacktrackSets}
 					{$\pi,\, \textit{next}(\sigma, p)$}
 		\EndFor
-		\If{$\textit{enabled}(\pi) \neq \emptyset$}
-		\Let{$t_{p,s}$}{any $t_{p,s} \in \textit{enabled}(\pi)$}
+		\If{$\textit{enabled}(\sigma) \neq \emptyset$}
+		\Let{$t_{p,s}$}{any $t_{p,s} \in \textit{enabled}(\sigma)$}
 		\Let{$\textit{backtrack}(\sigma)$}{$\{p\}$}
 		\Let{$\textit{done}(\sigma)$}{$\emptyset$}
 		\While{$\textit{done}(\sigma)
@@ -830,6 +861,79 @@ either
 	\caption{The DPOR algorithm}
 	\label{dpor-outline} 
 \end{figure}
+
+\subsubsection{Line-By-Line Explanation}
+\begin{description}
+	\item[Lines 1--2] The \textsc{Explore} procedure implements
+	dynamic partial-order reduction. The transition sequence
+	$\pi$ which is passed as its argument specifies the state
+	from which the exploration is to take place, $\sigma$.
+	
+	\item[Lines 3--4] First, any necessary backtracking points
+	which can be identified from this state are added to the
+	\textit{backtrack} sets of previous states. Backtracking
+	points can be identified using information from each possible
+	transition from this state, so the \textsc{UpdateBacktrackSets}
+	procedure is called with each possible next transition as an
+	argument.
+	
+	\item[Line 5] Having updated the \textit{backtrack} sets
+	of previous states, the search continues its exploration,
+	but only if there are any enabled transitions to explore.
+	
+	\item[Lines 6--8] The recursive exploration proceeds by
+	maintaining two sets of processes: \textit{backtrack}
+	and \textit{done}. The \textit{backtrack} set contains
+	those processes whose next transition should be explored
+	from the current state, and is initialised to any process
+	whose next transition is enabled. Recursive calls to
+	\textsc{Explore} may add more processes to \textit{backtrack}.
+	The \textit{done} set contains those transitions
+	in \textit{backtrack} that have already been explored.
+	
+	\item[Line 9] The search from $\sigma$ halts when every
+	transition that needs to be explored (is in \textit{backtrack})
+	has been explored (is in \textit{done}).
+	
+	\item[Lines 10--13] If there is some transition that needs
+	exploring, \textsc{Explore} is recursively called,
+	and the process of that transition is added to \textit{done}.
+	
+	\item[Line 15] The textsc{UpdateBacktrackSets} procedure
+	can use the information that a given transition, $t_{p,s}$ can be
+	executed in $\sigma$ to add necessary backtracking points.
+	
+	\item[Line 16] The set $D$ contains the indices $i$ of the
+	transitions $\pi_i$ in the sequence such that $\pi_i$ and
+	$t$ are dependent, and $(i, p)\!\not \hookrightarrow_\pi$.
+	This second condition means that $t_{p,s}$ is \emph{not}
+	guaranteed to happen after $\pi_i$, so $D$ is the set
+	of transitions which may have a race condition with
+	$t_{p,s}$.
+	
+	\item[Line 17] If there are no transitions which have
+	a race condition with $t_{p,s}$, then no backtracking
+	points need to be added: as far as we know from $t_{p,s}$,
+	if we had chosen any other
+	choices of transitions to explore previously, we would
+	have ended up with a transition sequence in the same
+	equivalence class as $\pi$.
+	
+	\item[Line 18] If there are transitions in $\pi$
+	which have a race condition with $t_{p,s}$, then
+	it is sufficient to add a backtracking point at
+	the state immediately before
+	the most recent of these; the necessary backtracking
+	points for the earlier states will be added
+	by later (or previous) calls of \textsc{Explore}.
+	
+	\item[Lines 19--20] TODO: write this, but also
+	sort out what \textit{enabled(state)} means (cf.
+	algorithm). Also just before this subsection,
+	there is a reference to $n$, which is undefined. 
+	
+
+\end{description}
 
 
 \chapter{Implementation}
