@@ -15,3 +15,6 @@ module DPORPLChecker : (Interfaces.Checker
 
 module SPORPLChecker : (Interfaces.Checker
     with module ProgImp = Program.PLProgram)
+
+module SPORSleepPLChecker : (Interfaces.Checker
+    with module ProgImp = Program.PLProgram)
