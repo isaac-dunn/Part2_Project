@@ -126,7 +126,7 @@ module PLCorrectnessTest (Chk :
                 done
             done" in
 
-        (Array.init 3 test13_thread, (intloc_array_zero_store 128),
+        (Array.init 1 test13_thread, (intloc_array_zero_store 128),
         (true, true)));
 
         (* Test 14 *)
@@ -322,7 +322,7 @@ module PLCorrectnessTest (Chk :
         (* Test 22 *)
         (* Use index 2k as mutex flag for index 2k+1 *)
         (let test22_thread n =
-            "let size = 6 in
+            "let size = 3 in
              let tid = " ^ (string_of_int (n+1)) ^ " in
              let table = " ^ (int_to_loc_str 128) ^ " in
              let i = ref 0 in
@@ -348,7 +348,7 @@ module PLCorrectnessTest (Chk :
 
         (* Test 23 *)
         (* Thread i sets indices j such that j === i (mod num_threads) *)
-        (let num_threads = 4 in
+        (let num_threads = 2 in
          let test23_thread n =
             "let size = 10 in
              let table = " ^ (int_to_loc_str 128) ^ " in
