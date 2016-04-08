@@ -206,24 +206,26 @@ module SPORChecker (Prog : Interfaces.Program) =
     let max_depth = ref 0
     let calls = ref 0
     let ht = Hashtbl.create ~random:true 10000
+    let locs_table = ref (Array.make 0 [])
 
     let persistent_set (tds, g) =
-        let union xs ys = (List.filter (fun x -> not (List.mem x ys)) xs) @ ys in
         let sbset xs ys = List.for_all (fun x -> List.mem x ys) xs in
         let eq xs ys = sbset xs ys && sbset ys xs in
-        let locs_accsd n =
-            let (e, s) = Array.get tds n in
-            union (ProgImp.ThrImp.ExpImp.locations_accessed e)
-                  (ProgImp.ThrImp.StoreImp.globals_stored s) in
+        let locs_accsd n = Array.get !locs_table n in
         let is_enabled n =
             let (e, s) = Array.get tds n in
             match ProgImp.ThrImp.next_transition (e, s, g) with
             Some (_, b) -> b
           | None -> false in
+        let enabled_index =
+            let i = ref 0 in
+            while not (is_enabled !i) && !i < Array.length tds -1
+            do i := !i + 1 done;
+            !i in
         let old_pers = ref [] in
-        let pers = ref [0] in
+        let pers = ref [enabled_index] in
         let locs = ref (locs_accsd 0) in
-        while not (eq !old_pers !pers) do
+        while not (eq !pers !old_pers) do
             old_pers := !pers;
             for i = 0 to Array.length tds - 1 do
                 if not (List.mem i !pers) then
@@ -231,9 +233,9 @@ module SPORChecker (Prog : Interfaces.Program) =
                 then (locs := union (locs_accsd i) !locs; pers := i::!pers)
             done
         done;
-        if List.for_all is_enabled !pers then !pers else
+        if List.for_all is_enabled !pers then (print_string"Y"; !pers) else
             let rec ntoz n = if n < 0 then [] else n::(ntoz (n-1)) in
-            ntoz (Array.length tds - 1) 
+            (print_string"N"; ntoz (Array.length tds - 1))
 
     (* True iff error-free *)
     let rec check init_prog t_seq =
@@ -272,9 +274,13 @@ module SPORChecker (Prog : Interfaces.Program) =
         (!error_free, !recursive_calls_deadlock_free &&
                 (!one_thread_can_advance || !all_stopped_threads_are_values))
 
-    let error_and_deadlock_free init_prog =
+    let error_and_deadlock_free (tds, g) =
+        locs_table := Array.init (Array.length tds) (fun n ->
+            let (e, s) = Array.get tds n in
+            union (ProgImp.ThrImp.ExpImp.locations_accessed e)
+                  (ProgImp.ThrImp.StoreImp.globals_stored s));
         Hashtbl.reset ht;
-        check init_prog []
+        check (tds, g) []
   end
 
 module SPORSleepChecker (Prog : Interfaces.Program) =
@@ -285,24 +291,26 @@ module SPORSleepChecker (Prog : Interfaces.Program) =
     let calls = ref 0
     (* See p.73 of Godefroid 1995 thesis *)
     let hsleep = Hashtbl.create 5000
+    let locs_table = ref (Array.make 0 [])
 
     let persistent_set (tds, g) =
-        let union xs ys = (List.filter (fun x -> not (List.mem x ys)) xs) @ ys in
         let sbset xs ys = List.for_all (fun x -> List.mem x ys) xs in
         let eq xs ys = sbset xs ys && sbset ys xs in
-        let locs_accsd n =
-            let (e, s) = Array.get tds n in
-            union (ProgImp.ThrImp.ExpImp.locations_accessed e)
-                  (ProgImp.ThrImp.StoreImp.globals_stored s) in
+        let locs_accsd n = Array.get !locs_table n in
         let is_enabled n =
             let (e, s) = Array.get tds n in
             match ProgImp.ThrImp.next_transition (e, s, g) with
             Some (_, b) -> b
           | None -> false in
+        let enabled_index =
+            let i = ref 0 in
+            while not (is_enabled !i) && !i < Array.length tds -1
+            do i := !i + 1 done;
+            !i in
         let old_pers = ref [] in
-        let pers = ref [0] in
+        let pers = ref [enabled_index] in
         let locs = ref (locs_accsd 0) in
-        while not (eq !old_pers !pers) do
+        while not (eq !pers !old_pers) do
             old_pers := !pers;
             for i = 0 to Array.length tds - 1 do
                 if not (List.mem i !pers) then
@@ -310,9 +318,9 @@ module SPORSleepChecker (Prog : Interfaces.Program) =
                 then (locs := union (locs_accsd i) !locs; pers := i::!pers)
             done
         done;
-        if List.for_all is_enabled !pers then !pers else
+        if List.for_all is_enabled !pers then (print_string"Y"; !pers) else
             let rec ntoz n = if n < 0 then [] else n::(ntoz (n-1)) in
-            ntoz (Array.length tds - 1) 
+            (print_string"N"; ntoz (Array.length tds - 1))
 
     (* True iff error-free *)
     let rec check init_prog t_seq sleep_set =
@@ -393,9 +401,13 @@ module SPORSleepChecker (Prog : Interfaces.Program) =
         (!error_free, !recursive_calls_deadlock_free && (!one_thread_can_advance ||
             List.length sleep_set > 0 || !all_stopped_threads_are_values))
 
-    let error_and_deadlock_free init_prog =
+    let error_and_deadlock_free (tds, g) =
+        locs_table := Array.init (Array.length tds) (fun n ->
+            let (e, s) = Array.get tds n in
+            union (ProgImp.ThrImp.ExpImp.locations_accessed e)
+                  (ProgImp.ThrImp.StoreImp.globals_stored s));
         Hashtbl.reset hsleep;
-        check init_prog [] []
+        check (tds, g) [] []
   end
 
 module SimplePLChecker : (Interfaces.Checker
