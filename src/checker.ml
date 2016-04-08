@@ -193,7 +193,7 @@ module SPORChecker (Prog : Interfaces.Program) =
     let ht = Hashtbl.create ~random:true 10000
 
     let persistent_set (tds, g) =
-        let union xs ys = (List.filter (fun x -> List.mem x ys) xs) @ ys in
+        let union xs ys = (List.filter (fun x -> not (List.mem x ys)) xs) @ ys in
         let sbset xs ys = List.for_all (fun x -> List.mem x ys) xs in
         let eq xs ys = sbset xs ys && sbset ys xs in
         let locs_accsd n =
