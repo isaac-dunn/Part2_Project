@@ -1378,21 +1378,20 @@ so that any obvious bugs could be corrected
 immediately. However, I did not invest time
 making these tests very rigorous for two reasons:
 any bugs found later would be relatively straightforward
-to correct; and getting the PL implementation
+to correct, and getting the PL implementation
 fully correct was not the aim of the project, but
 just a necessary step before the main work on the
 model checking algorithms.
-
 
 \section{Simple Model Checker}
 
 In order to ensure the correctness of my implementation
 of the DPOR algorithm, to have a baseline to use
-for performance comparison, and to reaffirm my understanding
-of the implementation of model checking, I first wrote the
+for performance comparison, and to begin by implementing
+a relatively simple model checking algorithm, I first wrote the
 SimpleChecker functor, which takes an implementation of
 \emph{Program} as its input, and outputs a structure
-which includes the definition of
+which provides
 a function that performs model checking by performing
 an exhaustive depth-first search of the state space --
 the simplest possible model checking algorithm.
@@ -1400,6 +1399,43 @@ the simplest possible model checking algorithm.
 Include why \texttt{check local} was put in Thread.
 
 \subsection{Implementation}
+
+See the \textbf{APPENDIX} for a side-by-side of
+the OCaml code and the pseudocode.
+
+\begin{figure}
+	\begin{algorithmic}[1]
+		\Procedure{Check}{$\sigma_0,\,\pi$}
+		\Let{$(l, g)$}
+			{$\textit{last}(\pi)$}
+		\Let{\textit{error\_free}}{true}
+		\Let{\textit{one\_thread\_can\_advance}}{false}
+		\Let{\textit{no\_stopped\_threads\_can\_progress}}{true}
+		\Let{\textit{recursively\_deadlock\_free}}{true}
+		\ForAll{$p \in \mathcal{P}$}
+		\If{$\textit{next}(\sigma, p) \in \textit{enabled}(\sigma)$}
+			\State \textit{one\_thread\_can\_advance} := true;
+			\Let{$(\textit{result\_ef}, \textit{result\_df})$}
+				{\Call{Check}{$\sigma_0, \pi.\textit{next}(\sigma, p)$}}
+			\State \textit{error\_free} := \textit{error\_free}
+				\&\& \textit{result\_ef};
+			\State \textit{recursively\_deadlock\_free}
+			:= \textit{recursively\_deadlock\_free}
+			\&\& \textit{result\_df}
+		\Else
+			\If{$\textit{err}(l(p))$}{ \textit{error\_free} := false};
+			\EndIf
+			\If{DEADLOCK CASE}{ \textit{no\_stopped\_threads\_can\_progress} := false}
+			\EndIf
+		\EndIf
+		\EndFor
+		\Let{\textit{deadlock\_free}}{\textit{recursively\_deadlock\_free} \&\&
+			(\textit{one\_thread\_can\_advance} $\lVert$ \textit{no\_stopped\_threads\_can\_progress})}
+		\State \Return (\textit{error\_free}, \textit{deadlock\_free})
+		\EndProcedure
+	\end{algorithmic}
+\end{figure}
+
 \begin{itemize}
 	\item Functor from programs to Checkers (independent of language)
 	\item Present pseudo-code which is fairly close to OCaml but
@@ -1531,8 +1567,6 @@ dotted section to be explored.
 	\caption{SDPOR motivation}
 	\label{fig:sdpor-motivation}
 \end{figure}
-
-
 
 
 \subsubsection{Stateful Dynamic Partial-Order Reduction}
