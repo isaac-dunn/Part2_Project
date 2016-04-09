@@ -430,7 +430,8 @@ is deadlock-free, we have
 	\implies \forall g' \in \mathcal{G}. \;
 	\textit{enabled}(l, g') = \emptyset,
 \]
-so figure~\ref{fig:simple-deadlock-free} below decides whether a given transition system
+so the algorithm in figure~\ref{fig:simple-deadlock-free}
+below decides whether a given transition system
 is deadlock-free. As $\Phi$ can only fail to hold
 at stopped states, it is first
 checked whether the state has any
@@ -1407,31 +1408,34 @@ the OCaml code and the pseudocode.
 		\Let{$(l, g)$}
 			{$\textit{last}(\pi)$}
 		\Let{\textit{error\_free}}{true}
-		\Let{\textit{one\_thread\_can\_advance}}{false}
-		\Let{\textit{no\_stopped\_threads\_can\_progress}}{true}
-		\Let{\textit{recursively\_deadlock\_free}}{true}
+		\Let{\textit{is\_enabled\_thread}}{false}
+		\Let{\textit{no\_waiting\_threads}}{true}
+		\Let{\textit{calls\_deadlock\_free}}{true}
 		\ForAll{$p \in \mathcal{P}$}
 		\If{$\textit{next}(\sigma, p) \in \textit{enabled}(\sigma)$}
-			\State \textit{one\_thread\_can\_advance} := true;
+			\State \textit{is\_enabled\_thread} := true;
 			\Let{$(\textit{result\_ef}, \textit{result\_df})$}
 				{\Call{Check}{$\sigma_0, \pi.\textit{next}(\sigma, p)$}}
 			\State \textit{error\_free} := \textit{error\_free}
-				\&\& \textit{result\_ef};
-			\State \textit{recursively\_deadlock\_free}
-			:= \textit{recursively\_deadlock\_free}
-			\&\& \textit{result\_df}
+				\& \textit{result\_ef};
+			\State \textit{calls\_deadlock\_free}
+			:= \textit{calls\_deadlock\_free}
+			\& \textit{result\_df}
 		\Else
 			\If{$\textit{err}(l(p))$}{ \textit{error\_free} := false};
 			\EndIf
-			\If{DEADLOCK CASE}{ \textit{no\_stopped\_threads\_can\_progress} := false}
+			\If{$\exists g' \in \mathcal{G}.\;
+				\textit{next}(\sigma,p) \in \textit{enabled}(l,g')$}
+				{ \textit{no\_waiting\_threads} := false}
 			\EndIf
 		\EndIf
 		\EndFor
-		\Let{\textit{deadlock\_free}}{\textit{recursively\_deadlock\_free} \&\&
-			(\textit{one\_thread\_can\_advance} $\lVert$ \textit{no\_stopped\_threads\_can\_progress})}
+		\Let{\textit{deadlock\_free}}{\textit{calls\_deadlock\_free} \&
+			(\textit{is\_enabled\_thread} | \textit{no\_waiting\_threads})}
 		\State \Return (\textit{error\_free}, \textit{deadlock\_free})
 		\EndProcedure
 	\end{algorithmic}
+	\caption{Simple model checking algorithm}
 \end{figure}
 
 \begin{itemize}
