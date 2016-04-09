@@ -323,6 +323,7 @@ example, and introduces some concepts used
 to tackle the state explosion problem.
 
 \subsection{Definition of Model Checking}
+\label{sec:model-checking-dfn}
 Model checking is the process of deciding
 whether a
 given transition system is \emph{error-free} and
@@ -1395,12 +1396,64 @@ a function that performs model checking by performing
 an exhaustive depth-first search of the state space --
 the simplest possible model checking algorithm.
 
-Include why \texttt{check local} was put in Thread.
 
 \subsection{Implementation}
 
-See the \textbf{APPENDIX} for a side-by-side of
-the OCaml code and the pseudocode.
+See the \textbf{APPENDIX} for an illustration
+of the relationship between the actual OCaml
+code, and the pseudocode given in
+figure~\ref{fig:simple-imp-code}, which gives
+a high-level description of the algorithm,
+which performs an exhaustive depth-first
+search of the state space as outlined in
+section~\ref{sec:simple-model-checking},
+deciding at each state whether the state space
+from the current state onwards is error-free
+and deadlock-free.
+
+\subsubsection{Detecting Errors}
+
+The algorithm assumes that if a thread
+encounters an error, then the execution
+of that thread will not proceed, meaning
+that only threads which do not have an
+enabled next transition need to be checked
+for errors. The Boolean \textit{error\_free}
+tracks whether any threads in the current state
+have encountered an error (line 14) and whether any
+recursive calls report an error (line 11), and is
+returned as one of the two Boolean results
+of the call (line 17).
+
+\subsubsection{Detecting Deadlocks}
+
+Deciding whether the state space from the current
+state onwards is deadlock-free is more complicated.
+The \textit{calls\_deadlock\_free} keeps track of
+whether any recursive call reports a deadlock. If
+any do, then it is set to false (line 12), causing the
+algorithm to report that the state space herein
+is not deadlock-free (line 17).
+
+Assuming that no
+recursive calls report a deadlock, then the state
+space is deadlock-free if and only if the current
+state is not a deadlock state, which is the case
+if and only if either there is some thread with an
+enabled transition,
+or every thread had terminated its computation and
+is not waiting for some change in the global state.
+Two Booleans keep track of these two possibilities:
+if any transition is enabled, then
+\textit{is\_enabled\_thread} is set to true (line 9),
+and if any thread without an enabled transition is
+waiting for some change in the shared state (for
+instance a lock to become available), then
+\textit{no\_waiting\_threads} is set to false.
+If either Boolean is true at the end of the call
+to \textsc{Check}, then, providing no recursive
+calls reported a deadlock, the algorithm returns
+that the state space is deadlock-free.
 
 \begin{figure}
 	\begin{algorithmic}[1]
@@ -1426,7 +1479,7 @@ the OCaml code and the pseudocode.
 			\EndIf
 			\If{$\exists g' \in \mathcal{G}.\;
 				\textit{next}(\sigma,p) \in \textit{enabled}(l,g')$}
-				{ \textit{no\_waiting\_threads} := false}
+				{\textit{no\_waiting\_threads} := false}
 			\EndIf
 		\EndIf
 		\EndFor
@@ -1436,25 +1489,51 @@ the OCaml code and the pseudocode.
 		\EndProcedure
 	\end{algorithmic}
 	\caption{Simple model checking algorithm}
+	\label{fig:simple-imp-code}
 \end{figure}
 
-\begin{itemize}
-	\item Functor from programs to Checkers (independent of language)
-	\item Present pseudo-code which is fairly close to OCaml but
-		without too much detail.
-	\item In particular explain how errors and deadlocks are found
-	\item Aim is to convince reader that definitely correctly
-		implemented.
-\end{itemize}
-
 \subsection{Testing}
-\begin{itemize}
-	\item Some test cases to sanity check
-	\item In practice did error first and deadlock later,
-		but not super relevant
-	\item Idea is to use this to check DPOR, because this is so 
-		obviously correct
-\end{itemize}
+
+Although more detail will be given in
+section~\ref{sec:pl-checker-tests}, it
+is worth mentioning here that before going
+on to implement anything else, I first
+tested the simple model checker to weed
+out any obvious bugs in either the
+implementation of PL or of the simple
+model checker itself; the bugs would need
+dealing with at some point anyway, so
+better to catch them as soon as possible,
+when it would be easiest to identify the
+causes.
+
+Each simply gave a PL program,
+ran the simple model checker on it, and
+raised a flag if the result was not as
+I expected. It wasn't difficult to
+provide high code coverage of this
+relatively simple algorithm. Along
+with the simplicity of the algorithm,
+these tests gave me confidence in
+the correctness of my implementation.
+
+\subsection{Correctness}
+
+The reason that I have fully explained
+the operation of this simple model checker,
+provided a mapping
+in the \textbf{APPENDIX} from the OCaml
+implementation to the high-level
+pseudocode, and described
+tests of its correctness is to give the reader
+as much confidence as possible
+that the implementation performs
+model checking as defined in
+section~\ref{sec:model-checking-dfn}; in
+chapter~\ref{cha:evaluation}, the
+correctness of the simple model checker will be used
+to provide evidence that the implementations of
+other model checking algorithms are also correct.
 
 \section{Dynamic Partial-Order Reduction}
 \textbf{This section explains how the DPOR
@@ -1656,6 +1735,7 @@ as a graph maybe.
 \end{figure}
 
 \chapter{Evaluation}
+\label{cha:evaluation}
 
 This chapter discusses the soundness
 of the implementation of the model checking
@@ -1804,6 +1884,7 @@ some evidence that my implementations
 of the algorithms are sound.
 
 \subsubsection{Tests}
+\label{sec:pl-checker-tests}
 As part of the development process,
 I wrote over forty test cases, each 
 consisting of a transition system
