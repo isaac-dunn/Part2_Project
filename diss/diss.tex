@@ -660,6 +660,7 @@ no extra difficulty.
 \end{figure}
 
 \section{Dynamic Partial-Order Reduction}
+\label{sec:dpor-prep}
 This section introduces the DPOR algorithm,
 which is the focus of the project.
 
@@ -825,13 +826,14 @@ ensures that the set of transitions
 explored from each state is a
 persistent set.
 
-\begin{figure}
+
+\newcommand{\dporpseudocode}{
 	\begin{algorithmic}[1]
 		\Procedure{Explore}{$\pi$}
 		\Let{$\sigma$}{$\textit{last}(\pi)$}
 		\ForAll{$p \in \mathcal{P}$}
-			\State \Call{UpdateBacktrackSets}
-					{$\pi,\, \textit{next}(\sigma, p)$}
+		\State \Call{UpdateBacktrackSets}
+		{$\pi,\, \textit{next}(\sigma, p)$}
 		\EndFor
 		\If{$\textit{enabled}(\sigma) \neq \emptyset$}
 		\Let{$t$}{any $t \in \textit{enabled}(\sigma)$}
@@ -849,30 +851,34 @@ persistent set.
 		\EndProcedure
 		\State
 		\Procedure{UpdateBacktrackSets}{$\pi,\, t_{p,s}$}
-			\Let{$D$}{$\{i \in \textit{dom}(\pi) \mid
+		\Let{$D$}{$\{i \in \textit{dom}(\pi) \mid
 			\pi_i \text{ is dependent with } t_{p,s}
 			\text{ and } (i, p)\!\not \hookrightarrow_\pi \}$}
-			\If{$D \neq \emptyset$}
-			\Let{$\sigma_d$}
-				{$\textit{pre}(\pi,\text{max}(D))$}
-			\If{$\textit{next}(\sigma_d, p)
-				\in \textit{enabled}(\sigma_d)$}
-			add $\textit{next}(\sigma_d, p)$
+		\If{$D \neq \emptyset$}
+		\Let{$\sigma_d$}
+		{$\textit{pre}(\pi,\text{max}(D))$}
+		\If{$\textit{next}(\sigma_d, p)
+			\in \textit{enabled}(\sigma_d)$}
+		add $\textit{next}(\sigma_d, p)$
+		to $\textit{backtrack}(\sigma_d)$
+		\Else {
+			add all of $\textit{enabled}(\sigma_d)$
 			to $\textit{backtrack}(\sigma_d)$
-			\Else {
-				add all of $\textit{enabled}(\sigma_d)$
-				to $\textit{backtrack}(\sigma_d)$
-			} \EndIf
-			\EndIf
+		} \EndIf
+		\EndIf
 		\EndProcedure
 		\State
 		\State Initially: \Call{Explore}{$\emptyset$}
 	\end{algorithmic}
+}
+\begin{figure}
+	\dporpseudocode
 	\caption{The DPOR algorithm}
 	\label{dpor-outline} 
 \end{figure}
 
 \subsubsection{Line-By-Line Explanation}
+\label{sec:dpor-prep-walkthrough}
 \begin{description}
 	\item[Lines 1--2] The \textsc{Explore} procedure implements
 	dynamic partial-order reduction. The transition sequence
@@ -1536,17 +1542,133 @@ to provide evidence that the implementations of
 other model checking algorithms are also correct.
 
 \section{Dynamic Partial-Order Reduction}
-\textbf{This section explains how the DPOR
-	alogorithm was implemented in practice.}
+The Dynamic Partial-Order Reduction (DPOR)
+algorithm was presented in section~\ref{sec:dpor-prep},
+which gave an overview of its operation,
+including high-level pseudocode, reproduced
+in figure~\ref{fig:dpor-imp-pscode} for ease
+of reference. Several
+aspects of the algorithm mean that it
+is not obvious how it can be implemented
+as an executable program; this
+section explains how this was achieved.
+
+\begin{figure}
+	\dporpseudocode
+	\caption{The DPOR pseudocode}
+	\label{fig:dpor-imp-pscode}
+\end{figure}
 
 \subsection{Implementation}
+Section~\ref{sec:dpor-prep-walkthrough} gave a
+line-by-line explanation of how
+the DPOR algorithm works. This section gives a
+line-by-line explanation of how the algorithm
+was implemented.
+
+\subsubsection{Line-By-Line Explanation}
+
+\begin{description}
+	\item[Line 1] The \textsc{Explore} procedure
+	is implemented as a recursive OCaml function,
+	\texttt{check}.
+	One of the advantages of OCaml is its provision
+	of practical procedural features, as well the
+	functional ML features, which usefully allowed
+	me to combine these styles as I saw fit when
+	implementing this algorithm.
+
+	\item[Line 2] When implementing the simple
+	model checker, I used the \texttt{fold\_left}
+	function from the provided List module to
+	repeatedly use the \texttt{apply\_transition}
+	from the \textit{Program} module to apply
+	the transitions in the transition sequence
+	to the initial state. However, in this case
+	I wrote a function which applied only the first
+	$n$ transitions in the sequence, for use later on.
+	To get $\sigma$, this function is simply passed
+	$|\pi|$, the length of the transition sequence.
+
+	\item[Lines 3--4] The \texttt{next\_transition}
+	function, provided in the \textit{Thread} module,
+	may return no transition at all (for instance
+	in the case that a thread has terminated its
+	computation), so the call to 
+	\textsc{UpdateBacktrackSets} is only made if
+	\texttt{next\_transition} does return a
+	transition. It is also here, in the
+	iteration through the threads,
+	that it is decided whether the current
+	state is an error or a deadlock
+	(see section~\ref{sec:spor-imp-detecting}
+	below).
+
+	\item[Lines 15--17] In this project,
+	the assumptions are made that
+	each transition $t$ accesses only one shared
+	object, denoted $\alpha(t)$,
+	and that two transitions are
+	dependent if and only if they access
+	the same shared object (or belong to the
+	same process). Therefore, the most
+	recent transition $\pi_i$ such that
+	$\pi_i$ is dependent with $t_{p,s}$
+	and $(i,p)\!\not\hookrightarrow_\pi$,
+	if any,
+	is precisely the last transition
+	to access the shared object that
+	$t_{p,s}$ accesses.
+
+	Therefore, as well as the transition
+	sequence, $\pi$, \texttt{check} takes
+	as an argument 
+	a function $L$ from shared objects to
+	the index of the last transition that
+	accessed them, so that the index of the
+	necessary backtracking point (if any) is
+	$L(\alpha(t_{p,s}))$. However, this
+	is not a necessary backtracking point if
+	$pi_{L(\alpha(t_{p,s}))}$ happens-before
+	$t$, in which case no backtracking point
+	is necessary, as there cannot be another
+	transition that is dependent with $t$
+	but does not happen-before $t$. To
+	decide the happens-before relation,
+	clock vectors are used, as described 
+	in \textbf{CLOCK VECTOR SECTION}.
+
+	\textbf{TODO: how do we know if a transition
+		is enabled? And how do we get the set of
+		all enabled transitions?}
+
+	\item[Lines 5--6] If, while iterating through the
+	processes in lines 3 and 4, any transition is found to be
+	enabled, then a reference is set to it. If at line 5,
+	that variable has been set at all, then it is chosen
+	as the $t \in \textit{enabled}(\sigma)$ in line 6,
+	otherwise lines 6 to 12 are not executed.
+
+	\item[Lines 7--8] \textbf{Variable length arrays}
+
+	\item[Lines 9--10] \textbf{\texttt{find\_p} function and \texttt{whileloop}}
+
+	\item[Line 11] \textbf{Variable length arrays}
+
+	\item[Line 12] \textbf{Recursive call}
+
+	\item[Line 13] \textbf{Mention returning of result? Or point to
+	error and deadlock detecting section?}
+
+\end{description}
+
 \subsubsection{Clock Vectors}
 \textbf{Used to decide the happens-before relation.}
 \subsubsection{Independence}
 \textbf{Keep track of last transition that accessed
 	each global object.}
 
-\subsection{Locks}
+\subsection{Difficulties with Locks}
 \textbf{Difficulties faced adding locks;
 	how they were overcome.}
 
@@ -1561,6 +1683,8 @@ the case.
 
 Solution: pass around Boolean stating whether or not the transition
 is enabled.
+
+\subsection{Detecting Errors and Deadlocks}
 
 \section{Stateful Model Checking}
 When explored a state space, the same state may be
