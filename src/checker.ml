@@ -27,7 +27,7 @@ module SimpleChecker (Prog : Interfaces.Program) =
                       );
                       if reaches_nonval then
                          all_stopped_threads_are_values := false
-              (* There is a transition: check if error; explore from the new state *)
+              (* There is a transition: explore it if enabled *)
             | Some (t_tran, enabled) -> (
                 if not enabled then all_stopped_threads_are_values := false else (
                 one_thread_can_advance := true;
