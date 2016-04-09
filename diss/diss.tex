@@ -336,34 +336,32 @@ whether, in some given state, a particular
 thread has encountered an error.
 
 We say that a transition system
-$A = (\textit{State}, \Delta, \sigma_0, \textit{err})$
+$A = (\textit{State},\, \Delta,\, \sigma_0,\, \textit{err})$
 is
-\emph{error-free} if
-\[
-	\forall\, (l, g) \in \textit{State}. \ \sigma_0 \longrightarrow^* (l, g)
-	\implies \forall p \in \mathcal{P}.\ \neg\,\textit{err}(l(p));
-\]
-that is, if for every state $\sigma$ reachable from the initial state
-$\sigma_0$, no thread in $\sigma$ is in an error state.
-
-We say that a transition system
-$A = (\textit{State}, \Delta, \sigma_0, \textit{err})$
-is deadlock-free if
-\begin{align*}
-	\forall\, (l, g) \in \textit{State}. \;\, (&\sigma_0
-	 \longrightarrow^* (l, g))
-	\wedge (\neg \exists t \in \mathcal{T}.\;
-	t \in \textit{enabled}((l, g)) \\
-	&\implies \forall t_{p,s} \in \mathcal{T}.\;
-	(l(p) = s \implies \forall g' \in \mathcal{G}. \;
-		t_{p,s}(g')\!\uparrow),
-\end{align*}
-
-where $\uparrow$ denotes that a partial function is
-undefined at the given value.
-That is, for all stopped states $\sigma$ reachable from
+\emph{error-free} if, for all stopped
+states $\sigma$ reachable from
 the initial state $\sigma_0$, if the shared store of
 $\sigma$ was different, it would still be a stopped state.
+Formally,
+\[
+	\forall\, (l, g) \in \textit{State}.\; \ \sigma_0 \longrightarrow^* (l, g)
+	\implies \forall p \in \mathcal{P}.\ \neg\,\textit{err}(l(p)).
+\]
+
+We say that a transition system
+$A = (\textit{State},\, \Delta,\, \sigma_0,\, \textit{err})$
+is \textit{deadlock-free} if, for all stopped states
+$\sigma$ reachable from
+the initial state $\sigma_0$, if the shared store of
+$\sigma$ was different, it would still be a stopped state.
+Formally,
+\[
+	\forall\, (l, g) \in \textit{State}. \;\, (\sigma_0
+	 \longrightarrow^* (l, g))
+	\wedge (\textit{enabled}(l, g) = \emptyset)
+	\implies \forall g' \in \mathcal{G}. \;
+		\textit{enabled}(l, g') = \emptyset.
+\]
 
 For our purposes, a model checking algorithm is an
 algorithm that takes a transition system and returns
@@ -393,7 +391,7 @@ below for clarity.
 When deciding whether the transition system
 is error-free, we have
 \[
-	\Phi((l, g)) = \forall p \in \mathcal{P}.\; \neg\,err(l(p)),
+	\Phi(l, g) = \forall p \in \mathcal{P}.\; \neg\,err(l(p)),
 \]
 so the algorithm in figure~\ref{fig:simple-error-free}
 decides whether a given transition system
@@ -405,7 +403,7 @@ depth-first search of the reachable state space.
 \begin{figure}
 	\begin{algorithmic}[1]
 	\Procedure{SimpleErrorFree}{$\sigma$}
-	\Let{(l, g)}{$\sigma$}
+	\Let{$(l, g)$}{$\sigma$}
 	\ForAll{$p \in \mathcal{P}$}
 		\If{$err(l(p))$}
 		\Return \textit{false}
@@ -428,9 +426,9 @@ depth-first search of the reachable state space.
 When deciding whether the transition system
 is deadlock-free, we have
 \[
-	\Phi((l, g)) =\neg \exists t \in \mathcal{T}.\;
-	\exists\sigma' \in \textit{State}.\;(l, g) \xrightarrow{t} \sigma'
-	\implies \forall p \in \mathcal{P}.\;\textit{val}(l(p)),
+	\Phi(l, g) = (\textit{enabled}(l, g) = \emptyset)
+	\implies \forall g' \in \mathcal{G}. \;
+	\textit{enabled}(l, g') = \emptyset,
 \]
 so figure~\ref{fig:simple-deadlock-free} below decides whether a given transition system
 is deadlock-free. As $\Phi$ can only fail to hold
@@ -439,23 +437,23 @@ checked whether the state has any
 transitions that can be executed. If not, then
 $\Phi$ is checked to hold, else again recursive calls implement a
 depth-first search of the reachable state space.
-The predicate $\textit{val}~:~\mathcal{S} \to \mathbb{B}$
-is true for threads which cannot proceed, no matter the
-shared state, which is easily decidable in practice.
+In practice, it is easy to decide whether or not
+there exists a shared store which would allow
+execution to continue, by looking at whether
+any thread is waiting for a lock, for instance,
+or whether all threads have simply terminated
+their computations.
 
 \begin{figure}
 	\begin{algorithmic}[1]
 		\Procedure{SimpleDeadlockFree}{$\sigma$}
-		\Let{(l, g)}{$\sigma$}
+		\Let{$(l, g)$}{$\sigma$}
 		\Let{SuccessorStates}{$\{\sigma' \mid \sigma \xrightarrow{t}
 			\sigma' \wedge t \in \textit{enabled}(\sigma)\}$}
 		\If{$\text{SuccessorStates} = \emptyset$}
-			\ForAll{$p \in \mathcal{P}$}
-				\If{$\textbf{not } val(l(p))$} \Return \textit{false}
-				\EndIf
-			\EndFor
-			\State \Return \textit{true}
-		\Else
+		\State\Return $(\forall g' \in \mathcal{G}.\; \textit{enabled}(l, g')
+				= \emptyset)$
+			\Else
 			\ForAll{$\sigma' \in \text{SuccessorStates}$}
 				\If{$\textbf{not } \textsc{SimpleDeadlockFree}(\sigma')$}
 					\Return \textit{false}
