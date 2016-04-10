@@ -1629,16 +1629,16 @@ was implemented.
 	necessary backtracking point (if any) is
 	$L(\alpha(t_{p,s}))$. However, this
 	is not a necessary backtracking point if
-	$pi_{L(\alpha(t_{p,s}))}$ happens-before
+	$\pi_{L(\alpha(t_{p,s}))}$ happens-before
 	$t$, in which case no backtracking point
 	is necessary, as there cannot be another
 	transition that is dependent with $t$
 	but does not happen-before $t$. To
 	decide the happens-before relation,
 	clock vectors are used, as described 
-	in \textbf{CLOCK VECTOR SECTION}.
+	below.
 
-	\textbf{TODO: how do we know if a transition
+	\item[Lines 18--19] \textbf{TODO: how do we know if a transition
 		is enabled? And how do we get the set of
 		all enabled transitions?}
 
@@ -1649,24 +1649,78 @@ was implemented.
 	as the $t \in \textit{enabled}(\sigma)$ in line 6,
 	otherwise lines 6 to 12 are not executed.
 
-	\item[Lines 7--8] \textbf{Variable length arrays}
+	\item[Line 7] The \textit{backtrack} sets for each state
+	in the sequence of states implied by the transition
+	sequence $\pi$ must be stored in a data structure that
+	allows them to be accessed and updated from all later
+	recursive calls, so that they can add backtracking
+	points. I decided to use a variable-length array
+	for this, as arrays are mutable and have efficient
+	access, but the maximum recursion depth (and so the
+	longest fixed-length array necessary) cannot be predicted.
+	
+	I therefore implemented a module which uses a fixed-length
+	array to implement a variable-length array by
+	copying the elements to a fresh array of double the
+	previous size if the underlying array proves too short.
+	Although this operation is expensive, the amortised
+	cost of adding a new element to the array is constant.
+	In this case, each element of the array is a \textit{backtrack}
+	set of a state, implemented as a list of processes
+	whose next transitions are to be explored.
+	
+	\item[Lines 8--11] Instead of using a
+	procedural while-loop,
+	I implemented the iteration through
+	the backtracking points
+	by using a functional tail-recursive
+	function, whose argument
+	was a list of processes, representing
+	the \textit{done} set. An auxiliary
+	function returned a member $p$ of the
+	\textit{backtrack} set not present in the
+	\textit{done} set, from which the
+	transition $t$ to explore is simply
+	$\textit{next}(\sigma, p)$. The
+	recursive call to the while-function
+	then has the old \textit{done} set
+	extended with $p$ as its argument. If
+	the auxiliary function can
+	find no such $p$, then the
+	while-function (and therefore the
+	call to \texttt{check}) returns.
 
-	\item[Lines 9--10] \textbf{\texttt{find\_p} function and \texttt{whileloop}}
+	\item[Line 12] Once the new arguments have
+	been computed, a recursive call to
+	\texttt{check} is made. Other than
+	the clock vectors (see section~\ref{sec:clock-vectors}),
+	the arguments that
+	have to be computed are the new transition
+	sequence, $\pi' = \pi.t$,
+	and the new function, $L'$,
+	tracking which transitions accessed each 
+	object:
+	\[ L'(o) =
+	\begin{cases}
+		\hfill |\pi| \hfill & \text{ if } o = \alpha(t); \\
+		\hfill L(o) \hfill & \text{ otherwise}.
+	\end{cases}\]
+	As the transition sequence is implemented as an
+	OCaml list, and the function $L$ as an OCaml function,
+	these computations are straightforward.
 
-	\item[Line 11] \textbf{Variable length arrays}
-
-	\item[Line 12] \textbf{Recursive call}
-
-	\item[Line 13] \textbf{Mention returning of result? Or point to
-	error and deadlock detecting section?}
+	\item[Line 13] Once all backtracking points have been
+	explored, the result is returned.
+	Section~\ref{sec:dpor-imp-detecting} explains how the
+	result is computed amongst the steps explained in this
+	section, which all relates solely to how it is
+	decided which transitions to explore.
 
 \end{description}
 
 \subsubsection{Clock Vectors}
+\label{sec:clock-vectors}
 \textbf{Used to decide the happens-before relation.}
-\subsubsection{Independence}
-\textbf{Keep track of last transition that accessed
-	each global object.}
 
 \subsection{Difficulties with Locks}
 \textbf{Difficulties faced adding locks;
@@ -1685,6 +1739,7 @@ Solution: pass around Boolean stating whether or not the transition
 is enabled.
 
 \subsection{Detecting Errors and Deadlocks}
+\label{sec:dpor-imp-detecting}
 
 \section{Stateful Model Checking}
 When explored a state space, the same state may be
