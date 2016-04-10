@@ -1585,10 +1585,14 @@ was implemented.
 	from the \textit{Program} module to apply
 	the transitions in the transition sequence
 	to the initial state. However, in this case
-	I wrote a function which applied only the first
-	$n$ transitions in the sequence, for use later on.
-	To get $\sigma$, this function is simply passed
-	$|\pi|$, the length of the transition sequence.
+	I wrote a function, \texttt{pre},
+	which applies only the first
+	$n$ transitions in the sequence,
+	thereby returning the state
+	$\textit{pre}(\pi, n)$ if $n < |\pi|$
+	or the state $\textit{last}(\pi)$ if
+	$n = |\pi|$, which is what we want in
+	this case.
 
 	\item[Lines 3--4] The \texttt{next\_transition}
 	function, provided in the \textit{Thread} module,
@@ -1636,9 +1640,12 @@ was implemented.
 	but does not happen-before $t$. To
 	decide the happens-before relation,
 	clock vectors are used, as described 
-	below.
+	in section~\ref{sec:clock-vectors}.
 
-	\item[Lines 18--19] \textbf{TODO: how do we know if a transition
+	The \texttt{pre} function is used to
+	obtain $\sigma_d$ from $L(\alpha(t_{p,s}))$.
+
+	\item[Lines 18--19]	\textbf{TODO: how do we know if a transition
 		is enabled? And how do we get the set of
 		all enabled transitions?}
 
@@ -1718,9 +1725,50 @@ was implemented.
 
 \end{description}
 
-\subsubsection{Clock Vectors}
+\subsection{Deciding The Happens-Before Relation}
 \label{sec:clock-vectors}
-\textbf{Used to decide the happens-before relation.}
+
+As explained above, although
+the last function, $L$, gives the index
+of the last transition that accessed a given shared
+object, and so the index of the potential backtracking
+point to be added, we only need to add it if it
+didn't happen-before the current transition.
+That is, if
+$(L(\alpha(t_{p,s})), p)\!\not\hookrightarrow_\pi$.
+
+
+If, for each process
+$q$, we know the index $k$ of the last transition of that
+process such that $(k, p)\!\hookrightarrow_\pi$,
+then given any other transition of
+process $q$, $\pi_i$, we know that
+$(i, p)\!\hookrightarrow_\pi$ if and only if
+$i \leq k$. A clock vector $c$ is
+a function from processes $q$ to
+indices into the transition sequence, $k$,
+and we maintain one clock vector, $c_p$, per
+process $p$. To decide whether
+$(i, p)\!\hookrightarrow_\pi$ for
+any $i$ and $p$, is simply to decide
+whether $i \leq c_p(q)$, where $q$ is
+the process of transition $\pi_i$.
+\textbf{Make clear this idea is from POPL'05.}
+
+By passing clock vectors as arguments to
+\texttt{check}, then, it is straightforward
+to decide whether
+$(L(\alpha(t_{p,s})), p)\!\hookrightarrow_\pi$.
+For this to work, the correct clock values need
+to be passed to each call of \texttt{check}.
+Assuming that the correct value (each $k$
+set to anything less than 0) is passed for
+the initial call, we need to ensure that the
+clock vectors are correctly updated when
+making a recursive call, when a new
+transition, $t_{p,s}$, is being explored.
+
+
 
 \subsection{Difficulties with Locks}
 \textbf{Difficulties faced adding locks;
