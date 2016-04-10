@@ -1566,8 +1566,6 @@ the DPOR algorithm works. This section gives a
 line-by-line explanation of how the algorithm
 was implemented.
 
-\subsubsection{Line-By-Line Explanation}
-
 \begin{description}
 	\item[Line 1] The \textsc{Explore} procedure
 	is implemented as a recursive OCaml function,
@@ -1728,6 +1726,12 @@ was implemented.
 \subsection{Deciding The Happens-Before Relation}
 \label{sec:clock-vectors}
 
+To decide the happens-before relation,
+$\hookrightarrow_\pi$, I used the method
+of clock vectors, as outlined in \textbf{POPL'05.}
+
+\subsubsection{Using Clock Vectors}
+
 As explained above, although
 the last function, $L$, gives the index
 of the last transition that accessed a given shared
@@ -1753,8 +1757,8 @@ $(i, p)\!\hookrightarrow_\pi$ for
 any $i$ and $p$, is simply to decide
 whether $i \leq c_p(q)$, where $q$ is
 the process of transition $\pi_i$.
-\textbf{Make clear this idea is from POPL'05.}
 
+\subsubsection{Updating Process Clock Vectors}
 By passing clock vectors as arguments to
 \texttt{check}, then, it is straightforward
 to decide whether
@@ -1768,7 +1772,113 @@ clock vectors are correctly updated when
 making a recursive call, when a new
 transition, $t_{p,s}$, is being explored.
 
+The only clock vector that needs to be updated
+is $c_p$, the clock vector for the process
+of the transition being explored, because
+a transition of process $p'$ must happen-before
+the end of the extended transition
+sequence, $\pi'.t_{p,s}$,
+only if it must happen-before the end
+of the original transition sequence,
+$\pi$, assuming that $p' \neq p$.
 
+Let us denote the updated clock vector
+by $c_p'$, and consider $c_p'(q)$, which
+must be at least $c_p(q)$, as if process
+$p$ must happen-before the end of $\pi$
+then it must happen-before the end of $\pi'$.
+However, if there is a more recent transition
+of process $q$, say $\pi_i$
+that accesses the same shared
+object as the new transition $t_{p,s}$, then
+$c_p'(q)$ must be updated to the index of
+that transition, because $\pi_i$ must
+happen-before $t_{p,s}$.
+
+To perform this update, we need to keep
+track of the index $k$ of the most recent
+transition of each process $p$ that
+accesses each shared object $o$. We therefore
+also maintain a clock vector $c_o$ for each
+shared object $o$, and set
+\[ c_p'(q) =\textit{max}(c_p(q),
+		c_{\alpha(t_{p,s})}(q)).\]
+The only special case is when $q = p$,
+in which case $c_p'(p) = |\pi|$, since
+the last transition is now a transition of
+process $p$, and $|\pi|$ is the index
+of the last transition in $\pi'$. The
+full update for the clock vector is therefore
+\[ c_p'(q) =
+\begin{cases}
+	\hfill |\pi| \hfill & \text{ if } q = p; \\
+	\hfill \textit{max}(c_p(q),
+		c_{\alpha(t_{p,s})}(q))
+		\hfill & \text{ if } q \neq p.
+\end{cases}\]
+
+
+\subsubsection{Updating Object Clock Vectors}
+
+We have seen how to use object clock vectors to
+update the process clock vectors, but of course
+the object clock vectors themselves must be
+updated whenever a new transition is explored.
+In particular, if the clock vector for the
+object accessed by the transition must be
+updated so that the thread of the transition
+maps to that transition:
+\[c_{\alpha(t_{p,s})}'(p) = |\pi|.\]
+
+However, we can do better, by letting
+$c_o(q)$ be the index of the
+last transition of process
+$q$ such that object $o$ is guaranteed to be
+accessed between $c_o(q)$ and the last
+transition of the sequence (inclusive),
+whether or not $\pi_{c_o(q)}$ itself
+accesses $o$.
+This is sufficient for updating the
+process clock vectors as above, and
+also allows for higher indices to
+be stored than just the last
+transition of a process that
+accesses the object.
+
+For example, suppose that,
+for some process $q \neq p$,
+$c_{\alpha(t_{p,s})}(q) < c_p(q)$. That is,
+more recently than the last transition of
+$q$ that accessed the object $\alpha(t_{p,s})$,
+there was a transition of $q$ that happens-before
+some transition of process $p$ prior to the new
+transition $t_{p,s}$. Since any previous
+transition of process $p$ must happen-before
+$t_{p,s}$, we know that the transition
+of index $c_p(q)$ must also happen-before
+$t_{p,s}$. Therefore, there is a transition
+(namely $t_{p,s}$) which
+accesses $\alpha(t_{p,s})$ and is guaranteed
+to happen after $pi_{c_p(q)}$. So we can
+safely perform the following update:
+\[ c_{\alpha(t_{p,s})}'(q) =\textit{max}(c_p(q),
+c_{\alpha(t_{p,s})}(q)),
+\]
+meaning that the full update for the object
+clock vector is
+
+\[ c_{\alpha(t_{p,s})}'(q) =
+\begin{cases}
+\hfill |\pi| \hfill & \text{ if } q = p; \\
+\hfill \textit{max}(c_p(q),
+c_{\alpha(t_{p,s})}(q))
+\hfill & \text{ if } q \neq p.
+\end{cases}\]
+
+Noting that this is precisely the same
+clock vector as $c_p'$ allows for a
+more efficient implementation of
+the updates.
 
 \subsection{Difficulties with Locks}
 \textbf{Difficulties faced adding locks;
