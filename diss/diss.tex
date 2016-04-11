@@ -1404,6 +1404,7 @@ the simplest possible model checking algorithm.
 
 
 \subsection{Implementation}
+\label{sec:simple-imp}
 
 See the \textbf{APPENDIX} for an illustration
 of the relationship between the actual OCaml
@@ -1881,23 +1882,71 @@ more efficient implementation of
 the updates.
 
 \subsection{Difficulties with Locks}
-\textbf{Difficulties faced adding locks;
-	how they were overcome.}
 
-Problem: many algorithms use locks. While \texttt{while locked do skip done}
-is good enough, it results in a cycle in the state space, which causes
-non-termination of DPOR.
+When initially implementing the project,
+I decided not to include locks in PL,
+so that transitions became total functions
+and could always execute, regardless
+of the shared state. While this meant
+that the DPOR algorithm was simpler when
+I first implemented it (for example,
+the checks on lines 5 and 19 of the
+pseudocode in figure~\ref{fig:dpor-imp-pscode}
+would be unnecessary), when I decided
+to add locks to PL, since many
+concurrent algorithms rely on them,
+I ran into difficulties.
 
-Solution: add locks. New problem: no distinction between
-transition not existing and not being enabled. Without
-locks, all existing transitions were enabled; no longer
-the case.
-
-Solution: pass around Boolean stating whether or not the transition
-is enabled.
+In particular, the specification of the
+\texttt{next\_transition} function in the
+\textit{Thread} module either returned
+a transition, or it didn't; there was
+no way of specifying whether or not
+the transition returned for the
+given local state was enabled in the
+given shared state. To solve this,
+then, I changed the specification
+of the \texttt{next\_step} and
+\texttt{next\_transition} functions
+in the \textit{Thread} module to
+return a Boolean along with the
+main result, specifying whether
+the step or transition was enabled
+in the given state. To check whether
+the next transition of a process is
+enabled in a given state, the
+\texttt{next\_transition} function
+can be called and this Boolean flag
+checked.
 
 \subsection{Detecting Errors and Deadlocks}
 \label{sec:dpor-imp-detecting}
+
+Error and deadlocks are detected in a
+very similar way to the simple model
+checker, as explained in
+section~\ref{sec:simple-imp}: the same
+four Booleans are used to track whether
+any errors or deadlocks have been found,
+and they are combined to give the
+result in the same way. The only
+difference is that, in the DPOR
+algorithm, whether the current
+state is an error or a deadlock
+is not checked at the same time
+that the recursive calls are
+checked, because it is likely that
+the next transitions of some
+threads are not explored. However,
+since the next transitions of
+each thread are examined on
+lines 3 and 4 of the pseudocode
+in figure~\ref{fig:dpor-imp-pscode},
+it makes sense to check here
+whether any state is in an error,
+whether any transitions are enabled,
+and whether any threads are blocked
+because of the current shared state.
 
 \section{Stateful Model Checking}
 When explored a state space, the same state may be
