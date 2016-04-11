@@ -537,6 +537,7 @@ if there is a valid independency relation $I$ such that $(t_1, t_2) \in I$.
 If $t_1$ and $t_2$ are not independent, they are said to be \emph{dependent}.
 
 \subsubsection{Persistent Sets}
+\label{sec:persistent}
 Partial-order reduction algorithms typically 
 perform a depth-first
 search of the reachable state space
@@ -2155,6 +2156,68 @@ a simple depth-first search.
 	\end{algorithmic}
 	\caption{The Stateful DPOR algorithm.}
 	\label{fig:sdpor-code}
+\end{figure}
+
+\section{Static Partial-Order Reduction}
+
+In order to evaluate the improvement in performance
+allowed by building persistent sets dynamically
+instead of statically, I decided to research and
+implement a static partial-order reduction
+algorithm. However, I struggled to find one
+in the literature that was straightforward enough
+to understand and implement in the short amount
+of time I had. I therefore designed my own
+rudimentary static partial-order reduction algorithm,
+which I will refer to at the Static POR (SPOR,
+not to be confused with SDPOR) algorithm.
+While it is simple to understand and implement,
+the trade-off is that it returns large persistent sets.
+
+The algorithm explores the state space using a
+depth-first search, but exploring only those
+transitions in a persistent set from each
+state, as mentioned in section \ref{sec:persistent}.
+Before the algorithm begins its search, it compiles a table
+listing all the shared objects that each process may
+access, then, during the search, persistent sets $T$ are built
+using a fixed-point computation such that
+every process whose next transition is
+not in $T$ never accesses any
+object that any process whose next
+transition is in $T$ accesses.
+The algorithm constructing a persistent set in a given state
+is shown in figure~\ref{fig:spor-code}.
+
+\begin{figure}
+	\begin{algorithmic}[1]
+		\Procedure{PersistentSet}{$\sigma$}
+		\Let{$E$}{$\{p\}$,
+			for any $p$ such that
+			$\exists t_{p,s} \in \textit{enabled}(\sigma)$}
+		\Let{$O$}{$\{o \mid \textit{accesses}(p, o)\}$}
+		\While{$E$ changes}
+			\ForAll{$q \in (\mathcal{P} \setminus E)$}
+				\If{$\exists o \in O.\;
+					\textit{accesses}(q,o)$}
+				\State $E := E \cup \{p\}$;
+				\State $O := O \cup \{o \mid
+					\textit{accesses}(q, o)\}$
+				\EndIf
+			\EndFor
+		\EndWhile
+		\Let{$T$}{$\{t \mid \exists p \in E.\;
+					t = \textit{next}(\sigma,p)\}$}
+		\If{$(T \setminus \textit{enabled}(\sigma))
+				\neq \emptyset$}
+			\Return $\textit{enabled}(\sigma)$
+		\Else \ \Return $T$
+		\EndIf
+		\EndProcedure
+	\end{algorithmic}
+	\caption{An algorithm for statically constructing
+		persistent sets.}
+	\label{fig:spor-code}
 \end{figure}
 
 \section{Sleep Sets}
