@@ -1954,13 +1954,11 @@ encountered twice. However, the part of the state
 space from that state onwards need only be explored
 once. An obvious technique for improving the
 time complexity of a model checking algorithm
-at the cost of using extra space is to notice
+(at the cost of using extra space) is to notice
 when we visit a state twice, by making a note
 of which states we have explored.
 
 \subsection{Simple Model Checker}
-\textbf{Straight-forward implementation for simple
-	checker. Give new algorithm.}
 
 Applying this technique to the Simple model
 checking algorithm is straightforward: whenever
@@ -1975,34 +1973,28 @@ for these operations for a hash table are both
 constant, so I used the OCaml library implementation
 of hash tables for this function.
 
-The pseudocode for the Simple model checking
-algorithm with this technique applied is given
-in \textbf{FIGURE TO DO}.
-
 \subsection{Dynamic Partial-Order Reduction}
 Although it is not obvious, na\"{\i}vely
-applying this technique results in an
+applying this technique to the DPOR
+algorithm results in an
 unsound model checking algorithm. Instead,
-a new algorithm, SDPOR, is used.
+a new algorithm, Stateful Dynamic
+Partial-Order Reduction (SDPOR), is used.
 
 \subsubsection{Na\"{\i}ve Approach}
-\textbf{What this approach is; why it doesn't
-	work; example.}
 
 Suppose that we applied the approach
 given above to the DPOR algorithm,
-resulting in the pseudocode in \textbf{FIGURE TO DO}.
-The following example shows that the resulting
-algorithm is not sound.
-
-Consider the execution of the algorithm on example
- shown in figure~\ref{fig:sdpor-motivation},
-at the stage when all the stages in grey have been
+and executed the resulting algorithm
+on the example shown in
+figure~\ref{fig:sdpor-motivation}.
+Consider the stage at which
+all the states in grey have been
 explored and so are present in the hash table,
 and the current transition sequence is the first
 transition of thread 1 followed by the first
 transition of thread 0. As this stage, the state
-with the bold outline is encountered, which is
+labelled 2200 is encountered, which is already
 present in the hash table, so no exploration is
 made, and as no backtracking points have been added
 at either of the previous stages, the algorithm
@@ -2015,26 +2007,32 @@ undetected.
 The reason for the unsoundness is the failure to
 introduce backtracking points when necessary. If the
 search had not been cut short, then a backtracking point
-would have been added in the second state, causing the
+would have been added in the second state (1200), causing the
 dotted section to be explored.
 
 \begin{figure}
-
 	\begin{subfigure}{\textwidth}
-		\begin{tabular}{lp{0cm}l}
-		Thread 0: && Thread 1: \\
-		\qquad\texttt{x := !x} $\times$ \texttt{2;}
-			&& \qquad\texttt{x := !x} $\times$ \texttt{3;} \\
-		\qquad\texttt{x := !x + 1} && \qquad\texttt{x := !x + 4}
+		\begin{tabular}{lp{1cm}lp{0cm}l}
+		Shared variables: &&Thread 0: &&Thread 1: \\
+		\qquad \texttt{m} and \texttt{n}, initially \texttt{1}
+			&&\qquad\texttt{m := 2;}
+			&& \qquad\texttt{n := 2;} \\
+		\qquad \texttt{x} and \texttt{y}, initially \texttt{0}
+			&&\qquad\texttt{x := n}
+			&& \qquad\texttt{y := m}
 		\end{tabular}
 	\end{subfigure}
 	\begin{subfigure}{\textwidth}
 		\includegraphics[width=\textwidth]{sdpor}
 	\end{subfigure}
-	\caption{SDPOR motivation}
+	\caption[An example illustrating the need for the
+		Stateful DPOR algorithm.]
+		{An example showing that na\"{\i}vely
+		cutting short the DPOR algorithm is
+		unsound. Each state in the diagram shows
+	the values of \textit{mnxy}.}
 	\label{fig:sdpor-motivation}
 \end{figure}
-
 
 \subsubsection{Stateful Dynamic Partial-Order Reduction}
 The most obvious solution to this problem is to simply
@@ -2051,13 +2049,15 @@ so conservatively that all practical benefits are lost.
 
 One such method is to use a \emph{visible operation dependency
 graph}, and its use was proposed by \textbf{names} in an
-algorithm which I will refer to as Stateful Dynamic Partial-
+algorithm which is known as Stateful Dynamic Partial-
 Order Reduction (SDPOR). The idea is that, when we first explore
-a section of the state space, we keep track of the visible operations
+a section of the state space,
+we make a note of the visible operations
 that may be executed, so that if we encounter that section again,
 we can cut short the search, and use our knowledge of the
-visible operations that may be executed if the search was
-to continue to add backtracking points as necessary.
+visible operations that may have been
+executed if the search was continued
+to add backtracking points as necessary.
 
 In particular, a \emph{visible operation dependency
 graph} is a graph $G = \langle V, E \rangle$ whose
@@ -2070,10 +2070,92 @@ is encountered in a search of the state space, the
 edge $(t, t')$ is added to the visible operation
 dependency graph $G$. Then, when a state $\sigma$ is
 encountered which has already been explored on the
-search, the set
-$\{u \mid \exists t \in \textit{enabled}(\sigma).\;
-   u \text{ is reachable from node } t \text{ in graph } G\}$
-can be used to conservatively add backtracking points.
+search, sufficient backtracking points for soundness
+can be added by calling the
+\textsc{UpdateBacktrackSets} procedure
+on each transition in the set
+$\mathcal{U} = \{u \mid \exists t \in \textit{enabled}(\sigma).\;
+   u \text{ is reachable from node } t \text{ in graph } G\}$.
+The assumption that Stateful DPOR algorithm 
+relies on fir its efficiency is that
+although state spaces are generally very large,
+the sets $\mathcal{U}$ of reachable transitions
+are generally small.
+
+The pseudocode for the SDPOR algorithm is shown
+in figure~\ref{fig:sdpor-code}. The lines that
+differ from the plain DPOR algorithm are lines
+6--10 and line 19.
+To implement the visible operation dependency graph
+$G$, I chose to use another hash table,
+mapping from transitions to lists of transitions.
+Calling \textsc{UpdateBacktrackSets} on
+each reachable node in $G$ is implemented using
+a simple depth-first search.
+
+\begin{figure}
+	\begin{algorithmic}[1]
+		\Let{$H$}{an empty hash table of states}
+		\Let{$G$}{an empty graph on transitions}
+		\State
+		\Procedure{Explore}{$\pi$}
+		\Let{$\sigma$}{$\textit{last}(\pi)$}
+		\If{$\sigma \in H$}
+			\Let{$\mathcal{U}$}
+			{$\{u \mid \exists t \in \textit{enabled}(\sigma).\;
+				u \text{ is reachable from node }
+				t \text{ in } G\}$}
+			\ForAll{$t \in \mathcal{U}$}
+			\Call{UpdateBacktrackSets}
+				{$\pi,\, t$}
+			\EndFor
+		\Else{
+		\State add $\sigma$ into $H$;
+		\ForAll{$p \in \mathcal{P}$}
+		\Call{UpdateBacktrackSets}
+		{$\pi,\, \textit{next}(\sigma, p)$};
+		\EndFor
+		\If{$\textit{enabled}(\sigma) \neq \emptyset$}
+		\Let{$t$}{any $t \in \textit{enabled}(\sigma)$}
+		\Let{$\textit{backtrack}(\sigma)$}{$\{t\}$}
+		\Let{$\textit{done}(\sigma)$}{$\emptyset$}
+		\While{$\textit{done}(\sigma)
+			\neq \textit{backtrack}(\sigma)$}
+		\Let{$t$}{any $t \in (\textit{backtrack}(\sigma)
+			\setminus \textit{done}(\sigma))$}
+		\State add $t$ to $\textit{done}(\sigma)$;
+		\If{$|\pi| > 0$}
+			add edge $(\pi_{|\pi|-1}, t)$ to $G$;
+		\EndIf
+		\State \Call{Explore}{$\pi.t$}
+		\EndWhile
+		\EndIf
+		}\EndIf
+		\EndProcedure
+		\State
+		\Procedure{UpdateBacktrackSets}{$\pi,\, t_{p,s}$}
+		\Let{$D$}{$\{i \in \textit{dom}(\pi) \mid
+			\pi_i \text{ is dependent with } t_{p,s}
+			\text{ and } (i, p)\!\not \hookrightarrow_\pi \}$}
+		\If{$D \neq \emptyset$}
+		\Let{$\sigma_d$}
+		{$\textit{pre}(\pi,\text{max}(D))$}
+		\If{$\textit{next}(\sigma_d, p)
+			\in \textit{enabled}(\sigma_d)$}
+		add $\textit{next}(\sigma_d, p)$
+		to $\textit{backtrack}(\sigma_d)$
+		\Else {
+			add all of $\textit{enabled}(\sigma_d)$
+			to $\textit{backtrack}(\sigma_d)$
+		} \EndIf
+		\EndIf
+		\EndProcedure
+		\State
+		\State Initially: \Call{Explore}{$\emptyset$}
+	\end{algorithmic}
+	\caption{The Stateful DPOR algorithm.}
+	\label{fig:sdpor-code}
+\end{figure}
 
 \section{Sleep Sets}
 \textbf{Implementation of sleep
