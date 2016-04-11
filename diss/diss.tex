@@ -2,6 +2,7 @@
 \documentclass[12pt,a4paper,twoside,openright]{report}
 \usepackage[pdfborder={0 0 0}]{hyperref}    % turns references into hyperlinks
 \usepackage[margin=25mm]{geometry}  % adjusts page layout
+\usepackage[T1]{fontenc}
 \usepackage{mathpazo}  % style
 \usepackage{graphicx}  % allows inclusion of PDF, PNG and JPG images
 \graphicspath{ {./figs/} }
@@ -322,6 +323,7 @@ example, and introduces some concepts used
 to tackle the state explosion problem.
 
 \subsection{Definition of Model Checking}
+\label{sec:model-checking-dfn}
 Model checking is the process of deciding
 whether a
 given transition system is \emph{error-free} and
@@ -335,34 +337,32 @@ whether, in some given state, a particular
 thread has encountered an error.
 
 We say that a transition system
-$A = (\textit{State}, \Delta, \sigma_0, \textit{err})$
+$A = (\textit{State},\, \Delta,\, \sigma_0,\, \textit{err})$
 is
-\emph{error-free} if
-\[
-	\forall\, (l, g) \in \textit{State}. \ \sigma_0 \longrightarrow^* (l, g)
-	\implies \forall p \in \mathcal{P}.\ \neg\,\textit{err}(l(p));
-\]
-that is, if for every state $\sigma$ reachable from the initial state
-$\sigma_0$, no thread in $\sigma$ is in an error state.
-
-We say that a transition system
-$A = (\textit{State}, \Delta, \sigma_0, \textit{err})$
-is deadlock-free if
-\begin{align*}
-	\forall\, (l, g) \in \textit{State}. \;\, (&\sigma_0
-	 \longrightarrow^* (l, g))
-	\wedge (\neg \exists t \in \mathcal{T}.\;
-	t \in \textit{enabled}((l, g)) \\
-	&\implies \forall t_{p,s} \in \mathcal{T}.\;
-	(l(p) = s \implies \forall g' \in \mathcal{G}. \;
-		t_{p,s}(g')\!\uparrow),
-\end{align*}
-
-where $\uparrow$ denotes that a partial function is
-undefined at the given value.
-That is, for all stopped states $\sigma$ reachable from
+\emph{error-free} if, for all stopped
+states $\sigma$ reachable from
 the initial state $\sigma_0$, if the shared store of
 $\sigma$ was different, it would still be a stopped state.
+Formally,
+\[
+	\forall\, (l, g) \in \textit{State}.\; \ \sigma_0 \longrightarrow^* (l, g)
+	\implies \forall p \in \mathcal{P}.\ \neg\,\textit{err}(l(p)).
+\]
+
+We say that a transition system
+$A = (\textit{State},\, \Delta,\, \sigma_0,\, \textit{err})$
+is \textit{deadlock-free} if, for all stopped states
+$\sigma$ reachable from
+the initial state $\sigma_0$, if the shared store of
+$\sigma$ was different, it would still be a stopped state.
+Formally,
+\[
+	\forall\, (l, g) \in \textit{State}. \;\, (\sigma_0
+	 \longrightarrow^* (l, g))
+	\wedge (\textit{enabled}(l, g) = \emptyset)
+	\implies \forall g' \in \mathcal{G}. \;
+		\textit{enabled}(l, g') = \emptyset.
+\]
 
 For our purposes, a model checking algorithm is an
 algorithm that takes a transition system and returns
@@ -392,7 +392,7 @@ below for clarity.
 When deciding whether the transition system
 is error-free, we have
 \[
-	\Phi((l, g)) = \forall p \in \mathcal{P}.\; \neg\,err(l(p)),
+	\Phi(l, g) = \forall p \in \mathcal{P}.\; \neg\,err(l(p)),
 \]
 so the algorithm in figure~\ref{fig:simple-error-free}
 decides whether a given transition system
@@ -404,7 +404,7 @@ depth-first search of the reachable state space.
 \begin{figure}
 	\begin{algorithmic}[1]
 	\Procedure{SimpleErrorFree}{$\sigma$}
-	\Let{(l, g)}{$\sigma$}
+	\Let{$(l, g)$}{$\sigma$}
 	\ForAll{$p \in \mathcal{P}$}
 		\If{$err(l(p))$}
 		\Return \textit{false}
@@ -427,34 +427,35 @@ depth-first search of the reachable state space.
 When deciding whether the transition system
 is deadlock-free, we have
 \[
-	\Phi((l, g)) =\neg \exists t \in \mathcal{T}.\;
-	\exists\sigma' \in \textit{State}.\;(l, g) \xrightarrow{t} \sigma'
-	\implies \forall p \in \mathcal{P}.\;\textit{val}(l(p)),
+	\Phi(l, g) = (\textit{enabled}(l, g) = \emptyset)
+	\implies \forall g' \in \mathcal{G}. \;
+	\textit{enabled}(l, g') = \emptyset,
 \]
-so figure~\ref{fig:simple-deadlock-free} below decides whether a given transition system
+so the algorithm in figure~\ref{fig:simple-deadlock-free}
+below decides whether a given transition system
 is deadlock-free. As $\Phi$ can only fail to hold
 at stopped states, it is first
 checked whether the state has any
 transitions that can be executed. If not, then
 $\Phi$ is checked to hold, else again recursive calls implement a
 depth-first search of the reachable state space.
-The predicate $\textit{val}~:~\mathcal{S} \to \mathbb{B}$
-is true for threads which cannot proceed, no matter the
-shared state, which is easily decidable in practice.
+In practice, it is easy to decide whether or not
+there exists a shared store which would allow
+execution to continue, by looking at whether
+any thread is waiting for a lock, for instance,
+or whether all threads have simply terminated
+their computations.
 
 \begin{figure}
 	\begin{algorithmic}[1]
 		\Procedure{SimpleDeadlockFree}{$\sigma$}
-		\Let{(l, g)}{$\sigma$}
+		\Let{$(l, g)$}{$\sigma$}
 		\Let{SuccessorStates}{$\{\sigma' \mid \sigma \xrightarrow{t}
 			\sigma' \wedge t \in \textit{enabled}(\sigma)\}$}
 		\If{$\text{SuccessorStates} = \emptyset$}
-			\ForAll{$p \in \mathcal{P}$}
-				\If{$\textbf{not } val(l(p))$} \Return \textit{false}
-				\EndIf
-			\EndFor
-			\State \Return \textit{true}
-		\Else
+		\State\Return $(\forall g' \in \mathcal{G}.\; \textit{enabled}(l, g')
+				= \emptyset)$
+			\Else
 			\ForAll{$\sigma' \in \text{SuccessorStates}$}
 				\If{$\textbf{not } \textsc{SimpleDeadlockFree}(\sigma')$}
 					\Return \textit{false}
@@ -659,6 +660,7 @@ no extra difficulty.
 \end{figure}
 
 \section{Dynamic Partial-Order Reduction}
+\label{sec:dpor-prep}
 This section introduces the DPOR algorithm,
 which is the focus of the project.
 
@@ -824,13 +826,14 @@ ensures that the set of transitions
 explored from each state is a
 persistent set.
 
-\begin{figure}
+
+\newcommand{\dporpseudocode}{
 	\begin{algorithmic}[1]
 		\Procedure{Explore}{$\pi$}
 		\Let{$\sigma$}{$\textit{last}(\pi)$}
 		\ForAll{$p \in \mathcal{P}$}
-			\State \Call{UpdateBacktrackSets}
-					{$\pi,\, \textit{next}(\sigma, p)$}
+		\State \Call{UpdateBacktrackSets}
+		{$\pi,\, \textit{next}(\sigma, p)$}
 		\EndFor
 		\If{$\textit{enabled}(\sigma) \neq \emptyset$}
 		\Let{$t$}{any $t \in \textit{enabled}(\sigma)$}
@@ -848,30 +851,34 @@ persistent set.
 		\EndProcedure
 		\State
 		\Procedure{UpdateBacktrackSets}{$\pi,\, t_{p,s}$}
-			\Let{$D$}{$\{i \in \textit{dom}(\pi) \mid
+		\Let{$D$}{$\{i \in \textit{dom}(\pi) \mid
 			\pi_i \text{ is dependent with } t_{p,s}
 			\text{ and } (i, p)\!\not \hookrightarrow_\pi \}$}
-			\If{$D \neq \emptyset$}
-			\Let{$\sigma_d$}
-				{$\textit{pre}(\pi,\text{max}(D))$}
-			\If{$\textit{next}(\sigma_d, p)
-				\in \textit{enabled}(\sigma_d)$}
-			add $\textit{next}(\sigma_d, p)$
+		\If{$D \neq \emptyset$}
+		\Let{$\sigma_d$}
+		{$\textit{pre}(\pi,\text{max}(D))$}
+		\If{$\textit{next}(\sigma_d, p)
+			\in \textit{enabled}(\sigma_d)$}
+		add $\textit{next}(\sigma_d, p)$
+		to $\textit{backtrack}(\sigma_d)$
+		\Else {
+			add all of $\textit{enabled}(\sigma_d)$
 			to $\textit{backtrack}(\sigma_d)$
-			\Else {
-				add all of $\textit{enabled}(\sigma_d)$
-				to $\textit{backtrack}(\sigma_d)$
-			} \EndIf
-			\EndIf
+		} \EndIf
+		\EndIf
 		\EndProcedure
 		\State
 		\State Initially: \Call{Explore}{$\emptyset$}
 	\end{algorithmic}
+}
+\begin{figure}
+	\dporpseudocode
 	\caption{The DPOR algorithm}
 	\label{dpor-outline} 
 \end{figure}
 
 \subsubsection{Line-By-Line Explanation}
+\label{sec:dpor-prep-walkthrough}
 \begin{description}
 	\item[Lines 1--2] The \textsc{Explore} procedure implements
 	dynamic partial-order reduction. The transition sequence
@@ -1274,8 +1281,8 @@ implementation I could think of, to
 ensure correctness.
 
 The only other function of note is
-\texttt{get\char`_fresh\char`_loc},
-which queries the \emph{Expression} \texttt{random\char`_loc}
+\texttt{get\_fresh\_loc},
+which queries the \emph{Expression} \texttt{random\_loc}
 function until it returns a result which is
 unbound in the store. This is used to generate a location
 to use when a new local reference is created using the
@@ -1283,8 +1290,8 @@ to use when a new local reference is created using the
 
 \subsubsection{The Thread Module}
 The \emph{Thread} module consists mostly of
-the \texttt{next\char`_step} and \texttt{next\char`_transition}
-functions. The \texttt{next\char`_step} function uses pattern
+the \texttt{next\_step} and \texttt{next\_transition}
+functions. The \texttt{next\_step} function uses pattern
 matching on PL expressions to determine what the next atomic
 operation, if any, to be executed in the reduction
 of the expression is. There is a close correspondence
@@ -1333,23 +1340,23 @@ figure~\ref{fig:step-rule-correspondence}.
 	\caption{A concrete illustration of the correspondence
 		between the rules of the operational semantics
 		and the pattern matching statements of the
-		\texttt{next\char`_step} function.}
+		\texttt{next\_step} function.}
 	\label{fig:step-rule-correspondence}
 \end{figure}
 
 As a transition for a thread is defined as a
 finite sequence of \emph{invisible} local
 operations, followed by one \emph{visible} operation
-which accesses the shared store, the \texttt{next\char`_transition}
-function simply repeatedly calls the \texttt{next\char`_step}
+which accesses the shared store, the \texttt{next\_transition}
+function simply repeatedly calls the \texttt{next\_step}
 function, reducing the initial expression and modifying
 the local store, until either the resulting step accesses the shared
 store, or no further reduction is possible. Noting that this
 process is independent of the object language (PL, in this case),
 the most general implementation of this project would require
-only the  \texttt{next\char`_step} function to be provided by
+only the  \texttt{next\_step} function to be provided by
 the user, with a functor being used to automatically
-produce the \texttt{next\char`_transition} function. However,
+produce the \texttt{next\_transition} function. However,
 in this case, I decided that the additional design complexity
 cost was not worth the slight improvement to the abstraction
 of the project.
@@ -1368,8 +1375,8 @@ represented by an instance of the \texttt{state} type:
 \subsubsection{Testing}
 To ensure that the implementation of the PL
 language was correct, I wrote unit tests for
-the \texttt{next\char`_transition} and
-\texttt{next\char`_step} functions. These tests
+the \texttt{next\_transition} and
+\texttt{next\_step} functions. These tests
 consisted of a series of inputs and expected outputs
 to these functions. My aim in writing these tests
 was to ensure that most of the code was covered,
@@ -1377,58 +1384,503 @@ so that any obvious bugs could be corrected
 immediately. However, I did not invest time
 making these tests very rigorous for two reasons:
 any bugs found later would be relatively straightforward
-to correct; and getting the PL implementation
+to correct, and getting the PL implementation
 fully correct was not the aim of the project, but
 just a necessary step before the main work on the
 model checking algorithms.
-
 
 \section{Simple Model Checker}
 
 In order to ensure the correctness of my implementation
 of the DPOR algorithm, to have a baseline to use
-for performance comparison, and to reaffirm my understanding
-of the implementation of model checking, I first wrote the
+for performance comparison, and to begin by implementing
+a relatively simple model checking algorithm, I first wrote the
 SimpleChecker functor, which takes an implementation of
 \emph{Program} as its input, and outputs a structure
-which includes the definition of
+which provides
 a function that performs model checking by performing
 an exhaustive depth-first search of the state space --
 the simplest possible model checking algorithm.
 
-Include why \texttt{check local} was put in Thread.
 
 \subsection{Implementation}
-\begin{itemize}
-	\item Functor from programs to Checkers (independent of language)
-	\item Present pseudo-code which is fairly close to OCaml but
-		without too much detail.
-	\item In particular explain how errors and deadlocks are found
-	\item Aim is to convince reader that definitely correctly
-		implemented.
-\end{itemize}
+
+See the \textbf{APPENDIX} for an illustration
+of the relationship between the actual OCaml
+code, and the pseudocode given in
+figure~\ref{fig:simple-imp-code}, which gives
+a high-level description of the algorithm,
+which performs an exhaustive depth-first
+search of the state space as outlined in
+section~\ref{sec:simple-model-checking},
+deciding at each state whether the state space
+from the current state onwards is error-free
+and deadlock-free.
+
+\subsubsection{Detecting Errors}
+
+The algorithm assumes that if a thread
+encounters an error, then the execution
+of that thread will not proceed, meaning
+that only threads which do not have an
+enabled next transition need to be checked
+for errors. The Boolean \textit{error\_free}
+tracks whether any threads in the current state
+have encountered an error (line 14) and whether any
+recursive calls report an error (line 11), and is
+returned as one of the two Boolean results
+of the call (line 17).
+
+\subsubsection{Detecting Deadlocks}
+
+Deciding whether the state space from the current
+state onwards is deadlock-free is more complicated.
+The \textit{calls\_deadlock\_free} keeps track of
+whether any recursive call reports a deadlock. If
+any do, then it is set to false (line 12), causing the
+algorithm to report that the state space herein
+is not deadlock-free (line 17).
+
+Assuming that no
+recursive calls report a deadlock, then the state
+space is deadlock-free if and only if the current
+state is not a deadlock state, which is the case
+if and only if either there is some thread with an
+enabled transition,
+or every thread had terminated its computation and
+is not waiting for some change in the global state.
+Two Booleans keep track of these two possibilities:
+if any transition is enabled, then
+\textit{is\_enabled\_thread} is set to true (line 9),
+and if any thread without an enabled transition is
+waiting for some change in the shared state (for
+instance a lock to become available), then
+\textit{no\_waiting\_threads} is set to false.
+If either Boolean is true at the end of the call
+to \textsc{Check}, then, providing no recursive
+calls reported a deadlock, the algorithm returns
+that the state space is deadlock-free.
+
+\begin{figure}
+	\begin{algorithmic}[1]
+		\Procedure{Check}{$\sigma_0,\,\pi$}
+		\Let{$(l, g)$}
+			{$\textit{last}(\pi)$}
+		\Let{\textit{error\_free}}{true}
+		\Let{\textit{is\_enabled\_thread}}{false}
+		\Let{\textit{no\_waiting\_threads}}{true}
+		\Let{\textit{calls\_deadlock\_free}}{true}
+		\ForAll{$p \in \mathcal{P}$}
+		\If{$\textit{next}(\sigma, p) \in \textit{enabled}(\sigma)$}
+			\State \textit{is\_enabled\_thread} := true;
+			\Let{$(\textit{result\_ef}, \textit{result\_df})$}
+				{\Call{Check}{$\sigma_0, \pi.\textit{next}(\sigma, p)$}}
+			\State \textit{error\_free} := \textit{error\_free}
+				\& \textit{result\_ef};
+			\State \textit{calls\_deadlock\_free}
+			:= \textit{calls\_deadlock\_free}
+			\& \textit{result\_df}
+		\Else
+			\If{$\textit{err}(l(p))$}{ \textit{error\_free} := false};
+			\EndIf
+			\If{$\exists g' \in \mathcal{G}.\;
+				\textit{next}(\sigma,p) \in \textit{enabled}(l,g')$}
+				{\textit{no\_waiting\_threads} := false}
+			\EndIf
+		\EndIf
+		\EndFor
+		\Let{\textit{deadlock\_free}}{\textit{calls\_deadlock\_free} \&
+			(\textit{is\_enabled\_thread} | \textit{no\_waiting\_threads})}
+		\State \Return (\textit{error\_free}, \textit{deadlock\_free})
+		\EndProcedure
+	\end{algorithmic}
+	\caption{Simple model checking algorithm}
+	\label{fig:simple-imp-code}
+\end{figure}
 
 \subsection{Testing}
-\begin{itemize}
-	\item Some test cases to sanity check
-	\item In practice did error first and deadlock later,
-		but not super relevant
-	\item Idea is to use this to check DPOR, because this is so 
-		obviously correct
-\end{itemize}
+
+Although more detail will be given in
+section~\ref{sec:pl-checker-tests}, it
+is worth mentioning here that before going
+on to implement anything else, I first
+tested the simple model checker to weed
+out any obvious bugs in either the
+implementation of PL or of the simple
+model checker itself; the bugs would need
+dealing with at some point anyway, so
+better to catch them as soon as possible,
+when it would be easiest to identify the
+causes.
+
+Each simply gave a PL program,
+ran the simple model checker on it, and
+raised a flag if the result was not as
+I expected. It wasn't difficult to
+provide high code coverage of this
+relatively simple algorithm. Along
+with the simplicity of the algorithm,
+these tests gave me confidence in
+the correctness of my implementation.
+
+\subsection{Correctness}
+
+The reason that I have fully explained
+the operation of this simple model checker,
+provided a mapping
+in the \textbf{APPENDIX} from the OCaml
+implementation to the high-level
+pseudocode, and described
+tests of its correctness is to give the reader
+as much confidence as possible
+that the implementation performs
+model checking as defined in
+section~\ref{sec:model-checking-dfn}; in
+chapter~\ref{cha:evaluation}, the
+correctness of the simple model checker will be used
+to provide evidence that the implementations of
+other model checking algorithms are also correct.
 
 \section{Dynamic Partial-Order Reduction}
-\textbf{This section explains how the DPOR
-	alogorithm was implemented in practice.}
+The Dynamic Partial-Order Reduction (DPOR)
+algorithm was presented in section~\ref{sec:dpor-prep},
+which gave an overview of its operation,
+including high-level pseudocode, reproduced
+in figure~\ref{fig:dpor-imp-pscode} for ease
+of reference. Several
+aspects of the algorithm mean that it
+is not obvious how it can be implemented
+as an executable program; this
+section explains how this was achieved.
+
+\begin{figure}
+	\dporpseudocode
+	\caption{The DPOR pseudocode}
+	\label{fig:dpor-imp-pscode}
+\end{figure}
 
 \subsection{Implementation}
-\subsubsection{Clock Vectors}
-\textbf{Used to decide the happens-before relation.}
-\subsubsection{Independence}
-\textbf{Keep track of last transition that accessed
-	each global object.}
+Section~\ref{sec:dpor-prep-walkthrough} gave a
+line-by-line explanation of how
+the DPOR algorithm works. This section gives a
+line-by-line explanation of how the algorithm
+was implemented.
 
-\subsection{Locks}
+\begin{description}
+	\item[Line 1] The \textsc{Explore} procedure
+	is implemented as a recursive OCaml function,
+	\texttt{check}.
+	One of the advantages of OCaml is its provision
+	of practical procedural features, as well the
+	functional ML features, which usefully allowed
+	me to combine these styles as I saw fit when
+	implementing this algorithm.
+
+	\item[Line 2] When implementing the simple
+	model checker, I used the \texttt{fold\_left}
+	function from the provided List module to
+	repeatedly use the \texttt{apply\_transition}
+	from the \textit{Program} module to apply
+	the transitions in the transition sequence
+	to the initial state. However, in this case
+	I wrote a function, \texttt{pre},
+	which applies only the first
+	$n$ transitions in the sequence,
+	thereby returning the state
+	$\textit{pre}(\pi, n)$ if $n < |\pi|$
+	or the state $\textit{last}(\pi)$ if
+	$n = |\pi|$, which is what we want in
+	this case.
+
+	\item[Lines 3--4] The \texttt{next\_transition}
+	function, provided in the \textit{Thread} module,
+	may return no transition at all (for instance
+	in the case that a thread has terminated its
+	computation), so the call to 
+	\textsc{UpdateBacktrackSets} is only made if
+	\texttt{next\_transition} does return a
+	transition. It is also here, in the
+	iteration through the threads,
+	that it is decided whether the current
+	state is an error or a deadlock
+	(see section~\ref{sec:spor-imp-detecting}
+	below).
+
+	\item[Lines 15--17] In this project,
+	the assumptions are made that
+	each transition $t$ accesses only one shared
+	object, denoted $\alpha(t)$,
+	and that two transitions are
+	dependent if and only if they access
+	the same shared object (or belong to the
+	same process). Therefore, the most
+	recent transition $\pi_i$ such that
+	$\pi_i$ is dependent with $t_{p,s}$
+	and $(i,p)\!\not\hookrightarrow_\pi$,
+	if any,
+	is precisely the last transition
+	to access the shared object that
+	$t_{p,s}$ accesses.
+
+	Therefore, as well as the transition
+	sequence, $\pi$, \texttt{check} takes
+	as an argument 
+	a function $L$ from shared objects to
+	the index of the last transition that
+	accessed them, so that the index of the
+	necessary backtracking point (if any) is
+	$L(\alpha(t_{p,s}))$. However, this
+	is not a necessary backtracking point if
+	$\pi_{L(\alpha(t_{p,s}))}$ happens-before
+	$t$, in which case no backtracking point
+	is necessary, as there cannot be another
+	transition that is dependent with $t$
+	but does not happen-before $t$. To
+	decide the happens-before relation,
+	clock vectors are used, as described 
+	in section~\ref{sec:clock-vectors}.
+
+	The \texttt{pre} function is used to
+	obtain $\sigma_d$ from $L(\alpha(t_{p,s}))$.
+
+	\item[Lines 18--19]	\textbf{TODO: how do we know if a transition
+		is enabled? And how do we get the set of
+		all enabled transitions?}
+
+	\item[Lines 5--6] If, while iterating through the
+	processes in lines 3 and 4, any transition is found to be
+	enabled, then a reference is set to it. If at line 5,
+	that variable has been set at all, then it is chosen
+	as the $t \in \textit{enabled}(\sigma)$ in line 6,
+	otherwise lines 6 to 12 are not executed.
+
+	\item[Line 7] The \textit{backtrack} sets for each state
+	in the sequence of states implied by the transition
+	sequence $\pi$ must be stored in a data structure that
+	allows them to be accessed and updated from all later
+	recursive calls, so that they can add backtracking
+	points. I decided to use a variable-length array
+	for this, as arrays are mutable and have efficient
+	access, but the maximum recursion depth (and so the
+	longest fixed-length array necessary) cannot be predicted.
+	
+	I therefore implemented a module which uses a fixed-length
+	array to implement a variable-length array by
+	copying the elements to a fresh array of double the
+	previous size if the underlying array proves too short.
+	Although this operation is expensive, the amortised
+	cost of adding a new element to the array is constant.
+	In this case, each element of the array is a \textit{backtrack}
+	set of a state, implemented as a list of processes
+	whose next transitions are to be explored.
+	
+	\item[Lines 8--11] Instead of using a
+	procedural while-loop,
+	I implemented the iteration through
+	the backtracking points
+	by using a functional tail-recursive
+	function, whose argument
+	was a list of processes, representing
+	the \textit{done} set. An auxiliary
+	function returned a member $p$ of the
+	\textit{backtrack} set not present in the
+	\textit{done} set, from which the
+	transition $t$ to explore is simply
+	$\textit{next}(\sigma, p)$. The
+	recursive call to the while-function
+	then has the old \textit{done} set
+	extended with $p$ as its argument. If
+	the auxiliary function can
+	find no such $p$, then the
+	while-function (and therefore the
+	call to \texttt{check}) returns.
+
+	\item[Line 12] Once the new arguments have
+	been computed, a recursive call to
+	\texttt{check} is made. Other than
+	the clock vectors (see section~\ref{sec:clock-vectors}),
+	the arguments that
+	have to be computed are the new transition
+	sequence, $\pi' = \pi.t$,
+	and the new function, $L'$,
+	tracking which transitions accessed each 
+	object:
+	\[ L'(o) =
+	\begin{cases}
+		\hfill |\pi| \hfill & \text{ if } o = \alpha(t); \\
+		\hfill L(o) \hfill & \text{ otherwise}.
+	\end{cases}\]
+	As the transition sequence is implemented as an
+	OCaml list, and the function $L$ as an OCaml function,
+	these computations are straightforward.
+
+	\item[Line 13] Once all backtracking points have been
+	explored, the result is returned.
+	Section~\ref{sec:dpor-imp-detecting} explains how the
+	result is computed amongst the steps explained in this
+	section, which all relates solely to how it is
+	decided which transitions to explore.
+
+\end{description}
+
+\subsection{Deciding The Happens-Before Relation}
+\label{sec:clock-vectors}
+
+To decide the happens-before relation,
+$\hookrightarrow_\pi$, I used the method
+of clock vectors, as outlined in \textbf{POPL'05.}
+
+\subsubsection{Using Clock Vectors}
+
+As explained above, although
+the last function, $L$, gives the index
+of the last transition that accessed a given shared
+object, and so the index of the potential backtracking
+point to be added, we only need to add it if it
+didn't happen-before the current transition.
+That is, if
+$(L(\alpha(t_{p,s})), p)\!\not\hookrightarrow_\pi$.
+
+
+If, for each process
+$q$, we know the index $k$ of the last transition of that
+process such that $(k, p)\!\hookrightarrow_\pi$,
+then given any other transition of
+process $q$, $\pi_i$, we know that
+$(i, p)\!\hookrightarrow_\pi$ if and only if
+$i \leq k$. A clock vector $c$ is
+a function from processes $q$ to
+indices into the transition sequence, $k$,
+and we maintain one clock vector, $c_p$, per
+process $p$. To decide whether
+$(i, p)\!\hookrightarrow_\pi$ for
+any $i$ and $p$, is simply to decide
+whether $i \leq c_p(q)$, where $q$ is
+the process of transition $\pi_i$.
+
+\subsubsection{Updating Process Clock Vectors}
+By passing clock vectors as arguments to
+\texttt{check}, then, it is straightforward
+to decide whether
+$(L(\alpha(t_{p,s})), p)\!\hookrightarrow_\pi$.
+For this to work, the correct clock values need
+to be passed to each call of \texttt{check}.
+Assuming that the correct value (each $k$
+set to anything less than 0) is passed for
+the initial call, we need to ensure that the
+clock vectors are correctly updated when
+making a recursive call, when a new
+transition, $t_{p,s}$, is being explored.
+
+The only clock vector that needs to be updated
+is $c_p$, the clock vector for the process
+of the transition being explored, because
+a transition of process $p'$ must happen-before
+the end of the extended transition
+sequence, $\pi'.t_{p,s}$,
+only if it must happen-before the end
+of the original transition sequence,
+$\pi$, assuming that $p' \neq p$.
+
+Let us denote the updated clock vector
+by $c_p'$, and consider $c_p'(q)$, which
+must be at least $c_p(q)$, as if process
+$p$ must happen-before the end of $\pi$
+then it must happen-before the end of $\pi'$.
+However, if there is a more recent transition
+of process $q$, say $\pi_i$
+that accesses the same shared
+object as the new transition $t_{p,s}$, then
+$c_p'(q)$ must be updated to the index of
+that transition, because $\pi_i$ must
+happen-before $t_{p,s}$.
+
+To perform this update, we need to keep
+track of the index $k$ of the most recent
+transition of each process $p$ that
+accesses each shared object $o$. We therefore
+also maintain a clock vector $c_o$ for each
+shared object $o$, and set
+\[ c_p'(q) =\textit{max}(c_p(q),
+		c_{\alpha(t_{p,s})}(q)).\]
+The only special case is when $q = p$,
+in which case $c_p'(p) = |\pi|$, since
+the last transition is now a transition of
+process $p$, and $|\pi|$ is the index
+of the last transition in $\pi'$. The
+full update for the clock vector is therefore
+\[ c_p'(q) =
+\begin{cases}
+	\hfill |\pi| \hfill & \text{ if } q = p; \\
+	\hfill \textit{max}(c_p(q),
+		c_{\alpha(t_{p,s})}(q))
+		\hfill & \text{ if } q \neq p.
+\end{cases}\]
+
+
+\subsubsection{Updating Object Clock Vectors}
+
+We have seen how to use object clock vectors to
+update the process clock vectors, but of course
+the object clock vectors themselves must be
+updated whenever a new transition is explored.
+In particular, if the clock vector for the
+object accessed by the transition must be
+updated so that the thread of the transition
+maps to that transition:
+\[c_{\alpha(t_{p,s})}'(p) = |\pi|.\]
+
+However, we can do better, by letting
+$c_o(q)$ be the index of the
+last transition of process
+$q$ such that object $o$ is guaranteed to be
+accessed between $c_o(q)$ and the last
+transition of the sequence (inclusive),
+whether or not $\pi_{c_o(q)}$ itself
+accesses $o$.
+This is sufficient for updating the
+process clock vectors as above, and
+also allows for higher indices to
+be stored than just the last
+transition of a process that
+accesses the object.
+
+For example, suppose that,
+for some process $q \neq p$,
+$c_{\alpha(t_{p,s})}(q) < c_p(q)$. That is,
+more recently than the last transition of
+$q$ that accessed the object $\alpha(t_{p,s})$,
+there was a transition of $q$ that happens-before
+some transition of process $p$ prior to the new
+transition $t_{p,s}$. Since any previous
+transition of process $p$ must happen-before
+$t_{p,s}$, we know that the transition
+of index $c_p(q)$ must also happen-before
+$t_{p,s}$. Therefore, there is a transition
+(namely $t_{p,s}$) which
+accesses $\alpha(t_{p,s})$ and is guaranteed
+to happen after $pi_{c_p(q)}$. So we can
+safely perform the following update:
+\[ c_{\alpha(t_{p,s})}'(q) =\textit{max}(c_p(q),
+c_{\alpha(t_{p,s})}(q)),
+\]
+meaning that the full update for the object
+clock vector is
+
+\[ c_{\alpha(t_{p,s})}'(q) =
+\begin{cases}
+\hfill |\pi| \hfill & \text{ if } q = p; \\
+\hfill \textit{max}(c_p(q),
+c_{\alpha(t_{p,s})}(q))
+\hfill & \text{ if } q \neq p.
+\end{cases}\]
+
+Noting that this is precisely the same
+clock vector as $c_p'$ allows for a
+more efficient implementation of
+the updates.
+
+\subsection{Difficulties with Locks}
 \textbf{Difficulties faced adding locks;
 	how they were overcome.}
 
@@ -1443,6 +1895,9 @@ the case.
 
 Solution: pass around Boolean stating whether or not the transition
 is enabled.
+
+\subsection{Detecting Errors and Deadlocks}
+\label{sec:dpor-imp-detecting}
 
 \section{Stateful Model Checking}
 When explored a state space, the same state may be
@@ -1532,8 +1987,6 @@ dotted section to be explored.
 \end{figure}
 
 
-
-
 \subsubsection{Stateful Dynamic Partial-Order Reduction}
 The most obvious solution to this problem is to simply
 add all possible backtracking points whenever we cut
@@ -1619,6 +2072,7 @@ as a graph maybe.
 \end{figure}
 
 \chapter{Evaluation}
+\label{cha:evaluation}
 
 This chapter discusses the soundness
 of the implementation of the model checking
@@ -1767,6 +2221,7 @@ some evidence that my implementations
 of the algorithms are sound.
 
 \subsubsection{Tests}
+\label{sec:pl-checker-tests}
 As part of the development process,
 I wrote over forty test cases, each 
 consisting of a transition system

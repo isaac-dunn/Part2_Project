@@ -84,6 +84,9 @@ val is_error : expr -> bool
 (** Returns true iff expression is a value *)
 val is_value : expr -> bool
 
+(** Returns global locations accessible *)
+val locations_accessed : expr -> loc list
+
 (** Substitutes first argument for outmost variable in second *)
 val substitute_outmost : expr -> expr -> expr
 
