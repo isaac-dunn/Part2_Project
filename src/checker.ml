@@ -197,30 +197,16 @@ module DPORChecker (Prog : Interfaces.Program) =
                                        else last_ti oi in
 
         (* Add appropriate edges to G *)
-        (* if there is some state sx along our transition sequence such that
-           transition tx takes sx to the current state then add (tx, next_t) to G *)
-        let process_and_apply_t (tds', g') (i', t') =
-            (* For each process p in each state along t_seq *)
-            for p' = 0 to Array.length tds - 1 do
-              let (e', s') = Array.get tds' p' in
-              match T.next_transition (e', s', g') with
-            (* If there is a transition from it *)
-                None -> ()
-              | Some (next_t', enabled') -> if enabled' then
-                    (* And that transition results in the current state *)
-                    if ProgImp.apply_transition (tds', g') (p', next_t') = (tds, g)
-                    (* Then add an arc from that transition to next_t *)
-                    then let new_range = if Hashtbl.mem vodg (p', next_t')
-                            then let old_r = Hashtbl.find vodg (p', next_t')
-                                in if List.mem (p, next_t) old_r then old_r
-                                        else (p, next_t)::old_r
-                            else [(p, next_t)] in
-                         Hashtbl.replace vodg (p', next_t') new_range
-            done; ProgImp.apply_transition  (tds', g') (i', t')
-        in let _ = if do_stateful
-                then List.fold_left process_and_apply_t init_prog t_seq
-                else init_prog in
-
+        (* If t_seq isn't empty then add edge in G from
+           last transition in t_seq to the new transition*)
+        if t_seq <> [] then
+            let last = List.hd (List.rev t_seq) in
+            let new_range = if Hashtbl.mem vodg last
+                    then let old_r = Hashtbl.find vodg last
+                        in if List.mem (p, next_t) old_r then old_r
+                                else (p, next_t)::old_r
+                    else [(p, next_t)] in
+                 Hashtbl.replace vodg last new_range;
 
         (* Explore(S', C', L') *)
         let (ef, df) = check init_prog new_t_seq new_proc_cvs new_obj_cvs new_last_ti in
