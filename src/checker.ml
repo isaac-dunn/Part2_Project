@@ -239,6 +239,7 @@ module DPORChecker (Prog : Interfaces.Program) =
 
     let error_and_deadlock_free (tds, g) =
         Hashtbl.reset ht;
+        Hashtbl.reset vodg;
         let n = Array.length tds in
         check (tds, g) [] (fun _ -> Clockvector.fresh n) (fun _ -> Clockvector.fresh n) (fun _ -> ~-1)
   end
