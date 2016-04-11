@@ -2242,40 +2242,41 @@ noteworthy in the implementations of either.
 
 \section{Counter-Example Traces} \label{sec:traces}
 
-One of the advantages of model checking as
-a formal method is that, in the case that
+One of the advantages of model checking
+is that, in the case that
 an error is found, it is trivial to give
 an example of an execution of the given
-program which leads to an error state; in
+program which leads to an error state---in
 our case, this is just the sequence of
 transitions executed at the point when
 an error state it found.
 
 To give more insight into the reason for the
 error state being entered, it would be preferable
-to instead present the use with a
+to instead present the user with a
 \emph{partial order} of the transitions which,
-whenever any linearisation of the partial order
-is executed, results in the error/deadlock state.
+whenever linearised in an execution,
+results in the error/deadlock state.
 Given a sequence of transitions which lead to
-some error state, the problem is
+some state of interest, the problem is
 then to give the most general partial order
 which, however linearised, results a sequence
 of transitions 
 
 This partial order is just the happens-before
 relation (cf. \ref{sec:happens-before}). As
-discussed above  (\textbf{where?}), this can
-be decided using clock vectors.
+discussed in section~\ref{sec:clock-vectors},
+this can be decided using clock vectors.
+
 Just execute the transition sequence
 from the beginning, keeping track of the relation.
 Then output it in a nice form, so we can display it
-as a graph maybe.
+as a graph maybe. \textbf{TO DO.}
 
 \begin{figure}	
 	\lstinputlisting[firstline=39,lastline=57]{../src/program.ml}
 	\caption{The function giving the partial order from
-		a given transition sequence.}
+		a given transition sequence. \textbf{Probably remove this.}}
 \end{figure}
 
 \chapter{Evaluation}
