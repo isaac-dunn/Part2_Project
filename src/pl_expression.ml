@@ -197,6 +197,31 @@ let is_value e = match e with
   | Spinlock _ -> true
   | f -> is_error f
 
+let rec locations_accessed e =
+  let rec union xs ys = match xs with
+    [] -> ys
+  | x::xss -> if List.mem x ys then union xss ys
+              else x::(union xss ys) in  
+  match e with
+    Not e1 -> locations_accessed e1
+  | Op (e1, _, e2) -> union (locations_accessed e1) (locations_accessed e2)
+  | If (e1, e2, e3) -> union (locations_accessed e1) (union (locations_accessed e2) (locations_accessed e3))
+  | Assign (e1, e2) -> union (locations_accessed e1) (locations_accessed e2)
+  | Deref e1 -> locations_accessed e1
+  | Ref e1 -> locations_accessed e1
+  | Glo l -> [l]
+  | Seq (e1, e2) -> union (locations_accessed e1) (locations_accessed e2)
+  | While (e1, e2) -> union (locations_accessed e1) (locations_accessed e2)
+  | Fn e1 -> locations_accessed e1
+  | App (e1, e2) -> union (locations_accessed e1) (locations_accessed e2)
+  | Let (e1, e2) -> union (locations_accessed e1) (locations_accessed e2)
+  | Letrec (e1, e2) -> union (locations_accessed e1) (locations_accessed e2)
+  | Cas (e1, e2, e3) -> union (locations_accessed e1) (union (locations_accessed e2) (locations_accessed e3))
+  | Spinlock l -> [l]
+  | Lock e1 -> locations_accessed e1
+  | Unlock e1 -> locations_accessed e1
+  | _ -> []
+
 (* subst : expr -> int -> expr -> expr *)
 (* subst e 0 f gives f with e substituted for the outmost variable *)
 let rec subst e n f = match f with

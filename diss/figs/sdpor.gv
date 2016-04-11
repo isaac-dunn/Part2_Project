@@ -1,0 +1,25 @@
+digraph SDPOR {
+    rankdir=LR;
+    node [shape=circle,style=filled, fillcolor=grey,
+          fontcolor=black, fixedsize=true, fontname="Palatino"];
+    edge [fontname="Palatino-Italic", penwidth=0.66, color=black];
+
+    1100 -> 2100 [label=<T<sub>0</sub>: m := 2>];
+    2100 -> 2110 [label=<T<sub>0</sub>: x := n>];
+    2110 -> 2210[label=<T<sub>1</sub>: n := 2>];
+    2210-> 2212[label=<T<sub>1</sub>: y := m>];
+    2200 [style="bold,filled"];
+    2100 -> 2200 [label=<T<sub>1</sub>: n := 2>];
+    2200 -> 2220[label=<T<sub>0</sub>: x := n>];
+    2220-> 2222[label=<T<sub>1</sub>: y := m>];
+    2200 -> 2202[label=<T<sub>1</sub>: y := m>];
+    2202-> 2222[label=<T<sub>0</sub>: x := n>];
+    edge [style=bold, penwidth=2.0];
+    1100 -> 1200 [label=<T<sub>1</sub>: n := 2>];
+    1200 -> 2200 [label=<T<sub>0</sub>: m := 2>];
+    node [style=dotted, fontcolor=grey50];
+    edge [style=dotted, penwidth=1.0];
+    1200 -> 1201 [label=<T<sub>1</sub>: y := m>];
+    1201 -> 2201[label=<T<sub>0</sub>: m := 2>];
+    2201-> 2221[label=<T<sub>0</sub>: x := n>];
+}
