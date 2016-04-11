@@ -199,14 +199,14 @@ module DPORChecker (Prog : Interfaces.Program) =
         (* Add appropriate edges to G *)
         (* If t_seq isn't empty then add edge in G from
            last transition in t_seq to the new transition*)
-        if t_seq <> [] then
+        if t_seq <> [] then (
             let last = List.hd (List.rev t_seq) in
             let new_range = if Hashtbl.mem vodg last
                     then let old_r = Hashtbl.find vodg last
                         in if List.mem (p, next_t) old_r then old_r
                                 else (p, next_t)::old_r
                     else [(p, next_t)] in
-                 Hashtbl.replace vodg last new_range;
+                 Hashtbl.replace vodg last new_range);
 
         (* Explore(S', C', L') *)
         let (ef, df) = check init_prog new_t_seq new_proc_cvs new_obj_cvs new_last_ti in
@@ -225,6 +225,7 @@ module DPORChecker (Prog : Interfaces.Program) =
 
     let error_and_deadlock_free (tds, g) =
         Hashtbl.reset ht;
+        Hashtbl.reset vodg;
         let n = Array.length tds in
         check (tds, g) [] (fun _ -> Clockvector.fresh n) (fun _ -> Clockvector.fresh n) (fun _ -> ~-1)
   end
