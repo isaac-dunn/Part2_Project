@@ -471,7 +471,7 @@ their computations.
 	\label{fig:simple-deadlock-free}
 \end{figure}
 
-\subsection{Partial-Order Reduction}
+\section{Partial-Order Reduction}
 Although such na\"{\i}ve algorithms as those given
 in section~\ref{sec:simple-model-checking}
 are correct, due to the \emph{state explosion problem},
@@ -482,7 +482,7 @@ state space explored. Some concepts in
 partial-order reduction are introduced in
 this section.
 
-\subsubsection{Independence} \label{sec:independence}
+\subsection{Independence} \label{sec:independence}
 In plain English, two transitions are independent if executing one
 can never disable the other, and if they are commutative.
 
@@ -536,8 +536,9 @@ Two transitions $t_1$ and $t_2$ are said to be \emph{independent}
 if there is a valid independency relation $I$ such that $(t_1, t_2) \in I$.
 If $t_1$ and $t_2$ are not independent, they are said to be \emph{dependent}.
 
-\subsubsection{Persistent Sets}
+\subsection{Persistent Sets}
 \label{sec:persistent}
+
 Partial-order reduction algorithms typically 
 perform a depth-first
 search of the reachable state space
@@ -549,6 +550,7 @@ $T$ must be computed in a way such that the search
 is still sound --- it must guarantee to
 produce the correct result.
 
+\subsubsection{Definition}
 One partial-order reduction technique for
 computing such sound subsets is known
 as the \emph{persistent set} technique. Informally,
@@ -570,14 +572,7 @@ for all sequences of transitions
 if for all $1 \leq i < n$, $t_i \not \in T$ then each $t_i$ is
 independent with every transition in $T$.
 
-\begin{figure}[h]
-	\centering
-	\includegraphics[height=9cm]{persistent1}
-	\caption{Diagram of an example state space, for
-		the illustration of persistent sets.}
-	\label{fig:persistent}
-\end{figure}
-
+\subsubsection{An Example}
 For illustration, in the state space shown in
 figure~\ref{fig:persistent}, $T = \{t_1\}$ is
 a persistent set in the initial state, as each
@@ -596,6 +591,15 @@ from the initial state to begin
 an otherwise exhaustive search of the state space, then
 both stopped states are reachable.
 
+\begin{figure}
+	\centering
+	\includegraphics[height=9cm]{persistent1}
+	\caption{Diagram of an example state space, for
+		the illustration of persistent sets.}
+	\label{fig:persistent}
+\end{figure}
+
+\subsubsection{Soundness}
 Indeed, it can be shown that if a stopped state is reachable by an exhaustive
 search of the state space, then by computing a persistent set $T$ at
 each state $\sigma$ and exploring only those transitions from
@@ -609,7 +613,7 @@ section~\ref{sec:simple-model-checking}, then it is sufficient
 to explore transitions from the persistent sets of the states we
 encounter.
 
-\subsubsection{Sleep Sets}
+\subsection{Sleep Sets}
 
 Another technique for addressing the state explosion
 problem is that of \emph{sleep sets}. Suppose that
@@ -645,14 +649,19 @@ A \emph{sleep set} for a particular state
 is then the set of transitions which, when
 explored, is guaranteed by the above
 argument to lead to an already-explored
-section of the state space. The technique of
+section of the state space\footnotemark.
+\footnotetext{In the literature, sleep
+	sets seem to be defined as the sets used
+	in the sleep set algorithm, so a
+	better definition cannot be given here.}
+The technique of
 sleep sets is orthogonal to the technique
 of persistent sets -- there is no interaction
 between the two techniques, so implementing
 both simultaneously can be achieved with
 no extra difficulty.
 
-\begin{figure}[h]
+\begin{figure}
 	\centering
 	\includegraphics[height=8cm]{sleep}
 	\caption{Diagram illustrating of the theory
