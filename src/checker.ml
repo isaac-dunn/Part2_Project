@@ -23,7 +23,8 @@ module SimpleChecker (Prog : Interfaces.Program) =
                         ProgImp.ThrImp.check_local (e, s, g) in
                       if reaches_err then (
                         error_free := false;
-                        ProgImp.output_hasse_image "errortrace.gv" t_seq
+                        if write_error_traces then ProgImp.output_hasse_image
+                            ("errortrace" ^ (string_of_int !calls) ^ ".gv") t_seq
                       );
                       if reaches_nonval then
                          all_stopped_threads_are_values := false
@@ -47,6 +48,7 @@ module DPORChecker (Prog : Interfaces.Program) =
     module T = ProgImp.ThrImp
     let max_depth = ref 0
     let calls = ref 0
+    let write_error_traces = true
 
     (* Array for backtracking sets *)
     let backtracks = Var_array.empty()
@@ -87,7 +89,11 @@ module DPORChecker (Prog : Interfaces.Program) =
               (* No futher transitions: check if this thread reaches a local error *)
               None -> let (reaches_err, reaches_nonval) =
                         ProgImp.ThrImp.check_local (e, s, g) in
-                      if reaches_err then error_free := false;
+                      if reaches_err then (
+                        error_free := false;
+                        if write_error_traces then ProgImp.output_hasse_image
+                            ("errortrace" ^ (string_of_int !calls) ^ ".gv") t_seq
+                      );
                       if reaches_nonval then
                         all_stopped_threads_are_values := false
 
@@ -243,7 +249,8 @@ module SPORChecker (Prog : Interfaces.Program) =
                         ProgImp.ThrImp.check_local (e, s, g) in
                       if reaches_err then (
                         error_free := false;
-                        ProgImp.output_hasse_image "errortrace.gv" t_seq
+                        if write_error_traces then ProgImp.output_hasse_image
+                            ("errortrace" ^ (string_of_int !calls) ^ ".gv") t_seq
                       );
                       if reaches_nonval then
                          all_stopped_threads_are_values := false
