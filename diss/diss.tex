@@ -59,6 +59,8 @@
 	{\ensuremath{\lhook\joinrel\longrightarrow}}
 
 
+\newenvironment{understandinglist}
+	{\begin{itemize} \itemsep 0em}{\end{itemize}}
 \begin{document}
 
 \bibliographystyle{plain}
@@ -149,8 +151,16 @@ Put acknowledgements here.
 \pagestyle{headings}
 
 \chapter{Introduction}
-\textbf{This project implements DPOR. This
-	chapter motivates it.}
+After you have read this chapter,
+you should understand:
+\begin{understandinglist}
+	\item what model checking is and why it is useful;
+	\item what the state explosion problem is;
+	\item how partial-order reduction and other
+	techniques address the state explosion problem;
+	\item the aim of my project; and
+	\item the aim of this dissertation.
+\end{understandinglist}
 
 \section{Model Checking}
 \textbf{Motivate the need for model checking}
@@ -217,6 +227,36 @@ sound.
 
 I chose this project to see how theory is
 implemented in practice.
+
+\section{Summary}
+Having read this chapter,
+you should now understand:
+\begin{understandinglist}
+	\item that model checking is a formal
+	technique used to verify the correctness
+	of programs;
+	\item that model checking can be used in
+	practice to find bugs in software and hardware
+	implementations, and to provide evidence of
+	correctness;
+	\item that the state explosion problem is the
+	exponentially increasing time required to model
+	check concurrent programs, as the number and
+	complexity of threads increases;
+	\item that partial-order reduction and other
+	techniques aim to address the state explosion
+	problem by exploring only a sufficient subset
+	of the state space of a given program;
+	\item that my project aimed to implement a
+	simple concurrent programming language
+	and the dynamic partial-order reduction
+	algorithm to perform model checking for
+	programs in that language; and
+	\item that this dissertation aims to give
+	you an understanding of the work I have done,
+	and of the relative merits of algorithms
+	aiming to address the state space problem.
+\end{understandinglist}
 
 \chapter{Preparation}
 The main preparation that was necessary before
