@@ -259,6 +259,28 @@ you should now understand:
 \end{understandinglist}
 
 \chapter{Preparation}
+After reading this chapter,
+you should understand:
+\begin{understandinglist}
+	\item the precise definitions of the
+	mathematical objects on which model
+	checking is performed, in the context
+	of my project;
+	\item exactly what I mean by model checking
+	in the context of this project, and therefore
+	exactly what the aim of my project was;
+	\item how a simple model checking algorithm
+	works;
+	\item exactly how the techniques of persistent sets
+	and sleep sets address the state explosion
+	problem;
+	\item exactly how the dynamic partial-order
+	reduction algorithm operates; and
+	\item the work I undertook before beginning
+	the implementation of my project.
+\end{understandinglist}
+
+\subsubsection{Old Introduction}
 The main preparation that was necessary before
 the implementation of the project was the
 development of a firm understanding of an
@@ -1025,6 +1047,45 @@ persistent set.
 \subsubsection{Example Execution}
 An example execution, on the same example as
 figure~\ref{fig:sdpor-motivation}.
+
+\section{Summary}
+Having read this chapter,
+you should now understand:
+\begin{understandinglist}
+	\item what a process, state, transition
+	and transition system are;
+	\item that model checking in the
+	context of my project is the process
+	of deciding whether a given transition
+	system is both error-free and deadlock-free
+	by exploring possible executions of the
+	system;
+	\item that a simple model checking algorithm
+	performs an exhaustive depth-first search
+	of the state space, checking for errors and
+	deadlocks at each state encountered;
+	\item that persistent sets use information
+	about the independence of transitions to
+	avoid exploring sections of the state space
+	which are equivalent to sections that \emph{are}
+	explored;
+	\item that sleep sets use information about
+	the independence of transitions and the history
+	of the search of the state space to avoid
+	exploring a section of the state space which
+	has already been explored;
+	\item that the dynamic partial-order
+	reduction algorithm executes one arbitrary
+	and full interleaving of the concurrent program,
+	then uses information about independence and
+	which transitions happen-before others to
+	add backtracking points, so that a
+	persistent set is explored from each state; and
+	\item that most of my work before implementing
+	the project was reading and understanding theory,
+	but I also planned how I would approach the
+	implementation.
+\end{understandinglist}
 
 \chapter{Implementation}
 \textbf{This chapter explains how the mathematical
