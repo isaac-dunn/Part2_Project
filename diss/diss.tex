@@ -1091,10 +1091,22 @@ you should now understand:
 \end{understandinglist}
 
 \chapter{Implementation}
-\textbf{This chapter explains how the mathematical
-	psuedocode in the literature was translated
-	into a working program which model checks a
-	given source file.}
+After reading this chapter,
+you should understand:
+\begin{understandinglist}
+	\item the high-level structure and
+	organisation of my project;
+	\item the software development approach
+	I used in developing the project;
+	\item the decisions I made
+	when designing and implementing
+	the programming language used
+	as the object language for the
+	project; and
+	\item the details of my
+	implementations of the
+	algorithms in the project.
+\end{understandinglist}
 
 \section{Design of the Software}
 
@@ -2382,6 +2394,26 @@ as a graph maybe. \textbf{TO DO.}
 	\caption{The function giving the partial order from
 		a given transition sequence. \textbf{Probably remove this.}}
 \end{figure}
+
+\section{Summary}
+Having read this chapter,
+you should now understand:
+\begin{understandinglist}
+	\item that I used OCaml modules to
+	structure my project, making
+	particular use of functors to generate
+	code that implements different model-checking
+	algorithms on a given language implementation;
+	\item that I used an iterative development
+	process to first implement the project
+	language (PL), then to implement the simple
+	model-checking algorithm, then
+	the DPOR algorithm, and then extend the project
+	with extra algorithms and features; and
+	\item the details of my
+	implementations of PL and the
+	model-checking algorithms.
+	\end{understandinglist}
 
 \chapter{Evaluation}
 \label{cha:evaluation}
