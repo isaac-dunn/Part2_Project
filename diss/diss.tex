@@ -59,6 +59,8 @@
 	{\ensuremath{\lhook\joinrel\longrightarrow}}
 
 
+\newenvironment{understandinglist}
+	{\begin{itemize} \itemsep 0em}{\end{itemize}}
 \begin{document}
 
 \bibliographystyle{plain}
@@ -94,10 +96,13 @@ Name:           & \bf Isaac Dunn                            			 \\
 College:        & \bf Clare College                    				     \\
 Project Title:	& \bf Dynamic Partial-Order Reduction for Model Checking \\
 Examination:    & \bf Computer Science Tripos -- Part II, June 2016      \\
-Word Count:     & \bf N    \\
-Supervisors:	& \bf Dr. Jonathan Hayman \& Prof. Glynn Winskel             \\ 
+Word Count:     & \bf N    												 \\
+Project Originator: & \bf Isaac Dunn\footnotemark[1] 					 \\
+Supervisors:	& \bf Dr. Jonathan Hayman \& Prof. Glynn Winskel         \\
 \end{tabular}
 }
+\footnotetext[1]{with guidance from Dr. Jonathan Hayman}
+\stepcounter{footnote}
 
 
 \section*{Original Aim of the Project}
@@ -149,11 +154,24 @@ Put acknowledgements here.
 \pagestyle{headings}
 
 \chapter{Introduction}
-\textbf{This project implements DPOR. This
-	chapter motivates it.}
+After reading this chapter,
+you should understand:
+\begin{understandinglist}
+	\item what model checking is and why it is useful;
+	\item what the state explosion problem is;
+	\item how partial-order reduction
+	techniques address the state explosion problem;
+	\item the aims of my project; and
+	\item the aims of this dissertation.
+\end{understandinglist}
 
 \section{Model Checking}
-\textbf{Motivate the need for model checking}
+After reading this section,
+you should understand why formal methods for
+verifying the correctness of software and
+hardware systems are useful, that model
+checking is such a formal method, and
+how model checking works.
 
 We want to be very sure that some computer
 programs are correct. Testing is not good
@@ -167,8 +185,9 @@ methods, in which \textbf{(basic explanation of
 model checking)}
 
 \section{The State Explosion Problem}
-\textbf{Explain the motivation for techniques
-	to reduce the size of the state space explored}
+After reading this section, you should
+understand what the state explosion problem
+is, and its practical implications.
 
 Concurrent software programs in practice often
 use threads as their model. The number of possible
@@ -179,8 +198,10 @@ Give some maths, some empirical results,
 and a state space diagram showing this.
 
 \section{Partial-Order Reduction}
-\textbf{Introduce POR as a technique that
-	addresses the state explosion problem}
+After reading this section, you should
+understand how partial-order reduction
+techniques aim to address the state
+explosion problem.
 
 Idea: some interleavings are equivalent. If you
 can identifying which are equivalent, you only
@@ -191,8 +212,9 @@ that aim to identify such equivalences and so
 perform model checking more efficiently.
 
 \section{Dynamic Partial-Order Reduction}
-\textbf{Introduce DPOR as a particular
-	POR algorithm.}
+After reading this section, you should
+understand the idea behind the dynamic
+partial-order reduction algorithm.
 
 DPOR uses runtime information to identify
 equivalent interleavings. In fact, it assumes
@@ -203,8 +225,11 @@ interleavings, which are then explored on
 backtrack.
 
 \section{This Project}
-\textbf{Explain aims of project, and why I
-	chose it.}
+After reading this section, you should
+understand the aims of my project,
+my motivation for deciding on this
+project, and have a shallow
+understanding of its success.
 
 The aim of this project is to implement DPOR.
 
@@ -218,7 +243,59 @@ sound.
 I chose this project to see how theory is
 implemented in practice.
 
+\section{Summary}
+Having read this chapter,
+you should now understand:
+\begin{understandinglist}
+	\item that model checking is a formal
+	technique used to verify the correctness
+	of programs;
+	\item that model checking can be used in
+	practice to find bugs in software and hardware
+	implementations, and to provide evidence of
+	correctness;
+	\item that the state explosion problem is the
+	exponentially increasing time required to model
+	check concurrent programs, as the number and
+	complexity of threads increases;
+	\item that partial-order reduction and other
+	techniques aim to address the state explosion
+	problem by exploring only a sufficient subset
+	of the state space of a given program;
+	\item that my project aimed to implement a
+	simple concurrent programming language
+	and the dynamic partial-order reduction
+	algorithm to perform model checking for
+	programs in that language; and
+	\item that this dissertation aims to give
+	you an understanding of the work I have done,
+	and of the relative merits of algorithms
+	aiming to address the state space problem.
+\end{understandinglist}
+
 \chapter{Preparation}
+After reading this chapter,
+you should understand:
+\begin{understandinglist}
+	\item the precise definitions of the
+	mathematical objects on which model
+	checking is performed, in the context
+	of my project;
+	\item exactly what I mean by model checking
+	in the context of this project, and therefore
+	exactly what the aim of my project was;
+	\item how a simple model checking algorithm
+	works;
+	\item exactly how the techniques of persistent sets
+	and sleep sets address the state explosion
+	problem;
+	\item exactly how the dynamic partial-order
+	reduction algorithm operates; and
+	\item \emph{the work I undertook before beginning
+	the implementation of my project.}
+\end{understandinglist}
+
+\subsubsection{Old Introduction}
 The main preparation that was necessary before
 the implementation of the project was the
 development of a firm understanding of an
@@ -235,11 +312,11 @@ what I mean by model checking, and briefly
 introduces the DPOR algorithm.
 
 \section{Background Definitions} \label{sec:background-defs}
-\textbf{This section introduces the mathematical
-	structures we are considering and operating on
-	in this project.
-	Not sure how to do this -- currently too
-	abstract and unfriendly to read?}
+After reading this section, you should understand the
+formal definitions of the mathematical objects
+which are manipulated by the algorithms used in
+this project, \emph{as well as having an intuition for
+what each mathematical object refers to in practice}.
 
 \subsection{Processes and States}
 We consider a system consisting of a finite set, $\mathcal{P}$,
@@ -317,10 +394,13 @@ whether a given transition system has certain
 properties.
 
 \section{Model Checking}
-This section specifies exactly what I mean by
-a model checking algorithm, gives a simple
-example, and introduces some concepts used
-to tackle the state explosion problem.
+After reading this section, you should
+understand exactly what I mean by a
+model-checking algorithm in the context
+of this project, \emph{how this relates to
+requirements analysis and the aims
+of the project}, and how a simple
+model-checking algorithm works.
 
 \subsection{Definition of Model Checking}
 \label{sec:model-checking-dfn}
@@ -371,6 +451,11 @@ is error-free and deadlock-free. In general, more
 powerful concepts of model checking are possible,
 but the algorithms used in this project sacrifice
 this expressive power for performance.
+
+\subsection{Requirements Analysis}
+How did I arrive at this definition of model
+checking? What does this definition mean
+that the final system will look like?
 
 \subsection{Simple Model Checking} \label{sec:simple-model-checking}
 As the definitions of both error-free and deadlock-free
@@ -471,7 +556,14 @@ their computations.
 	\label{fig:simple-deadlock-free}
 \end{figure}
 
-\subsection{Partial-Order Reduction}
+\section{Partial-Order Reduction}
+After reading this section, you should
+understand the formal definitions of
+dependency between transitions,
+persistent sets and sleep sets,
+as well as having an intuition for
+what each concept means in practice.
+
 Although such na\"{\i}ve algorithms as those given
 in section~\ref{sec:simple-model-checking}
 are correct, due to the \emph{state explosion problem},
@@ -482,7 +574,7 @@ state space explored. Some concepts in
 partial-order reduction are introduced in
 this section.
 
-\subsubsection{Independence} \label{sec:independence}
+\subsection{Independence} \label{sec:independence}
 In plain English, two transitions are independent if executing one
 can never disable the other, and if they are commutative.
 
@@ -536,7 +628,9 @@ Two transitions $t_1$ and $t_2$ are said to be \emph{independent}
 if there is a valid independency relation $I$ such that $(t_1, t_2) \in I$.
 If $t_1$ and $t_2$ are not independent, they are said to be \emph{dependent}.
 
-\subsubsection{Persistent Sets}
+\subsection{Persistent Sets}
+\label{sec:persistent}
+
 Partial-order reduction algorithms typically 
 perform a depth-first
 search of the reachable state space
@@ -548,6 +642,7 @@ $T$ must be computed in a way such that the search
 is still sound --- it must guarantee to
 produce the correct result.
 
+\subsubsection{Definition}
 One partial-order reduction technique for
 computing such sound subsets is known
 as the \emph{persistent set} technique. Informally,
@@ -569,14 +664,7 @@ for all sequences of transitions
 if for all $1 \leq i < n$, $t_i \not \in T$ then each $t_i$ is
 independent with every transition in $T$.
 
-\begin{figure}[h]
-	\centering
-	\includegraphics[height=9cm]{persistent1}
-	\caption{Diagram of an example state space, for
-		the illustration of persistent sets.}
-	\label{fig:persistent}
-\end{figure}
-
+\subsubsection{An Example}
 For illustration, in the state space shown in
 figure~\ref{fig:persistent}, $T = \{t_1\}$ is
 a persistent set in the initial state, as each
@@ -595,6 +683,15 @@ from the initial state to begin
 an otherwise exhaustive search of the state space, then
 both stopped states are reachable.
 
+\begin{figure}
+	\centering
+	\includegraphics[height=9cm]{persistent1}
+	\caption{Diagram of an example state space, for
+		the illustration of persistent sets.}
+	\label{fig:persistent}
+\end{figure}
+
+\subsubsection{Soundness}
 Indeed, it can be shown that if a stopped state is reachable by an exhaustive
 search of the state space, then by computing a persistent set $T$ at
 each state $\sigma$ and exploring only those transitions from
@@ -608,7 +705,7 @@ section~\ref{sec:simple-model-checking}, then it is sufficient
 to explore transitions from the persistent sets of the states we
 encounter.
 
-\subsubsection{Sleep Sets}
+\subsection{Sleep Sets}
 
 Another technique for addressing the state explosion
 problem is that of \emph{sleep sets}. Suppose that
@@ -644,14 +741,19 @@ A \emph{sleep set} for a particular state
 is then the set of transitions which, when
 explored, is guaranteed by the above
 argument to lead to an already-explored
-section of the state space. The technique of
+section of the state space\footnotemark.
+\footnotetext{In the literature, sleep
+	sets seem to be defined as the sets used
+	in the sleep set algorithm, so a
+	better definition cannot be given here.}
+The technique of
 sleep sets is orthogonal to the technique
 of persistent sets -- there is no interaction
 between the two techniques, so implementing
 both simultaneously can be achieved with
 no extra difficulty.
 
-\begin{figure}[h]
+\begin{figure}
 	\centering
 	\includegraphics[height=8cm]{sleep}
 	\caption{Diagram illustrating of the theory
@@ -661,8 +763,9 @@ no extra difficulty.
 
 \section{Dynamic Partial-Order Reduction}
 \label{sec:dpor-prep}
-This section introduces the DPOR algorithm,
-which is the focus of the project.
+After reading this section, you should
+understand how the dynamic
+partial-order reduction algorithm works.
 
 \subsection{Background Definitions}
 The DPOR makes use of several new concepts,
@@ -976,14 +1079,72 @@ persistent set.
 An example execution, on the same example as
 figure~\ref{fig:sdpor-motivation}.
 
+\section{Summary}
+Having read this chapter,
+you should now understand:
+\begin{understandinglist}
+	\item what a process, state, transition
+	and transition system are;
+	\item that model checking in the
+	context of my project is the process
+	of deciding whether a given transition
+	system is both error-free and deadlock-free
+	by exploring possible executions of the
+	system;
+	\item that a simple model checking algorithm
+	performs an exhaustive depth-first search
+	of the state space, checking for errors and
+	deadlocks at each state encountered;
+	\item that persistent sets use information
+	about the independence of transitions to
+	avoid exploring sections of the state space
+	which are equivalent to sections that \emph{are}
+	explored;
+	\item that sleep sets use information about
+	the independence of transitions and the history
+	of the search of the state space to avoid
+	exploring a section of the state space which
+	has already been explored;
+	\item that the dynamic partial-order
+	reduction algorithm executes one arbitrary
+	and full interleaving of the concurrent program,
+	then uses information about independence and
+	which transitions happen-before others to
+	add backtracking points, so that a
+	persistent set is explored from each state; and
+	\item that most of my work before implementing
+	the project was reading and understanding theory,
+	but I also planned how I would approach the
+	implementation.
+\end{understandinglist}
+
 \chapter{Implementation}
-\textbf{This chapter explains how the mathematical
-	psuedocode in the literature was translated
-	into a working program which model checks a
-	given source file.}
+After reading this chapter,
+you should understand:
+\begin{understandinglist}
+	\item the high-level structure and
+	organisation of my project;
+	\item the software development approach
+	I used in developing the project;
+	\item the decisions I made
+	when designing and implementing
+	the programming language used
+	as the object language for the
+	project; and
+	\item the details of my
+	implementations of the
+	algorithms in the project.
+\end{understandinglist}
 
 \section{Design of the Software}
+After reading this section, you
+should understand the high-level
+design decisions I made in the
+development of the project, and
+the reasoning behind them.
+\bigskip
 
+\noindent
 The project was implemented in OCaml, which
 offers a few key advantages:
 \begin{itemize}
@@ -1070,11 +1231,15 @@ last of which can then be used to immediately perform
 model checking. This process is shown explicitly in
 figure~\ref{fig:functors}.
 
-\section{Development of Project Language}\label{sec:language}
-\textbf{This section explains how I designed
-	and implemented the language in which the
-	concurrent programs to be model checked
-	are written.}
+\section{Development of Project Language}
+\label{sec:language}
+After reading this section, you should
+understand the process of designing
+and implementing the programming
+language in which the programs to
+be model checked are written,
+including the reasoning behind
+the decisions I made.
 
 \subsection{Language Design}
 \textbf{First, the language had to be designed.
@@ -1390,6 +1555,14 @@ just a necessary step before the main work on the
 model checking algorithms.
 
 \section{Simple Model Checker}
+After reading this section, you
+should understand how I implemented
+the simple model-checking algorithm,
+particularly how the results (whether
+a given state is error-free and
+deadlock-free) are computed,
+and also how this implementation
+was tested.
 
 In order to ensure the correctness of my implementation
 of the DPOR algorithm, to have a baseline to use
@@ -1402,8 +1575,8 @@ a function that performs model checking by performing
 an exhaustive depth-first search of the state space --
 the simplest possible model checking algorithm.
 
-
 \subsection{Implementation}
+\label{sec:simple-imp}
 
 See the \textbf{APPENDIX} for an illustration
 of the relationship between the actual OCaml
@@ -1550,8 +1723,9 @@ in figure~\ref{fig:dpor-imp-pscode} for ease
 of reference. Several
 aspects of the algorithm mean that it
 is not obvious how it can be implemented
-as an executable program; this
-section explains how this was achieved.
+as an executable program; after reading
+this section, you should understand
+how this was achieved.
 
 \begin{figure}
 	\dporpseudocode
@@ -1881,37 +2055,87 @@ more efficient implementation of
 the updates.
 
 \subsection{Difficulties with Locks}
-\textbf{Difficulties faced adding locks;
-	how they were overcome.}
 
-Problem: many algorithms use locks. While \texttt{while locked do skip done}
-is good enough, it results in a cycle in the state space, which causes
-non-termination of DPOR.
+When initially implementing the project,
+I decided not to include locks in PL,
+so that transitions became total functions
+and could always execute, regardless
+of the shared state. While this meant
+that the DPOR algorithm was simpler when
+I first implemented it (for example,
+the checks on lines 5 and 19 of the
+pseudocode in figure~\ref{fig:dpor-imp-pscode}
+would be unnecessary), when I decided
+to add locks to PL, since many
+concurrent algorithms rely on them,
+I ran into difficulties.
 
-Solution: add locks. New problem: no distinction between
-transition not existing and not being enabled. Without
-locks, all existing transitions were enabled; no longer
-the case.
-
-Solution: pass around Boolean stating whether or not the transition
-is enabled.
+In particular, the specification of the
+\texttt{next\_transition} function in the
+\textit{Thread} module either returned
+a transition, or it didn't; there was
+no way of specifying whether or not
+the transition returned for the
+given local state was enabled in the
+given shared state. To solve this,
+then, I changed the specification
+of the \texttt{next\_step} and
+\texttt{next\_transition} functions
+in the \textit{Thread} module to
+return a Boolean along with the
+main result, specifying whether
+the step or transition was enabled
+in the given state. To check whether
+the next transition of a process is
+enabled in a given state, the
+\texttt{next\_transition} function
+can be called and this Boolean flag
+checked.
 
 \subsection{Detecting Errors and Deadlocks}
 \label{sec:dpor-imp-detecting}
 
+Error and deadlocks are detected in a
+very similar way to the simple model
+checker, as explained in
+section~\ref{sec:simple-imp}: the same
+four Booleans are used to track whether
+any errors or deadlocks have been found,
+and they are combined to give the
+result in the same way. The only
+difference is that, in the DPOR
+algorithm, whether the current
+state is an error or a deadlock
+is not checked at the same time
+that the recursive calls are
+checked, because it is likely that
+the next transitions of some
+threads are not explored. However,
+since the next transitions of
+each thread are examined on
+lines 3 and 4 of the pseudocode
+in figure~\ref{fig:dpor-imp-pscode},
+it makes sense to check here
+whether any state is in an error,
+whether any transitions are enabled,
+and whether any threads are blocked
+because of the current shared state.
+
 \section{Stateful Model Checking}
-When explored a state space, the same state may be
+When exploring a state space, the same state may be
 encountered twice. However, the part of the state
 space from that state onwards need only be explored
 once. An obvious technique for improving the
 time complexity of a model checking algorithm
-at the cost of using extra space is to notice
+(at the cost of using extra space) is to notice
 when we visit a state twice, by making a note
-of which states we have explored.
+of which states we have explored. After reading
+this chapter, you should understand how I
+implemented this technique for both the simple
+model-checking algorithm and for the
+DPOR algorithm.
 
 \subsection{Simple Model Checker}
-\textbf{Straight-forward implementation for simple
-	checker. Give new algorithm.}
 
 Applying this technique to the Simple model
 checking algorithm is straightforward: whenever
@@ -1926,34 +2150,28 @@ for these operations for a hash table are both
 constant, so I used the OCaml library implementation
 of hash tables for this function.
 
-The pseudocode for the Simple model checking
-algorithm with this technique applied is given
-in \textbf{FIGURE TO DO}.
-
 \subsection{Dynamic Partial-Order Reduction}
 Although it is not obvious, na\"{\i}vely
-applying this technique results in an
+applying this technique to the DPOR
+algorithm results in an
 unsound model checking algorithm. Instead,
-a new algorithm, SDPOR, is used.
+a new algorithm, Stateful Dynamic
+Partial-Order Reduction (SDPOR), is used.
 
 \subsubsection{Na\"{\i}ve Approach}
-\textbf{What this approach is; why it doesn't
-	work; example.}
 
 Suppose that we applied the approach
 given above to the DPOR algorithm,
-resulting in the pseudocode in \textbf{FIGURE TO DO}.
-The following example shows that the resulting
-algorithm is not sound.
-
-Consider the execution of the algorithm on example
- shown in figure~\ref{fig:sdpor-motivation},
-at the stage when all the stages in grey have been
+and executed the resulting algorithm
+on the example shown in
+figure~\ref{fig:sdpor-motivation}.
+Consider the stage at which
+all the states in grey have been
 explored and so are present in the hash table,
 and the current transition sequence is the first
 transition of thread 1 followed by the first
 transition of thread 0. As this stage, the state
-with the bold outline is encountered, which is
+labelled 2200 is encountered, which is already
 present in the hash table, so no exploration is
 made, and as no backtracking points have been added
 at either of the previous stages, the algorithm
@@ -1966,26 +2184,32 @@ undetected.
 The reason for the unsoundness is the failure to
 introduce backtracking points when necessary. If the
 search had not been cut short, then a backtracking point
-would have been added in the second state, causing the
+would have been added in the second state (1200), causing the
 dotted section to be explored.
 
 \begin{figure}
-
 	\begin{subfigure}{\textwidth}
-		\begin{tabular}{lp{0cm}l}
-		Thread 0: && Thread 1: \\
-		\qquad\texttt{x := !x} $\times$ \texttt{2;}
-			&& \qquad\texttt{x := !x} $\times$ \texttt{3;} \\
-		\qquad\texttt{x := !x + 1} && \qquad\texttt{x := !x + 4}
+		\begin{tabular}{lp{1cm}lp{0cm}l}
+		Shared variables: &&Thread 0: &&Thread 1: \\
+		\qquad \texttt{m} and \texttt{n}, initially \texttt{1}
+			&&\qquad\texttt{m := 2;}
+			&& \qquad\texttt{n := 2;} \\
+		\qquad \texttt{x} and \texttt{y}, initially \texttt{0}
+			&&\qquad\texttt{x := n}
+			&& \qquad\texttt{y := m}
 		\end{tabular}
 	\end{subfigure}
 	\begin{subfigure}{\textwidth}
 		\includegraphics[width=\textwidth]{sdpor}
 	\end{subfigure}
-	\caption{SDPOR motivation}
+	\caption[An example illustrating the need for the
+		Stateful DPOR algorithm.]
+		{An example showing that na\"{\i}vely
+		cutting short the DPOR algorithm is
+		unsound. Each state in the diagram shows
+	the values of \textit{mnxy}.}
 	\label{fig:sdpor-motivation}
 \end{figure}
-
 
 \subsubsection{Stateful Dynamic Partial-Order Reduction}
 The most obvious solution to this problem is to simply
@@ -2002,13 +2226,15 @@ so conservatively that all practical benefits are lost.
 
 One such method is to use a \emph{visible operation dependency
 graph}, and its use was proposed by \textbf{names} in an
-algorithm which I will refer to as Stateful Dynamic Partial-
+algorithm which is known as Stateful Dynamic Partial-
 Order Reduction (SDPOR). The idea is that, when we first explore
-a section of the state space, we keep track of the visible operations
+a section of the state space,
+we make a note of the visible operations
 that may be executed, so that if we encounter that section again,
 we can cut short the search, and use our knowledge of the
-visible operations that may be executed if the search was
-to continue to add backtracking points as necessary.
+visible operations that may have been
+executed if the search was continued
+to add backtracking points as necessary.
 
 In particular, a \emph{visible operation dependency
 graph} is a graph $G = \langle V, E \rangle$ whose
@@ -2021,64 +2247,289 @@ is encountered in a search of the state space, the
 edge $(t, t')$ is added to the visible operation
 dependency graph $G$. Then, when a state $\sigma$ is
 encountered which has already been explored on the
-search, the set
-$\{u \mid \exists t \in \textit{enabled}(\sigma).\;
-   u \text{ is reachable from node } t \text{ in graph } G\}$
-can be used to conservatively add backtracking points.
+search, sufficient backtracking points for soundness
+can be added by calling the
+\textsc{UpdateBacktrackSets} procedure
+on each transition in the set
+$\mathcal{U} = \{u \mid \exists t \in \textit{enabled}(\sigma).\;
+   u \text{ is reachable from node } t \text{ in graph } G\}$.
+The assumption that Stateful DPOR algorithm 
+relies on fir its efficiency is that
+although state spaces are generally very large,
+the sets $\mathcal{U}$ of reachable transitions
+are generally small.
+
+The pseudocode for the SDPOR algorithm is shown
+in figure~\ref{fig:sdpor-code}. The lines that
+differ from the plain DPOR algorithm are lines
+6--10 and line 19.
+To implement the visible operation dependency graph
+$G$, I chose to use another hash table,
+mapping from transitions to lists of transitions.
+Calling \textsc{UpdateBacktrackSets} on
+each reachable node in $G$ is implemented using
+a simple depth-first search.
+
+\begin{figure}
+	\begin{algorithmic}[1]
+		\Let{$H$}{an empty hash table of states}
+		\Let{$G$}{an empty graph on transitions}
+		\State
+		\Procedure{Explore}{$\pi$}
+		\Let{$\sigma$}{$\textit{last}(\pi)$}
+		\If{$\sigma \in H$}
+			\Let{$\mathcal{U}$}
+			{$\{u \mid \exists t \in \textit{enabled}(\sigma).\;
+				u \text{ is reachable from node }
+				t \text{ in } G\}$}
+			\ForAll{$t \in \mathcal{U}$}
+			\Call{UpdateBacktrackSets}
+				{$\pi,\, t$}
+			\EndFor
+		\Else{
+		\State add $\sigma$ into $H$;
+		\ForAll{$p \in \mathcal{P}$}
+		\Call{UpdateBacktrackSets}
+		{$\pi,\, \textit{next}(\sigma, p)$};
+		\EndFor
+		\If{$\textit{enabled}(\sigma) \neq \emptyset$}
+		\Let{$t$}{any $t \in \textit{enabled}(\sigma)$}
+		\Let{$\textit{backtrack}(\sigma)$}{$\{t\}$}
+		\Let{$\textit{done}(\sigma)$}{$\emptyset$}
+		\While{$\textit{done}(\sigma)
+			\neq \textit{backtrack}(\sigma)$}
+		\Let{$t$}{any $t \in (\textit{backtrack}(\sigma)
+			\setminus \textit{done}(\sigma))$}
+		\State add $t$ to $\textit{done}(\sigma)$;
+		\If{$|\pi| > 0$}
+			add edge $(\pi_{|\pi|-1}, t)$ to $G$;
+		\EndIf
+		\State \Call{Explore}{$\pi.t$}
+		\EndWhile
+		\EndIf
+		}\EndIf
+		\EndProcedure
+		\State
+		\Procedure{UpdateBacktrackSets}{$\pi,\, t_{p,s}$}
+		\Let{$D$}{$\{i \in \textit{dom}(\pi) \mid
+			\pi_i \text{ is dependent with } t_{p,s}
+			\text{ and } (i, p)\!\not \hookrightarrow_\pi \}$}
+		\If{$D \neq \emptyset$}
+		\Let{$\sigma_d$}
+		{$\textit{pre}(\pi,\text{max}(D))$}
+		\If{$\textit{next}(\sigma_d, p)
+			\in \textit{enabled}(\sigma_d)$}
+		add $\textit{next}(\sigma_d, p)$
+		to $\textit{backtrack}(\sigma_d)$
+		\Else {
+			add all of $\textit{enabled}(\sigma_d)$
+			to $\textit{backtrack}(\sigma_d)$
+		} \EndIf
+		\EndIf
+		\EndProcedure
+		\State
+		\State Initially: \Call{Explore}{$\emptyset$}
+	\end{algorithmic}
+	\caption{The Stateful DPOR algorithm.}
+	\label{fig:sdpor-code}
+\end{figure}
+
+\section{Static Partial-Order Reduction}
+After reading this section, you should
+understand the static partial-order
+reduction algorithm that I implemented,
+and also why I did not implement a
+published static partial-order reduction
+algorithm.
+
+In order to evaluate the improvement in performance
+allowed by building persistent sets dynamically
+instead of statically, I decided to research and
+implement a static partial-order reduction
+algorithm. However, I struggled to find one
+in the literature that was straightforward enough
+to understand and implement in the short amount
+of time I had. I therefore designed my own
+rudimentary static partial-order reduction algorithm,
+which I will refer to at the Static POR (SPOR,
+not to be confused with SDPOR) algorithm.
+While it is simple to understand and implement,
+the trade-off is that it returns large persistent sets.
+
+The algorithm explores the state space using a
+depth-first search, but exploring only those
+transitions in a persistent set from each
+state, as mentioned in section \ref{sec:persistent}.
+Before the algorithm begins its search, it compiles a table
+listing all the shared objects that each process may
+access, then, during the search, persistent sets $T$ are built
+using a fixed-point computation such that
+every process whose next transition is
+not in $T$ never accesses any
+object that any process whose next
+transition is in $T$ accesses.
+The algorithm constructing a persistent set in a given state
+is shown in figure~\ref{fig:spor-code}.
+
+\begin{figure}
+	\begin{algorithmic}[1]
+		\Procedure{PersistentSet}{$\sigma$}
+		\Let{$E$}{$\{p\}$,
+			for any $p$ such that
+			$\exists t_{p,s} \in \textit{enabled}(\sigma)$}
+		\Let{$O$}{$\{o \mid \textit{accesses}(p, o)\}$}
+		\While{$E$ changes}
+			\ForAll{$q \in (\mathcal{P} \setminus E)$}
+				\If{$\exists o \in O.\;
+					\textit{accesses}(q,o)$}
+				\State $E := E \cup \{p\}$;
+				\State $O := O \cup \{o \mid
+					\textit{accesses}(q, o)\}$
+				\EndIf
+			\EndFor
+		\EndWhile
+		\Let{$T$}{$\{t \mid \exists p \in E.\;
+					t = \textit{next}(\sigma,p)\}$}
+		\If{$(T \setminus \textit{enabled}(\sigma))
+				\neq \emptyset$}
+			\Return $\textit{enabled}(\sigma)$
+		\Else \ \Return $T$
+		\EndIf
+		\EndProcedure
+	\end{algorithmic}
+	\caption{An algorithm for statically constructing
+		persistent sets.}
+	\label{fig:spor-code}
+\end{figure}
 
 \section{Sleep Sets}
-\textbf{Implementation of sleep
-	sets in both the simple checker
-	and in DPOR.}
-\subsection{Simple Model Checker}
-\subsection{DPOR}
+After reading this section, you
+should understand how I implemented
+the sleep sets technique for both the
+simple model checking algorithm and
+the dynamic partial-order reduction
+algorithm.
+
+\begin{figure}
+	\begin{algorithmic}[1]
+		\Let{$H$}{an empty hash table mapping
+			states to sets of transitions}
+		\State
+		\Procedure{Check}{$\sigma,\, \textit{Sleep}$}
+			\If{$\sigma \not \in H$}
+				\State add $(\sigma, \textit{Sleep})$ to $H$
+				\State$T := \textit{enabled}(\sigma)
+					\setminus \textit{Sleep}$
+			\Else
+				\State$T := H(\sigma) \setminus
+					\textit{Sleep}$
+				\State $\textit{Sleep} := \textit{Sleep}
+					\cap H(\sigma)$
+				\State $H(\sigma) := \textit{Sleep}$
+			\EndIf
+			\ForAll{$t \in T$}
+				\Let{$\sigma'$}{$\sigma'$ such that
+					$\sigma \xrightarrow{t} \sigma'$}
+				\Let{$\textit{Sleep}'$}{$\{t' \in \textit{Sleep}
+					\mid t' \text{ is independent with } t\}$}
+				\State\Call{Check}{$\sigma',\, \textit{Sleep}'$}
+			\EndFor
+		\EndProcedure
+		\State
+		\State Initially: \Call{Check}{$\sigma_0,\, \emptyset$}
+	\end{algorithmic}
+	\caption{Simple model checker with sleep sets}
+	\label{fig:sleep-code}
+\end{figure}
 
 \section{Counter-Example Traces} \label{sec:traces}
+After reading this section, you should understand
+how I implemented a feature which produces a
+visual counter-example trace.
 
-One of the advantages of model checking as
-a formal method is that, in the case that
+One of the advantages of model checking
+is that, in the case that
 an error is found, it is trivial to give
 an example of an execution of the given
-program which leads to an error state; in
+program which leads to an error state---in
 our case, this is just the sequence of
 transitions executed at the point when
 an error state it found.
 
 To give more insight into the reason for the
 error state being entered, it would be preferable
-to instead present the use with a
+to instead present the user with a
 \emph{partial order} of the transitions which,
-whenever any linearisation of the partial order
-is executed, results in the error/deadlock state.
+whenever linearised in an execution,
+results in the error/deadlock state.
 Given a sequence of transitions which lead to
-some error state, the problem is
+some state of interest, the problem is
 then to give the most general partial order
 which, however linearised, results a sequence
 of transitions 
 
 This partial order is just the happens-before
 relation (cf. \ref{sec:happens-before}). As
-discussed above  (\textbf{where?}), this can
-be decided using clock vectors.
+discussed in section~\ref{sec:clock-vectors},
+this can be decided using clock vectors.
+
 Just execute the transition sequence
 from the beginning, keeping track of the relation.
 Then output it in a nice form, so we can display it
-as a graph maybe.
+as a graph maybe. \textbf{TO DO.}
 
 \begin{figure}	
 	\lstinputlisting[firstline=39,lastline=57]{../src/program.ml}
 	\caption{The function giving the partial order from
-		a given transition sequence.}
+		a given transition sequence. \textbf{Probably remove this.}}
 \end{figure}
+
+\section{Summary}
+Having read this chapter,
+you should now understand:
+\begin{understandinglist}
+	\item that I used OCaml modules to
+	structure my project, making
+	particular use of functors to generate
+	code that implements different model-checking
+	algorithms on a given language implementation;
+	\item that I used an iterative development
+	process to first implement the project
+	language (PL), then to implement the simple
+	model-checking algorithm, then
+	the DPOR algorithm, and then extend the project
+	with extra algorithms and features; and
+	\item the details of my
+	implementations of PL and the
+	model-checking algorithms.
+	\end{understandinglist}
 
 \chapter{Evaluation}
 \label{cha:evaluation}
 
-This chapter discusses the soundness
-of the implementation of the model checking
-algorithms, and analyses the performances
-of both the model checking algorithms and
-my implementations of them.
+After reading this chapter,
+you should understand:
+\begin{understandinglist}
+	\item the extent to which I believe
+	the project is correct, and the evidence
+	motivating that belief;
+	\item that correctness is not
+	essential for a model-checking
+	system to be of practical use;
+	\item how my implementations
+	of the model-checking algorithms
+	perform, in terms of their
+	execution times;
+	\item how the model-checking
+	algorithms themselves perform
+	in comparison to one another,
+	in terms of the reduction in the
+	size of the explored state space; and
+	\item the relationship between the
+	inherent complexity of the
+	algorithms and the performance of
+	my implementations of them.
+\end{understandinglist}
 
 \section{Soundness}
 
@@ -2307,6 +2758,32 @@ offers in comparison to the simple model checker.
 \subsection{Execution Times of Model Checking}
 \subsubsection{Comparison with Each Other}
 \subsubsection{Comparison with Published Results}
+
+\section{Summary}
+Having read this chapter,
+you should now understand:
+\begin{understandinglist}
+	\item the extent to which I believe
+	the project is correct, and the evidence
+	motivating that belief;
+	\item that correctness is not
+	essential for a model-checking
+	system to be of practical use;
+	\item how my implementations
+	of the model-checking algorithms
+	perform, in terms of their
+	execution times;
+	\item how the model-checking
+	algorithms themselves perform
+	in comparison to one another,
+	in terms of the reduction in the
+	size of the explored state space; and
+	\item the relationship between the
+	inherent complexity of the
+	algorithms and the performance of
+	my implementations of them.
+	\end{understandinglist}
+\textbf{TO DO: update these with summaries.}
 
 \chapter{Conclusions}
 
