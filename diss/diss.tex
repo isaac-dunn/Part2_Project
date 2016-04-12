@@ -1137,7 +1137,14 @@ you should understand:
 \end{understandinglist}
 
 \section{Design of the Software}
+After reading this section, you
+should understand the high-level
+design decisions I made in the
+development of the project, and
+the reasoning behind them.
+\bigskip
 
+\noindent
 The project was implemented in OCaml, which
 offers a few key advantages:
 \begin{itemize}
@@ -1224,11 +1231,15 @@ last of which can then be used to immediately perform
 model checking. This process is shown explicitly in
 figure~\ref{fig:functors}.
 
-\section{Development of Project Language}\label{sec:language}
-\textbf{This section explains how I designed
-	and implemented the language in which the
-	concurrent programs to be model checked
-	are written.}
+\section{Development of Project Language}
+\label{sec:language}
+After reading this section, you should
+understand the process of designing
+and implementing the programming
+language in which the programs to
+be model checked are written,
+including the reasoning behind
+the decisions I made.
 
 \subsection{Language Design}
 \textbf{First, the language had to be designed.
@@ -1544,6 +1555,14 @@ just a necessary step before the main work on the
 model checking algorithms.
 
 \section{Simple Model Checker}
+After reading this section, you
+should understand how I implemented
+the simple model-checking algorithm,
+particularly how the results (whether
+a given state is error-free and
+deadlock-free) are computed,
+and also how this implementation
+was tested.
 
 In order to ensure the correctness of my implementation
 of the DPOR algorithm, to have a baseline to use
@@ -1555,7 +1574,6 @@ which provides
 a function that performs model checking by performing
 an exhaustive depth-first search of the state space --
 the simplest possible model checking algorithm.
-
 
 \subsection{Implementation}
 \label{sec:simple-imp}
@@ -1705,8 +1723,9 @@ in figure~\ref{fig:dpor-imp-pscode} for ease
 of reference. Several
 aspects of the algorithm mean that it
 is not obvious how it can be implemented
-as an executable program; this
-section explains how this was achieved.
+as an executable program; after reading
+this section, you should understand
+how this was achieved.
 
 \begin{figure}
 	\dporpseudocode
@@ -2103,14 +2122,18 @@ and whether any threads are blocked
 because of the current shared state.
 
 \section{Stateful Model Checking}
-When explored a state space, the same state may be
+When exploring a state space, the same state may be
 encountered twice. However, the part of the state
 space from that state onwards need only be explored
 once. An obvious technique for improving the
 time complexity of a model checking algorithm
 (at the cost of using extra space) is to notice
 when we visit a state twice, by making a note
-of which states we have explored.
+of which states we have explored. After reading
+this chapter, you should understand how I
+implemented this technique for both the simple
+model-checking algorithm and for the
+DPOR algorithm.
 
 \subsection{Simple Model Checker}
 
@@ -2312,6 +2335,12 @@ a simple depth-first search.
 \end{figure}
 
 \section{Static Partial-Order Reduction}
+After reading this section, you should
+understand the static partial-order
+reduction algorithm that I implemented,
+and also why I did not implement a
+published static partial-order reduction
+algorithm.
 
 In order to evaluate the improvement in performance
 allowed by building persistent sets dynamically
@@ -2374,15 +2403,12 @@ is shown in figure~\ref{fig:spor-code}.
 \end{figure}
 
 \section{Sleep Sets}
-
-The sleep sets technique was applied
-to both the simple model checking
-algorithm, as described in \textbf{Godefroid
-thesis} expect using recursive calls as before
-rather than the stack as in \textbf{the thesis},
-and to the DPOR algorithm, as described in
-\textbf{POPL'05 addendum}. There is nothing
-noteworthy in the implementations of either.
+After reading this section, you
+should understand how I implemented
+the sleep sets technique for both the
+simple model checking algorithm and
+the dynamic partial-order reduction
+algorithm.
 
 \begin{figure}
 	\begin{algorithmic}[1]
@@ -2417,6 +2443,9 @@ noteworthy in the implementations of either.
 \end{figure}
 
 \section{Counter-Example Traces} \label{sec:traces}
+After reading this section, you should understand
+how I implemented a feature which produces a
+visual counter-example trace.
 
 One of the advantages of model checking
 is that, in the case that
