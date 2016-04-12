@@ -291,8 +291,8 @@ you should understand:
 	problem;
 	\item exactly how the dynamic partial-order
 	reduction algorithm operates; and
-	\item the work I undertook before beginning
-	the implementation of my project.
+	\item \emph{the work I undertook before beginning
+	the implementation of my project.}
 \end{understandinglist}
 
 \subsubsection{Old Introduction}
@@ -312,11 +312,11 @@ what I mean by model checking, and briefly
 introduces the DPOR algorithm.
 
 \section{Background Definitions} \label{sec:background-defs}
-\textbf{This section introduces the mathematical
-	structures we are considering and operating on
-	in this project.
-	Not sure how to do this -- currently too
-	abstract and unfriendly to read?}
+After reading this section, you should understand the
+formal definitions of the mathematical objects
+which are manipulated by the algorithms used in
+this project, \emph{as well as having an intuition for
+what each mathematical object refers to in practice}.
 
 \subsection{Processes and States}
 We consider a system consisting of a finite set, $\mathcal{P}$,
@@ -394,10 +394,13 @@ whether a given transition system has certain
 properties.
 
 \section{Model Checking}
-This section specifies exactly what I mean by
-a model checking algorithm, gives a simple
-example, and introduces some concepts used
-to tackle the state explosion problem.
+After reading this section, you should
+understand exactly what I mean by a
+model-checking algorithm in the context
+of this project, \emph{how this relates to
+requirements analysis and the aims
+of the project}, and how a simple
+model-checking algorithm works.
 
 \subsection{Definition of Model Checking}
 \label{sec:model-checking-dfn}
@@ -448,6 +451,11 @@ is error-free and deadlock-free. In general, more
 powerful concepts of model checking are possible,
 but the algorithms used in this project sacrifice
 this expressive power for performance.
+
+\subsection{Requirements Analysis}
+How did I arrive at this definition of model
+checking? What does this definition mean
+that the final system will look like?
 
 \subsection{Simple Model Checking} \label{sec:simple-model-checking}
 As the definitions of both error-free and deadlock-free
@@ -549,6 +557,13 @@ their computations.
 \end{figure}
 
 \section{Partial-Order Reduction}
+After reading this section, you should
+understand the formal definitions of
+dependency between transitions,
+persistent sets and sleep sets,
+as well as having an intuition for
+what each concept means in practice.
+
 Although such na\"{\i}ve algorithms as those given
 in section~\ref{sec:simple-model-checking}
 are correct, due to the \emph{state explosion problem},
@@ -748,8 +763,9 @@ no extra difficulty.
 
 \section{Dynamic Partial-Order Reduction}
 \label{sec:dpor-prep}
-This section introduces the DPOR algorithm,
-which is the focus of the project.
+After reading this section, you should
+understand how the dynamic
+partial-order reduction algorithm works.
 
 \subsection{Background Definitions}
 The DPOR makes use of several new concepts,
