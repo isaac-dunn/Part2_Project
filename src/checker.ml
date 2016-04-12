@@ -42,11 +42,12 @@ module SimpleChecker (Prog : Interfaces.Program) =
                         ProgImp.ThrImp.check_local (e, s, g) in
                       if reaches_err then (
                         error_free := false;
-                        ProgImp.output_hasse_image "errortrace.gv" t_seq
+                        if write_error_traces then ProgImp.output_hasse_image
+                            ("errortraces/errortrace" ^ (string_of_int !calls) ^ ".gv") t_seq
                       );
                       if reaches_nonval then
                          all_stopped_threads_are_values := false
-              (* There is a transition: check if error; explore from the new state *)
+              (* There is a transition: explore it if enabled *)
             | Some (t_tran, enabled) -> (
                 if not enabled then all_stopped_threads_are_values := false else (
                 one_thread_can_advance := true;
@@ -71,6 +72,7 @@ module DPORChecker (Prog : Interfaces.Program) =
     let calls = ref 0
     let ht = Hashtbl.create ~random:true 10000
     let vodg = Hashtbl.create ~random:true 1000
+    let write_error_traces = true
 
     (* Array for backtracking sets *)
     let backtracks = Var_array.empty()
@@ -157,7 +159,11 @@ module DPORChecker (Prog : Interfaces.Program) =
               (* No futher transitions: check if this thread reaches a local error *)
               None -> let (reaches_err, reaches_nonval) =
                         ProgImp.ThrImp.check_local (e, s, g) in
-                      if reaches_err then error_free := false;
+                      if reaches_err then (
+                        error_free := false;
+                        if write_error_traces then ProgImp.output_hasse_image
+                            ("errortraces/errortrace" ^ (string_of_int !calls) ^ ".gv") t_seq
+                      );
                       if reaches_nonval then
                         all_stopped_threads_are_values := false
 
@@ -318,7 +324,8 @@ module SPORChecker (Prog : Interfaces.Program) =
                         ProgImp.ThrImp.check_local (e, s, g) in
                       if reaches_err then (
                         error_free := false;
-                        ProgImp.output_hasse_image "errortrace.gv" t_seq
+                        if write_error_traces then ProgImp.output_hasse_image
+                            ("errortraces/errortrace" ^ (string_of_int !calls) ^ ".gv") t_seq
                       );
                       if reaches_nonval then
                          all_stopped_threads_are_values := false
