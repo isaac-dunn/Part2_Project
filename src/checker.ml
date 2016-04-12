@@ -24,7 +24,7 @@ module SimpleChecker (Prog : Interfaces.Program) =
                       if reaches_err then (
                         error_free := false;
                         if write_error_traces then ProgImp.output_hasse_image
-                            ("errortrace" ^ (string_of_int !calls) ^ ".gv") t_seq
+                            ("errortraces/errortrace" ^ (string_of_int !calls) ^ ".gv") t_seq
                       );
                       if reaches_nonval then
                          all_stopped_threads_are_values := false
@@ -92,7 +92,7 @@ module DPORChecker (Prog : Interfaces.Program) =
                       if reaches_err then (
                         error_free := false;
                         if write_error_traces then ProgImp.output_hasse_image
-                            ("errortrace" ^ (string_of_int !calls) ^ ".gv") t_seq
+                            ("errortraces/errortrace" ^ (string_of_int !calls) ^ ".gv") t_seq
                       );
                       if reaches_nonval then
                         all_stopped_threads_are_values := false
@@ -250,7 +250,7 @@ module SPORChecker (Prog : Interfaces.Program) =
                       if reaches_err then (
                         error_free := false;
                         if write_error_traces then ProgImp.output_hasse_image
-                            ("errortrace" ^ (string_of_int !calls) ^ ".gv") t_seq
+                            ("errortraces/errortrace" ^ (string_of_int !calls) ^ ".gv") t_seq
                       );
                       if reaches_nonval then
                          all_stopped_threads_are_values := false
