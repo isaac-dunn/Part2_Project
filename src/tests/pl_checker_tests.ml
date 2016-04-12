@@ -714,6 +714,20 @@ module PLCorrectnessTest (Chk :
            "cas(Gy, 0, 1)";
         |], [("x", Integer 0); ("y", Integer 0)], (true, true));
 
+        (* Test 44 *)
+        (* Test that gives good partial order error trace *)
+        ([|"if cas(Gt,false,!Gz) then
+                if !Gt then cas(Gx, 0, !Gy) else skip
+            else skip";
+           "if cas(Gn, 0, 1) then cas(Gz, false, true) else skip";
+           "if cas(Gn, 0, 1) then cas(Gz, false, true) else skip";
+           "if cas(Gy, 0, 2) then if !Gw = 1 & !Gx = 2 then error(pot)
+            else skip else skip";
+           "cas(Gw, 0, !Gn)";
+           "cas(Gt, true, false)";
+        |], [("t", Boolean false); ("n", Integer 0); ("x", Integer 0);
+             ("w", Integer 0); ("z", Boolean false); ("y", Integer 0);],
+            (false, true));
     ]
 
     let run_test (es, g, (eef, edf)) =
