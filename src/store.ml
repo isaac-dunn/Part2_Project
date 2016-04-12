@@ -47,6 +47,13 @@ module ListStore (Expr : Interfaces.Expression) = struct
         match get s rl with
           Some _ -> get_fresh_loc s
         | None -> rl
+
+    let rec globals_stored s =
+        let union xs ys = (List.filter (fun x -> not (List.mem x ys)) xs) @ ys in
+        match s with
+            [] -> []
+          | (l, e)::rest ->
+                union (ExprImp.locations_accessed e) (globals_stored rest)
 end
 
 module PLStore = ListStore (Pl_expression)

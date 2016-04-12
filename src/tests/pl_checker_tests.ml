@@ -410,7 +410,7 @@ module PLCorrectnessTest (Chk :
                   then skip
                   else error(value unexpectedly changed)
              else error(value should always be false)";|]
-         (Array.make 6
+         (Array.make 3
             "lock SL0;
              if cas(Gx, false, true)
              then if cas(Gx, true, false)
@@ -667,7 +667,7 @@ module PLCorrectnessTest (Chk :
 
         (* Test 41 *)
         (* Dining Philosophers Unsolved *)
-        (let n = 4 in
+        (let n = 2 in
          let test41_thread i =
             "lock SL" ^ (string_of_int i) ^ ";
              lock SL" ^ (string_of_int 
@@ -704,6 +704,30 @@ module PLCorrectnessTest (Chk :
                 (fun _ -> Boolean false),
           (true, true)));
 
+        (* Test 43 *)
+        (* Hopefully we will see the benefits of SPOR *)
+        ([|"cas(Gx, 0, 1)";
+           "cas(Gx, 0, 1)";
+           "cas(Gx, 0, 1)";
+           "cas(Gy, 0, 1)";
+           "cas(Gy, 0, 1)";
+           "cas(Gy, 0, 1)";
+        |], [("x", Integer 0); ("y", Integer 0)], (true, true));
+
+        (* Test 44 *)
+        (* Test that gives good partial order error trace *)
+        ([|"if cas(Gt,false,!Gz) then
+                if !Gt then cas(Gx, 0, !Gy) else skip
+            else skip";
+           "if cas(Gn, 0, 1) then cas(Gz, false, true) else skip";
+           "if cas(Gn, 0, 1) then cas(Gz, false, true) else skip";
+           "if cas(Gy, 0, 2) then if !Gw = 1 & !Gx = 2 then error(pot)
+            else skip else skip";
+           "cas(Gw, 0, !Gn)";
+           "cas(Gt, true, false)";
+        |], [("t", Boolean false); ("n", Integer 0); ("x", Integer 0);
+             ("w", Integer 0); ("z", Boolean false); ("y", Integer 0);],
+            (false, true));
     ]
 
     let run_test (es, g, (eef, edf)) =
@@ -744,6 +768,8 @@ module SPLCheckerCorrectnessTest = PLCorrectnessTest (Checker.SimplePLChecker)
 
 module DPORPLCheckerCorrectnessTest = PLCorrectnessTest (Checker.DPORPLChecker)
 
+module SPORPLCheckerCorrectnessTest = PLCorrectnessTest (Checker.SPORPLChecker)
+
 let () = let n = if Array.length Sys.argv > 1
                  then int_of_string (Sys.argv.(1))
                  else 1 in
@@ -753,9 +779,12 @@ let () = let n = if Array.length Sys.argv > 1
                                 (int_of_string Sys.argv.(2))
          else if n = 1 then DPORPLCheckerCorrectnessTest.run_nth_test_case
                                 (int_of_string Sys.argv.(2))
-         else print_endline "Error: pass 0 and 1 for simple or DPOR check tests"
+         else if n = 2 then SPORPLCheckerCorrectnessTest.run_nth_test_case
+                                (int_of_string Sys.argv.(2))
+         else print_endline "Error: pass 0, 1 or 2 for simple or DPOR or SPOR check tests"
     else if n = 0 then SPLCheckerCorrectnessTest.print_all_tests_passed()
          else if n = 1 then DPORPLCheckerCorrectnessTest.print_all_tests_passed()
-         else print_endline "Error: pass 0 and 1 for simple or DPOR check tests";
+         else if n = 2 then SPORPLCheckerCorrectnessTest.print_all_tests_passed()
+         else print_endline "Error: pass 0 or 1 or 2 for simple or DPOR or SPOR check tests";
     print_endline ("Time taken: " ^ (string_of_float (Sys.time () -. start_time)))
 
