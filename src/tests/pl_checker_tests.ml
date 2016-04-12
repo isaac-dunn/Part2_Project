@@ -126,7 +126,7 @@ module PLCorrectnessTest (Chk :
                 done
             done" in
 
-        (Array.init 1 test13_thread, (intloc_array_zero_store 128),
+        (Array.init 2 test13_thread, (intloc_array_zero_store 128),
         (true, true)));
 
         (* Test 14 *)
@@ -776,6 +776,8 @@ module DPORPLCheckerCorrectnessTest = PLCorrectnessTest (Checker.DPORPLChecker)
 
 module SPORPLCheckerCorrectnessTest = PLCorrectnessTest (Checker.SPORPLChecker)
 
+module SPORSleepPLCheckerCorrectnessTest = PLCorrectnessTest (Checker.SPORSleepPLChecker)
+
 let () = let n = if Array.length Sys.argv > 1
                  then int_of_string (Sys.argv.(1))
                  else 1 in
@@ -787,10 +789,25 @@ let () = let n = if Array.length Sys.argv > 1
                                 (int_of_string Sys.argv.(2))
          else if n = 2 then SPORPLCheckerCorrectnessTest.run_nth_test_case
                                 (int_of_string Sys.argv.(2))
-         else print_endline "Error: pass 0, 1 or 2 for simple or DPOR or SPOR check tests"
+         else if n = 3 then SPORSleepPLCheckerCorrectnessTest.run_nth_test_case
+                                (int_of_string Sys.argv.(2))
+         else if n = 9 then let tc = (int_of_string Sys.argv.(2)) in
+                print_endline "\nSimple";
+                SPLCheckerCorrectnessTest.run_nth_test_case tc;
+                print_endline "\nDPOR";
+                DPORPLCheckerCorrectnessTest.run_nth_test_case tc;
+                print_endline "\nSPOR";
+                SPORPLCheckerCorrectnessTest.run_nth_test_case tc;
+                print_endline "\nSPOR with sleep sets";
+                SPORSleepPLCheckerCorrectnessTest.run_nth_test_case tc
+         else print_endline ("Error: pass 0 or 1 or 2 or 3 for " ^
+            "simple or DPOR or SPOR or SPOR with sleep check tests, " ^
+            " or 9 to run all checkers")
     else if n = 0 then SPLCheckerCorrectnessTest.print_all_tests_passed()
          else if n = 1 then DPORPLCheckerCorrectnessTest.print_all_tests_passed()
          else if n = 2 then SPORPLCheckerCorrectnessTest.print_all_tests_passed()
-         else print_endline "Error: pass 0 or 1 or 2 for simple or DPOR or SPOR check tests";
+         else if n = 3 then SPORSleepPLCheckerCorrectnessTest.print_all_tests_passed()
+         else print_endline ("Error: pass 0 or 1 or 2 or 3 for " ^
+            "simple or DPOR or SPOR or SPOR with sleep check tests");
     print_endline ("Time taken: " ^ (string_of_float (Sys.time () -. start_time)))
 
