@@ -159,14 +159,19 @@ you should understand:
 \begin{understandinglist}
 	\item what model checking is and why it is useful;
 	\item what the state explosion problem is;
-	\item how partial-order reduction and other
+	\item how partial-order reduction
 	techniques address the state explosion problem;
 	\item the aims of my project; and
 	\item the aims of this dissertation.
 \end{understandinglist}
 
 \section{Model Checking}
-\textbf{Motivate the need for model checking}
+After reading this section,
+you should understand why formal methods for
+verifying the correctness of software and
+hardware systems are useful, that model
+checking is such a formal method, and
+how model checking works.
 
 We want to be very sure that some computer
 programs are correct. Testing is not good
@@ -180,8 +185,9 @@ methods, in which \textbf{(basic explanation of
 model checking)}
 
 \section{The State Explosion Problem}
-\textbf{Explain the motivation for techniques
-	to reduce the size of the state space explored}
+After reading this section, you should
+understand what the state explosion problem
+is, and its practical implications.
 
 Concurrent software programs in practice often
 use threads as their model. The number of possible
@@ -192,8 +198,10 @@ Give some maths, some empirical results,
 and a state space diagram showing this.
 
 \section{Partial-Order Reduction}
-\textbf{Introduce POR as a technique that
-	addresses the state explosion problem}
+After reading this section, you should
+understand how partial-order reduction
+techniques aim to address the state
+explosion problem.
 
 Idea: some interleavings are equivalent. If you
 can identifying which are equivalent, you only
@@ -204,8 +212,9 @@ that aim to identify such equivalences and so
 perform model checking more efficiently.
 
 \section{Dynamic Partial-Order Reduction}
-\textbf{Introduce DPOR as a particular
-	POR algorithm.}
+After reading this section, you should
+understand the idea behind the dynamic
+partial-order reduction algorithm.
 
 DPOR uses runtime information to identify
 equivalent interleavings. In fact, it assumes
@@ -216,8 +225,11 @@ interleavings, which are then explored on
 backtrack.
 
 \section{This Project}
-\textbf{Explain aims of project, and why I
-	chose it.}
+After reading this section, you should
+understand the aims of my project,
+my motivation for deciding on this
+project, and have a shallow
+understanding of its success.
 
 The aim of this project is to implement DPOR.
 
