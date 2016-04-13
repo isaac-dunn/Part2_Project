@@ -58,10 +58,12 @@ module Program (Thr : Interfaces.Thread) = struct
 
     let rec output_hasse_image filename t_seq =
         let out_chan = open_out filename in
-        let write_node i (p, _) =
+        let write_node i (p, t) =
             Printf.fprintf out_chan "%s\n" ((string_of_int i) ^ " [label=\""
-                ^ (string_of_int p) ^ "\"]") in
-        let write_edge (i, j) = let message = (string_of_int i) ^ " -> " ^ (string_of_int j) in
+                ^ (string_of_int p) ^ " : "
+                ^ (ThrImp.ExpImp.string_of_loc t.ThrImp.g_loc) ^ "\"]") in
+        let write_edge (i, j) =
+          let message = (string_of_int i) ^ " -> " ^ (string_of_int j) in
           Printf.fprintf out_chan "  %s\n" message in
         Printf.fprintf out_chan "%s\n" "digraph Trace {";
         List.iteri write_node t_seq;
