@@ -4,7 +4,7 @@
 open Pl_expression
 
 type out_style = Verbose | Time | Calls
-let style = ref Verbose
+let style = Verbose
 
 module PLCorrectnessTest (Chk :
     Interfaces.Checker with module ProgImp = Program.PLProgram) = struct
