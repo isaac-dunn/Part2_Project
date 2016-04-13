@@ -723,7 +723,6 @@ module PLCorrectnessTest (Chk :
                 if !Gt then cas(Gx, 0, !Gy) else skip
             else skip";
            "if cas(Gn, 0, 1) then cas(Gz, false, true) else skip";
-           "if cas(Gn, 0, 1) then cas(Gz, false, true) else skip";
            "if cas(Gy, 0, 2) then if !Gw = 1 & !Gx = 2 then error(pot)
             else skip else skip";
            "cas(Gw, 0, !Gn)";
