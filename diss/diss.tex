@@ -2607,31 +2607,116 @@ you should understand:
 \end{center}
 
 Even though the algorithms
-used in this project have all be proved sound \textbf{REFS},
-there is no guarantee that my implementation
-is therefore also sound, just because it
-\emph{claims} to implement them; the isomorphism
-between mathematical concepts in a research paper
-and the manipulation of bits by a computer
-is complex enough that bugs in the
-implementation are more than just possible.
+used in this project have all been proven sound,
+there is no guarantee that my project correctly
+implements the algorithms, and hence no
+guarantee of soundness. Using another
+system to verify
+my model-checking implementations would not
+solve this problem, because then that system
+would have to be verified, and so on.
+After reading this section, you should
+therefore understand the extent to which I believe
+my project consists of sound implementations
+of the model-checking algorithms, the
+evidence leading to this belief, and why
+model checking systems are useful in
+practice without being known to be
+sound.
+
+\subsection{Evidence for Soundness}
+While any program of a reasonable size
+is extremely likely to contain bugs
+\textbf{[citation]}, I believe that
+on the balance of probabilities,
+all remaining bugs in my project will relate
+to functionality not necessary for
+soundness. For instance, I would
+not be surprised to learn that there
+is a bug in the \texttt{next\_transition}
+function for PL, whereas I would be
+surprised if such a bug existed in
+my implementation of the DPOR
+algorithm. There are two main reasons
+for this belief: my testing process,
+and my understanding of the
+algorithms involved.
+
+\subsubsection{Examination of Source Code}
+OCaml is a very high-level language, so
+its use allowed me to keep the source code
+relatively simple. As a result,
+the correspondence between
+the published pseudocode for an algorithm
+and my source code implementing it was
+as clear as possible, meaning that it
+is possible to convince yourself that
+the implementation is correct by simply
+comparing the two. In the development
+process, I spent a lot of time trying
+to find ways in which my programs did
+not match the pseudocode; at the end
+of the development process, I can be
+reasonably confident that any differences
+in semantics
+(apart from perhaps very subtle ones)
+have been found. This is especially
+true for the simple model checker,
+due to its simplicity.
+
+\subsubsection{Tests}
+\label{sec:pl-checker-tests}
+As part of the development process,
+I wrote over forty test cases, each
+consisting of a transition system
+implemented as a PL program, and
+the expected
+$(\textit{error-free},\, \textit{deadlock-free})$
+result of model checking that program.
+Running an implementation of a
+model-checking algorithm on the
+program should give the expected
+result: if not, then either
+the result I expected was wrong
+(usually due to an incorrect encoding
+of the transition system in PL),
+or the implementation was incorrect.
+To ensure the former was not a possibility,
+I used the simple model checker---whose
+correctness I have a lot of confidence in due
+to its simplicity---to check that my
+expectations of the results were correct.
+
+The primary use of these tests was to
+reveal the presence of bugs in my
+project during its development, so
+that I could track them down and
+remove them. However, they have the
+secondary benefit of providing
+evidence that my implementations are
+correct: if a bug is not applicable
+in any of the test cases, then,
+assuming that these test cases cover a
+varied and representative selection
+of systems to be verified,
+the bug must be very obscure.
+
+\subsection{Applications of Model Checking}
+A model checking system does not have to be
+formally proven to be sound to be of practical use.
+
 Even if another system was used to formally verify
 the project, the obligation to trust
 a software program would still remain,
 not to mention the compiler, operating
 system and hardware that any execution
 of the program must use to run.
-
 Given that it is all but impossible to
 be fully convinced of its soundness,
 what use is a model checking
 system? If it might be unsound, then surely
 none of its results can be trusted,
 rendering it useless?
-
-\subsection{Applications of Model Checking}
-A model checking system does not have to be
-formally proven to be sound to be of practical use.
 
 \subsubsection{Proof as a Social Process}
 \begin{itemize}
@@ -2726,54 +2811,6 @@ using conventional tests, techniques such
 as partial-order reduction allow model
 checking of such systems with reasonable
 efficiency.
-
-\subsection{Evidence for Soundness}
-Nevertheless, the more evidence that
-can be given for the soundness of an
-implementation, the more confidence
-can be taken in its soundness, meaning
-it is more likely to accept only
-error-free and deadlock-free programs,
-and find an error or deadlock state
-if one exists. This section gives
-some evidence that my implementations
-of the algorithms are sound.
-
-\subsubsection{Tests}
-\label{sec:pl-checker-tests}
-As part of the development process,
-I wrote over forty test cases, each 
-consisting of a transition system
-represented as a PL program, and
-the expected
-$(\textit{error-free},\, \textit{deadlock-free})$
-result of model checking that program.
-Running an implementation of a model
-checking algorithm on the program should
-give the expected result: if not, then
-either the result I expected was wrong
-(usually due to an incorrect encoding
-of the transition system in PL),
-or the implementation was incorrect.
-To ensure the former was not a possibility,
-I used the Simple model checker, whose
-correctness I have confidence in due
-to its simplicity, to check that the
-result I expected was in fact the
-result that a correct implementation
-should give.
-
-\subsubsection{Examination of Source Code}
-Programming in a high-level language such as
-OCaml allowed me to keep the source code
-relatively simple, and write it in such
-a way that the correspondence between
-the published pseudocode for an algorithm
-and my source code implementing it was
-as simple as possible, so that it
-is easier to convince yourself that
-some part of my source code correctly
-implements the published algorithm.
 
 \section{Performance}
 \textbf{This section compares the
