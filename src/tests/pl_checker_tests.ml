@@ -842,7 +842,8 @@ let () = let n = if Array.length Sys.argv > 1
             if List.mem i to_test then (
             if style = Verbose then print_endline (get_checker_name i);
             (get_checker_run_nth i) (int_of_string Sys.argv.(2))
-            ) else if style <> Verbose then print_string","
+            ) else if style <> Verbose then print_string",";
+            flush stdout
         done
     else (if style = Verbose then print_endline (get_checker_name n);
           (get_checker_run_all n) ());
