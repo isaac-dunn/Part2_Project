@@ -4,8 +4,8 @@ module SimpleSleepChecker :
 module DPORSleepChecker :
     functor (Prog : Interfaces.Program) -> Interfaces.Checker
 
-module SimplePLSleepChecker : (Interfaces.Checker
+module SimpleSleepPLChecker : (Interfaces.Checker
     with module ProgImp = Program.PLProgram)
 
-module DPORPLSleepChecker : (Interfaces.Checker
+module DPORSleepPLChecker : (Interfaces.Checker
     with module ProgImp = Program.PLProgram)

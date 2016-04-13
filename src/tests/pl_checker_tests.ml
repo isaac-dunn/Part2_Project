@@ -770,44 +770,68 @@ module PLCorrectnessTest (Chk :
             print_endline ("Total calls: " ^ (string_of_int !call_counter))
 end
 
-module SPLCheckerCorrectnessTest = PLCorrectnessTest (Checker.SimplePLChecker)
+module SimplePLCheckerCorrectnessTest = PLCorrectnessTest (Plain_checker.SimplePLChecker)
 
-module DPORPLCheckerCorrectnessTest = PLCorrectnessTest (Checker.DPORPLChecker)
+module DPORPLCheckerCorrectnessTest = PLCorrectnessTest (Plain_checker.DPORPLChecker)
 
-module SPORPLCheckerCorrectnessTest = PLCorrectnessTest (Checker.SPORPLChecker)
+module SPORPLCheckerCorrectnessTest = PLCorrectnessTest (Spor_checker.SPORPLChecker)
 
-module SPORSleepPLCheckerCorrectnessTest = PLCorrectnessTest (Checker.SPORSleepPLChecker)
+module SimpleStatefulPLCheckerCorrectnessTest = PLCorrectnessTest (Stateful_checker.SimpleStatefulPLChecker)
+
+module SDPORPLCheckerCorrectnessTest = PLCorrectnessTest (Stateful_checker.SDPORPLChecker)
+
+module SimpleSleepPLCheckerCorrectnessTest = PLCorrectnessTest (Sleep_checker.SimpleSleepPLChecker)
+
+module DPORSleepPLCheckerCorrectnessTest = PLCorrectnessTest (Sleep_checker.DPORSleepPLChecker)
+
+module SPORSleepPLCheckerCorrectnessTest = PLCorrectnessTest (Spor_checker.SPORSleepPLChecker)
+
+let get_checker_run_nth i = match i with
+    0 -> SimplePLCheckerCorrectnessTest.run_nth_test_case
+  | 1 -> SimpleStatefulPLCheckerCorrectnessTest.run_nth_test_case
+  | 2 -> SimpleSleepPLCheckerCorrectnessTest.run_nth_test_case
+  | 3 -> DPORPLCheckerCorrectnessTest.run_nth_test_case
+  | 4 -> SDPORPLCheckerCorrectnessTest.run_nth_test_case
+  | 5 -> DPORSleepPLCheckerCorrectnessTest.run_nth_test_case
+  | 6 -> SPORPLCheckerCorrectnessTest.run_nth_test_case
+  | 7 -> SPORSleepPLCheckerCorrectnessTest.run_nth_test_case
+  | _ -> raise (Failure "Only algorithms 0-7 exist (9 for all)")
+
+let get_checker_run_all i = match i with
+    0 -> SimplePLCheckerCorrectnessTest.print_all_tests_passed
+  | 1 -> SimpleStatefulPLCheckerCorrectnessTest.print_all_tests_passed
+  | 2 -> SimpleSleepPLCheckerCorrectnessTest.print_all_tests_passed
+  | 3 -> DPORPLCheckerCorrectnessTest.print_all_tests_passed
+  | 4 -> SDPORPLCheckerCorrectnessTest.print_all_tests_passed
+  | 5 -> DPORSleepPLCheckerCorrectnessTest.print_all_tests_passed
+  | 6 -> SPORPLCheckerCorrectnessTest.print_all_tests_passed
+  | 7 -> SPORSleepPLCheckerCorrectnessTest.print_all_tests_passed
+  | _ -> raise (Failure "Only algorithms 0-7 exist (9 for all)")
+
+let get_checker_name n = match n with
+    0 -> "Simple"
+  | 1 -> "Simple Stateful"
+  | 2 -> "Simple Sleep"
+  | 3 -> "DPOR"
+  | 4 -> "SDPOR"
+  | 5 -> "DPOR Sleep"
+  | 6 -> "SPOR"
+  | 7 -> "SPOR Sleep"
+  | _ -> raise (Failure "Only algorithms 0-7 exist")
 
 let () = let n = if Array.length Sys.argv > 1
                  then int_of_string (Sys.argv.(1))
                  else 1 in
     let start_time = Sys.time () in
     if Array.length Sys.argv = 3 then
-         if n = 0 then SPLCheckerCorrectnessTest.run_nth_test_case
-                                (int_of_string Sys.argv.(2))
-         else if n = 1 then DPORPLCheckerCorrectnessTest.run_nth_test_case
-                                (int_of_string Sys.argv.(2))
-         else if n = 2 then SPORPLCheckerCorrectnessTest.run_nth_test_case
-                                (int_of_string Sys.argv.(2))
-         else if n = 3 then SPORSleepPLCheckerCorrectnessTest.run_nth_test_case
-                                (int_of_string Sys.argv.(2))
-         else if n = 9 then let tc = (int_of_string Sys.argv.(2)) in
-                print_endline "\nSimple";
-                SPLCheckerCorrectnessTest.run_nth_test_case tc;
-                print_endline "\nDPOR";
-                DPORPLCheckerCorrectnessTest.run_nth_test_case tc;
-                print_endline "\nSPOR";
-                SPORPLCheckerCorrectnessTest.run_nth_test_case tc;
-                print_endline "\nSPOR with sleep sets";
-                SPORSleepPLCheckerCorrectnessTest.run_nth_test_case tc
-         else print_endline ("Error: pass 0 or 1 or 2 or 3 for " ^
-            "simple or DPOR or SPOR or SPOR with sleep check tests, " ^
-            " or 9 to run all checkers")
-    else if n = 0 then SPLCheckerCorrectnessTest.print_all_tests_passed()
-         else if n = 1 then DPORPLCheckerCorrectnessTest.print_all_tests_passed()
-         else if n = 2 then SPORPLCheckerCorrectnessTest.print_all_tests_passed()
-         else if n = 3 then SPORSleepPLCheckerCorrectnessTest.print_all_tests_passed()
-         else print_endline ("Error: pass 0 or 1 or 2 or 3 for " ^
-            "simple or DPOR or SPOR or SPOR with sleep check tests");
+         if n = 9 then
+            for i = 0 to 7 do
+                print_endline (get_checker_name i);
+                (get_checker_run_nth i) (int_of_string Sys.argv.(2))
+            done
+         else (print_endline (get_checker_name n);
+              (get_checker_run_nth n) (int_of_string Sys.argv.(2)))
+    else (print_endline (get_checker_name n);
+          (get_checker_run_all n) ());
     print_endline ("Time taken: " ^ (string_of_float (Sys.time () -. start_time)))
 

@@ -1,4 +1,4 @@
-intersect l m  = match l with
+let rec intersect l m  = match l with
     [] -> []
   | x::xs -> (match m with [] -> []
       | y::ys -> if x = y then x::(intersect xs ys)
@@ -13,7 +13,7 @@ let rec union l m = match l with
             else if x < y then x::(union xs (y::ys))
             else y::(union (x::xs) ys))
 
-SPORChecker (Prog : Interfaces.Program) =
+module SPORChecker (Prog : Interfaces.Program) =
   struct
     module ProgImp = Prog
     let write_error_traces = false
