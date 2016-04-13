@@ -834,13 +834,13 @@ let () = let n = if Array.length Sys.argv > 1
     let start_time = Sys.time () in
     if Array.length Sys.argv = 3 then
         let rec exp i l =
-            if i < 0 then l else exp (i-1) (Sys.argv.(1).[i]::l) in
+            if i < 0 then l else exp (i-1) (Sys.argv.(2).[i]::l) in
         let to_test = List.map (fun c -> int_of_string (Char.escaped c))
-                        (exp (String.length Sys.argv.(1) - 1) []) in
+                        (exp (String.length Sys.argv.(2) - 1) []) in
         for i = 0 to 7 do
             if List.mem i to_test then (
             if style = Verbose then print_endline (get_checker_name i);
-            (get_checker_run_nth i) (int_of_string Sys.argv.(2))
+            (get_checker_run_nth i) (int_of_string Sys.argv.(1))
             ) else if style <> Verbose then print_string",";
             flush stdout
         done
