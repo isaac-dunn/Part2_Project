@@ -190,86 +190,6 @@ module DPORChecker (Prog : Interfaces.Program) =
         check (tds, g) [] (fun _ -> Clockvector.fresh n) (fun _ -> Clockvector.fresh n) (fun _ -> ~-1)
   end
 
-module SPORChecker (Prog : Interfaces.Program) =
-  struct
-    module ProgImp = Prog
-    let write_error_traces = false
-    let max_depth = ref 0
-    let calls = ref 0
-    let ht = Hashtbl.create ~random:true 10000
-
-    let persistent_set (tds, g) =
-        let union xs ys = (List.filter (fun x -> not (List.mem x ys)) xs) @ ys in
-        let sbset xs ys = List.for_all (fun x -> List.mem x ys) xs in
-        let eq xs ys = sbset xs ys && sbset ys xs in
-        let locs_accsd n =
-            let (e, s) = Array.get tds n in
-            union (ProgImp.ThrImp.ExpImp.locations_accessed e)
-                  (ProgImp.ThrImp.StoreImp.globals_stored s) in
-        let is_enabled n =
-            let (e, s) = Array.get tds n in
-            match ProgImp.ThrImp.next_transition (e, s, g) with
-            Some (_, b) -> b
-          | None -> false in
-        let old_pers = ref [] in
-        let pers = ref [0] in
-        let locs = ref (locs_accsd 0) in
-        while not (eq !old_pers !pers) do
-            old_pers := !pers;
-            for i = 0 to Array.length tds - 1 do
-                if not (List.mem i !pers) then
-                if List.exists (fun l -> List.mem l !locs) (locs_accsd i)
-                then (locs := union (locs_accsd i) !locs; pers := i::!pers)
-            done
-        done;
-        if List.for_all is_enabled !pers then !pers else
-            let rec ntoz n = if n < 0 then [] else n::(ntoz (n-1)) in
-            ntoz (Array.length tds - 1) 
-        
-
-    (* True iff error-free *)
-    let rec check init_prog t_seq =
-        calls := !calls + 1;
-        let depth = List.length t_seq in
-        if depth > !max_depth then max_depth := depth;
-        let (tds, g) = List.fold_left ProgImp.apply_transition init_prog t_seq in
-        let error_free = ref true in
-        let one_thread_can_advance = ref false in
-        let all_stopped_threads_are_values = ref true in
-        let recursive_calls_deadlock_free = ref true in
-        if Hashtbl.mem ht (tds, g) then () else (
-        Hashtbl.add ht (tds, g) true;
-        let persists = persistent_set (tds, g) in
-        for i = 0 to Array.length tds - 1 do
-            if List.mem i persists then (
-            let (e, s) = Array.get tds i in
-            match ProgImp.ThrImp.next_transition (e, s, g) with
-              (* No futher transitions: check if this thread reaches a local error *)
-              None -> let (reaches_err, reaches_nonval) =
-                        ProgImp.ThrImp.check_local (e, s, g) in
-                      if reaches_err then (
-                        error_free := false;
-                        if write_error_traces then ProgImp.output_hasse_image
-                            ("errortraces/errortrace" ^ (string_of_int !calls) ^ ".gv") t_seq
-                      );
-                      if reaches_nonval then
-                         all_stopped_threads_are_values := false
-              (* There is a transition: check if error; explore from the new state *)
-            | Some (t_tran, enabled) -> (
-                if not enabled then all_stopped_threads_are_values := false else (
-                one_thread_can_advance := true;
-                let (ef, df) = check init_prog (t_seq @ [(i, t_tran)])
-                in error_free := !error_free && ef;
-                   recursive_calls_deadlock_free := !recursive_calls_deadlock_free && df)))
-        done);
-        (!error_free, !recursive_calls_deadlock_free &&
-                (!one_thread_can_advance || !all_stopped_threads_are_values))
-
-    let error_and_deadlock_free init_prog =
-        Hashtbl.reset ht;
-        check init_prog []
-  end
-
 module SimplePLChecker : (Interfaces.Checker
     with module ProgImp = Program.PLProgram)
         = SimpleChecker (Program.PLProgram)
@@ -277,7 +197,3 @@ module SimplePLChecker : (Interfaces.Checker
 module DPORPLChecker : (Interfaces.Checker
     with module ProgImp = Program.PLProgram)
         = DPORChecker (Program.PLProgram)
-
-module SPORPLChecker : (Interfaces.Checker
-    with module ProgImp = Program.PLProgram)
-        = SPORChecker (Program.PLProgram)
