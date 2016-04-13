@@ -2455,7 +2455,6 @@ program which leads to an error state---in
 our case, this is just the sequence of
 transitions executed at the point when
 an error state it found.
-
 To give more insight into the reason for the
 error state being entered, it would be preferable
 to instead present the user with a
@@ -2466,22 +2465,89 @@ Given a sequence of transitions which lead to
 some state of interest, the problem is
 then to give the most general partial order
 which, however linearised, results a sequence
-of transitions 
+of transitions that leads to the same error
+state.
 
-This partial order is just the happens-before
-relation (cf. \ref{sec:happens-before}). As
-discussed in section~\ref{sec:clock-vectors},
-this can be decided using clock vectors.
+This partial order is simply the happens-before
+relation, as described in
+section~\ref{sec:happens-before}). As
+two transitions are dependent if and only
+if they belong to the same thread or if
+they access the same shared object, my
+algorithm simply executes the given transition
+sequence, using a function from processes
+to sequence indices to keep track
+of the last transition to access each
+process, and a function from shared
+objects to sequence indices to keep
+track of the last transition to
+access each shared object. For each
+transition executed, two edges are added
+to the graph representing the partial
+order: one from the last transition
+belonging to the same process, and one
+from the last transition accessing the
+same shared object.
 
-Just execute the transition sequence
-from the beginning, keeping track of the relation.
-Then output it in a nice form, so we can display it
-as a graph maybe. \textbf{TO DO.}
+I thought that the most helpful way to
+present the resulting partial-order
+graph would be in the form of an
+image, so I wrote a function which
+automatically output the graph as
+a GraphViz graph, with the nodes
+labelled with the thread and the
+shared object accessed of each transition.
+GraphViz is an open-source program which
+draws graphs.
+Figure~\ref{fig:trace-example} gives a program
+and shows an example of such an
+automatically-generated GraphViz graph.
 
-\begin{figure}	
-	\lstinputlisting[firstline=39,lastline=57]{../src/program.ml}
-	\caption{The function giving the partial order from
-		a given transition sequence. \textbf{Probably remove this.}}
+\begin{figure}
+	\centering
+	\begin{subfigure}{0.5\textwidth}
+		\centering
+		\begin{tabular}{l}
+			Shared variables: \\
+			\qquad \texttt{n}, \texttt{w},
+			\texttt{x} and \texttt{y},
+			initially \texttt{0} \\
+			\qquad \texttt{t} and \texttt{z},
+			initially \texttt{false} \\
+			\\
+			Thread 0: \\
+			\qquad \texttt{t := z;} \\
+			\qquad \texttt{if t then x := y} \\
+			\\
+			Thread 1: \\
+			\qquad \texttt{n := 1;} \\
+			\qquad \texttt{z := true} \\
+			\\
+			Thread 2: \\
+			\qquad \texttt{y := 2;} \\
+			\qquad \texttt{if w = 1 \& x = 2 then \textbf{error}} \\
+			\\
+			Thread 3: \\
+			\qquad \texttt{w := n} \\
+			\\
+			Thread 4: \\
+			\qquad \texttt{t := false} \\
+		\end{tabular}
+	\end{subfigure}%
+	\begin{subfigure}{0.5\textwidth}
+		\centering
+		\includegraphics[height=15cm]{error_trace}
+	\end{subfigure}
+	\caption[An example partial-order
+		error trace.]{An example partial-order
+			error trace. The two nodes marked
+			``0 : t'' have two edges between them
+			as their happens-before relationship
+			is due to both possible reasons:
+			belonging to the
+			same process and accessing the same
+			shared object.}
+	\label{fig:trace-example}
 \end{figure}
 
 \section{Summary}
