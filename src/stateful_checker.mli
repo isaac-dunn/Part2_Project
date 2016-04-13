@@ -1,17 +1,11 @@
-module SimpleChecker :
+module SimpleStatefulChecker :
     functor (Prog : Interfaces.Program) -> Interfaces.Checker
 
-module DPORChecker :
+module SDPORChecker :
     functor (Prog : Interfaces.Program) -> Interfaces.Checker
 
-module SPORChecker :
-    functor (Prog : Interfaces.Program) -> Interfaces.Checker
-
-module SimplePLChecker : (Interfaces.Checker
+module SimpleStatefulPLChecker : (Interfaces.Checker
     with module ProgImp = Program.PLProgram)
 
-module DPORPLChecker : (Interfaces.Checker
-    with module ProgImp = Program.PLProgram)
-
-module SPORPLChecker : (Interfaces.Checker
+module SDPORPLChecker : (Interfaces.Checker
     with module ProgImp = Program.PLProgram)

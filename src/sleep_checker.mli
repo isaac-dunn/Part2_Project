@@ -1,17 +1,11 @@
-module SimpleChecker :
+module SimpleSleepChecker :
     functor (Prog : Interfaces.Program) -> Interfaces.Checker
 
-module DPORChecker :
+module DPORSleepChecker :
     functor (Prog : Interfaces.Program) -> Interfaces.Checker
 
-module SPORChecker :
-    functor (Prog : Interfaces.Program) -> Interfaces.Checker
-
-module SimplePLChecker : (Interfaces.Checker
+module SimplePLSleepChecker : (Interfaces.Checker
     with module ProgImp = Program.PLProgram)
 
-module DPORPLChecker : (Interfaces.Checker
-    with module ProgImp = Program.PLProgram)
-
-module SPORPLChecker : (Interfaces.Checker
+module DPORPLSleepChecker : (Interfaces.Checker
     with module ProgImp = Program.PLProgram)
