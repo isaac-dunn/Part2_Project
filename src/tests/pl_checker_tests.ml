@@ -742,8 +742,8 @@ module PLCorrectnessTest (Chk :
         let init_time = Sys.time() in
         let (aef, adf) = C.error_and_deadlock_free (tds, g) in
         let success = aef = eef && adf = edf in
-        if success then (if style = Verbose then print_endline "Result: Success")
-                   else (print_string "Result: Failure";
+        if not success then
+                   (print_string "Result: Failure";
                     if aef <> eef then if eef
                         then print_string " (Unexpected error)"
                         else print_string " (Unexpectedly error-free)";
