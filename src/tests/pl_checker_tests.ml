@@ -3,6 +3,9 @@
 
 open Pl_expression
 
+type out_style = Verbose | Time | Calls
+let style = ref Verbose
+
 module PLCorrectnessTest (Chk :
     Interfaces.Checker with module ProgImp = Program.PLProgram) = struct
 
@@ -739,7 +742,7 @@ module PLCorrectnessTest (Chk :
         let init_time = Sys.time() in
         let (aef, adf) = C.error_and_deadlock_free (tds, g) in
         let success = aef = eef && adf = edf in
-        if success then print_endline "Result: Success"
+        if success then (if style = Verbose then print_endline "Result: Success")
                    else (print_string "Result: Failure";
                     if aef <> eef then if eef
                         then print_string " (Unexpected error)"
@@ -749,10 +752,14 @@ module PLCorrectnessTest (Chk :
                         else print_string " (Unexpectedly deadlock-free)";
                     print_newline());
         call_counter := !call_counter + !C.calls;
-        print_endline (" Calls: " ^ (string_of_int !C.calls) ^ "\n"
-        ^"  Time: " ^ (string_of_float
-            (Sys.time() -. init_time)) ^ "\n"
-        ^" Depth: " ^ (string_of_int !C.max_depth) ^ "\n");
+        (match style with
+            Verbose ->
+                print_endline (" Calls: " ^ (string_of_int !C.calls) ^ "\n"
+                ^"  Time: " ^ (string_of_float
+                    (Sys.time() -. init_time)) ^ "\n"
+                ^" Depth: " ^ (string_of_int !C.max_depth) ^ "\n")
+         |  Time -> print_string ((string_of_float (Sys.time() -. init_time)) ^ ",")
+         |  Calls -> print_string ((string_of_int !C.calls) ^ ","));
         success
 
     let run_nth_test_case n = let _ = run_test (List.nth test_cases n) in ()
@@ -761,13 +768,16 @@ module PLCorrectnessTest (Chk :
         call_counter := 0;
         let rec conj l = match l with [] -> true | b::bs -> b && conj bs in
             conj (List.mapi (fun index ->
-                print_endline (" Index: " ^ (string_of_int index)); run_test)
-                    test_cases)
+                if style = Verbose then
+                    print_endline (" Index: " ^ (string_of_int index));
+                run_test) test_cases)
 
     let print_all_tests_passed () =
+        if style = Verbose then (
             print_endline ("Checker Correctness Tests All Passed: "
                             ^ (string_of_bool (all_tests_passed ())));
             print_endline ("Total calls: " ^ (string_of_int !call_counter))
+        ) else let _ = (all_tests_passed ()) in ()
 end
 
 module SimplePLCheckerCorrectnessTest = PLCorrectnessTest (Plain_checker.SimplePLChecker)
@@ -826,12 +836,13 @@ let () = let n = if Array.length Sys.argv > 1
     if Array.length Sys.argv = 3 then
          if n = 9 then
             for i = 0 to 7 do
-                print_endline (get_checker_name i);
+                if style = Verbose then print_endline (get_checker_name i);
                 (get_checker_run_nth i) (int_of_string Sys.argv.(2))
             done
-         else (print_endline (get_checker_name n);
+         else (if style = Verbose then print_endline (get_checker_name n);
               (get_checker_run_nth n) (int_of_string Sys.argv.(2)))
-    else (print_endline (get_checker_name n);
+    else (if style = Verbose then print_endline (get_checker_name n);
           (get_checker_run_all n) ());
-    print_endline ("Time taken: " ^ (string_of_float (Sys.time () -. start_time)))
+    if style = Verbose then print_endline ("Time taken: " ^ (string_of_float (Sys.time () -. start_time)));
+    print_newline ()
 
