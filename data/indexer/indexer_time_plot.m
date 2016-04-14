@@ -1,8 +1,8 @@
 %% importing data
-transitions = dlmread('prod_cons_trans_data.csv', ',', 1, 1);
+transitions = dlmread('indexer_time_data.csv', ',', 1, 1);
 % convert 0 values to NaNs, as these don't plot
 transitions(transitions==0)=nan;
-threads = [1:20];
+threads = [1:17];
 
 %% plotting lines
 
@@ -19,7 +19,6 @@ grid on
 %% adding legend and axis labels
 set(gca, 'FontName', 'Palatino Linotype');
 legend('Simple', 'Stateful Simple', 'Simple with Sleep', ...
-	'DPOR', 'SDPOR', 'DPOR with Sleep', 'Location','southoutside', ...
-    'Orientation','horizontal');
+	'DPOR', 'SDPOR', 'DPOR with Sleep', 'Location','southeast');
 xlabel('Number of Threads', 'fontsize', 14);
-ylabel('Number of Transitions', 'fontsize', 14)
+ylabel('Execution Time (seconds)', 'fontsize', 14)
