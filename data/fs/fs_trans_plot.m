@@ -17,8 +17,16 @@ hold off
 grid on
 
 %% adding legend and axis labels
-set(gca, 'FontName', 'Palatino Linotype');
-legend('Simple', 'Stateful Simple', 'Simple with Sleep', ...
-	'DPOR', 'SDPOR', 'DPOR with Sleep', 'Location','southeast');
-xlabel('Number of Threads', 'fontsize', 14);
-ylabel('Number of Transitions', 'fontsize', 14)
+set(gca, 'FontName', 'Palatino Linotype', 'FontSize', 14);
+legend({'Simple', 'Stateful Simple', 'Simple with Sleep', ...
+	'DPOR', 'SDPOR', 'DPOR with Sleep \quad'}, ...
+    'Location','southeast', 'Interpreter', 'latex');
+xlabel('Number of Threads');
+ylabel('Number of Transitions')
+
+%% output pdf file
+h = figure(1);
+h.Units = 'centimeters'; % set figure position to cm
+%h.Position(2) = [h.Position(2)-9]; % set figure position bevore resize
+h.Position([3:4]) = [16,13]; % resize figure
+Plot2LaTeX( h, 'fs_trans_fig' )

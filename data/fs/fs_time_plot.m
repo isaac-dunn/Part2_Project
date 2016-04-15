@@ -16,9 +16,15 @@ semilogy(threads, transitions(:, 6), 'bs-')
 hold off
 grid on
 
-%% adding legend and axis labels
-set(gca, 'FontName', 'Palatino Linotype');
-legend('Simple', 'Stateful Simple', 'Simple with Sleep', ...
-	'DPOR', 'SDPOR', 'DPOR with Sleep', 'Location','southeast');
-xlabel('Number of Threads', 'fontsize', 14);
-ylabel('Execution Time (seconds)', 'fontsize', 14)
+%% adding axis labels
+% legend doesn't fit; will have to refer to another fogure for key
+set(gca, 'FontName', 'Palatino Linotype', 'FontSize', 14);
+xlabel('Number of Threads');
+ylabel('Execution Time (seconds)')
+
+%% output pdf file
+h = figure(1);
+h.Units = 'centimeters'; % set figure position to cm
+%h.Position(2) = [h.Position(2)-9]; % set figure position bevore resize
+h.Position([3:4]) = [16,13]; % resize figure
+Plot2LaTeX( h, 'fs_time_fig' )

@@ -10,3 +10,7 @@
 *.byte
 *.png
 _build/
+*.svg
+*.fig
+xport-area-drawing
+taus
