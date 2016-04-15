@@ -1,8 +1,8 @@
 %% importing data
-transitions = dlmread('indep_trans_4.csv', ',', 1, 0);
+transitions = dlmread('indep_trans_4.csv', ',', 0, 0);
 % convert 0 values to NaNs, as these don't plot
 transitions(transitions==0)=nan;
-threads = [1:9];
+threads = [1:20];
 
 %% plotting lines
 
