@@ -709,13 +709,18 @@ module PLCorrectnessTest (Chk :
 
         (* Test 43 *)
         (* Hopefully we will see the benefits of SPOR *)
-        ([|"cas(Gx, 0, 1)";
-           "cas(Gx, 0, 1)";
-           "cas(Gx, 0, 1)";
-           "cas(Gy, 0, 1)";
-           "cas(Gy, 0, 1)";
-           "cas(Gy, 0, 1)";
-        |], [("x", Integer 0); ("y", Integer 0)], (true, true));
+        (let num_of_threads = 2 in
+         let ops_per_thread = 2 in
+         let test43_thread n i =
+            let op = "(if cas(G" ^ (string_of_int i)
+                        ^ ", skip, skip) then skip else skip)" in
+            let rec aux j = if j <= 1 then op
+                else op ^ "; " ^ (aux (j-1)) in
+            aux n in
+         Array.init num_of_threads (test43_thread ops_per_thread),
+         array_store num_of_threads (fun i -> string_of_int i)
+            (fun _ -> Skip),
+         (true, true));
 
         (* Test 44 *)
         (* Test that gives good partial order error trace *)
