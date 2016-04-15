@@ -58,10 +58,10 @@
     \put(0.55158757,0.01869497){\makebox(0,0)[b]{\smash{Number of Threads}}}%
     \put(0,0){\includegraphics[width=\unitlength,page=2]{indep_trans_fig2.pdf}}%
     \put(0.18148148,0.11904762){\makebox(0,0)[rb]{\smash{$10^{0}$}}}%
-    \put(0.18148148,0.26984127){\makebox(0,0)[rb]{\smash{$10^{5}$}}}%
-    \put(0.18148148,0.42063492){\makebox(0,0)[rb]{\smash{$10^{0}$}}}%
-    \put(0.18148148,0.57142857){\makebox(0,0)[rb]{\smash{$10^{5}$}}}%
-    \put(0.18148148,0.72222222){\makebox(0,0)[rb]{\smash{$10^{0}$}}}%
+    \put(0.18148148,0.26984127){\makebox(0,0)[rb]{\smash{$10^{2}$}}}%
+    \put(0.18148148,0.42063492){\makebox(0,0)[rb]{\smash{$10^{4}$}}}%
+    \put(0.18148148,0.57142857){\makebox(0,0)[rb]{\smash{$10^{6}$}}}%
+    \put(0.18148148,0.72222222){\makebox(0,0)[rb]{\smash{$10^{8}$}}}%
     \put(0.05079365,0.4365082){\rotatebox{90}{\makebox(0,0)[b]{\smash{Number of Transitions}}}}%
     \put(0,0){\includegraphics[width=\unitlength,page=3]{indep_trans_fig2.pdf}}%
   \end{picture}%

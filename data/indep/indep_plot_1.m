@@ -17,10 +17,12 @@ hold off
 grid on
 
 %% adding axis labels
-% legend doesn't fit, so just refer to other figure for key
-set(gca, 'FontName', 'Palatino Linotype', 'FontSize', 14);
+ax = gca;
+set(ax, 'FontName', 'Palatino Linotype', 'FontSize', 14);
 xlabel('Number of Threads');
-ylabel('Number of Transitions')
+ylabel('Number of Transitions');
+axis([0 20 1 100000000])
+ax.YTick = [1 100 10000 1000000 100000000];
 
 %% output pdf file
 h = figure(1);
