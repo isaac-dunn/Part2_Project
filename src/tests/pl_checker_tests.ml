@@ -4,7 +4,7 @@
 open Pl_expression
 
 type out_style = Verbose | Time | Calls
-let style = Verbose
+let style = Calls
 
 module PLCorrectnessTest (Chk :
     Interfaces.Checker with module ProgImp = Program.PLProgram) = struct
@@ -709,8 +709,9 @@ module PLCorrectnessTest (Chk :
 
         (* Test 43 *)
         (* Hopefully we will see the benefits of SPOR *)
-        (let num_of_threads = 2 in
-         let ops_per_thread = 2 in
+        (let num_of_threads = 17 in
+         let threads_per_loc = 1 in
+         let ops_per_thread = 24 in
          let test43_thread n i =
             let op = "(if cas(G" ^ (string_of_int i)
                         ^ ", skip, skip) then skip else skip)" in

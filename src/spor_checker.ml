@@ -38,7 +38,7 @@ module SPORChecker (Prog : Interfaces.Program) =
             !i in
         let old_pers = ref [] in
         let pers = ref [enabled_index] in
-        let locs = ref (locs_accsd 0) in
+        let locs = ref (locs_accsd enabled_index) in
         while not (eq !pers !old_pers) do
             old_pers := !pers;
             for i = 0 to Array.length tds - 1 do
@@ -124,7 +124,7 @@ module SPORSleepChecker (Prog : Interfaces.Program) =
             !i in
         let old_pers = ref [] in
         let pers = ref [enabled_index] in
-        let locs = ref (locs_accsd 0) in
+        let locs = ref (locs_accsd enabled_index) in
         while not (eq !pers !old_pers) do
             old_pers := !pers;
             for i = 0 to Array.length tds - 1 do
