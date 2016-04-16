@@ -709,11 +709,11 @@ module PLCorrectnessTest (Chk :
 
         (* Test 43 *)
         (* Hopefully we will see the benefits of SPOR *)
-        (let num_of_threads = 17 in
-         let threads_per_loc = 1 in
-         let ops_per_thread = 24 in
+        (let num_of_threads = 3 in
+         let threads_per_loc = 2 in
+         let ops_per_thread = 2 in
          let test43_thread n i =
-            let op = "(if cas(G" ^ (string_of_int i)
+            let op = "(if cas(G" ^ (string_of_int (i/threads_per_loc))
                         ^ ", skip, skip) then skip else skip)" in
             let rec aux j = if j <= 1 then op
                 else op ^ "; " ^ (aux (j-1)) in
