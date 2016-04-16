@@ -2910,6 +2910,63 @@ process. \textbf{Give references)}
 	\end{figtile}
 	\caption{Graphs showing test 43 transitions explored.}
 \end{figure}
+
+\begin{figure}
+	\newenvironment{figtile}
+	{\begin{subfigure}{0.48\textwidth}
+			\def\svgwidth{\textwidth}
+			\captionsetup{font=footnotesize}
+		}
+		{\end{subfigure}}
+	\centering
+	\footnotesize
+	\begin{figtile}
+		\input{figs/t43_time_tpl1_ops1.pdf_tex}
+		\caption{1 thread per location,
+			each of 1 operation.}
+	\end{figtile}%
+	\quad
+	\begin{figtile}
+		\input{figs/t43_time_tpl1_ops3.pdf_tex}
+		\caption{1 thread per location,
+			each of 3 operations.}
+	\end{figtile}
+	\begin{figtile}
+		\input{figs/t43_time_tpl2_ops1.pdf_tex}
+		\caption{2 threads per location,
+			each of 1 operation.}
+	\end{figtile}%
+	\quad
+	\begin{figtile}
+		\input{figs/t43_time_tpl2_ops3.pdf_tex}
+		\caption{2 threads per location,
+			each of 3 operations.}
+	\end{figtile}
+	\begin{figtile}
+		\input{figs/t43_time_tpl3_ops1.pdf_tex}
+		\caption{3 threads per location,
+			each of 1 operation.}
+	\end{figtile}%
+	\quad
+	\begin{figtile}
+		\input{figs/t43_time_tpl3_ops3.pdf_tex}
+		\caption{3 threads per location,
+			each of 3 operations.}
+	\end{figtile}
+	\begin{figtile}
+		\input{figs/t43_time_tpl4_ops1.pdf_tex}
+		\caption{4 threads per location,
+			each of 1 operation.}
+	\end{figtile}%
+	\quad
+	\begin{figtile}
+		\input{figs/t43_time_tpl4_ops3.pdf_tex}
+		\caption{4 threads per location,
+			each of 3 operations.}
+	\end{figtile}
+	\caption{Graphs showing test 43 execution times.}
+\end{figure}
+
 \begin{figure}
 	\centering
 

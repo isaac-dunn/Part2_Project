@@ -1,0 +1,68 @@
+%% Creator: Inkscape 0.91_64bit, www.inkscape.org
+%% PDF/EPS/PS + LaTeX output extension by Johan Engelen, 2010
+%% Accompanies image file 't43_time_tpl2_ops1.pdf' (pdf, eps, ps)
+%%
+%% To include the image in your LaTeX document, write
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics{<filename>.pdf}
+%% To scale the image, write
+%%   \def\svgwidth{<desired width>}
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics[width=<desired width>]{<filename>.pdf}
+%%
+%% Images with a different path to the parent latex file can
+%% be accessed with the `import' package (which may need to be
+%% installed) using
+%%   \usepackage{import}
+%% in the preamble, and then including the image with
+%%   \import{<path to file>}{<filename>.pdf_tex}
+%% Alternatively, one can specify
+%%   \graphicspath{{<path to file>/}}
+%% 
+%% For more information, please see info/svg-inkscape on CTAN:
+%%   http://tug.ctan.org/tex-archive/info/svg-inkscape
+%%
+\begingroup%
+  \makeatletter%
+  \providecommand\color[2][]{%
+    \errmessage{(Inkscape) Color is used for the text in Inkscape, but the package 'color.sty' is not loaded}%
+    \renewcommand\color[2][]{}%
+  }%
+  \providecommand\transparent[1]{%
+    \errmessage{(Inkscape) Transparency is used (non-zero) for the text in Inkscape, but the package 'transparent.sty' is not loaded}%
+    \renewcommand\transparent[1]{}%
+  }%
+  \providecommand\rotatebox[2]{#2}%
+  \ifx\svgwidth\undefined%
+    \setlength{\unitlength}{302.4bp}%
+    \ifx\svgscale\undefined%
+      \relax%
+    \else%
+      \setlength{\unitlength}{\unitlength * \real{\svgscale}}%
+    \fi%
+  \else%
+    \setlength{\unitlength}{\svgwidth}%
+  \fi%
+  \global\let\svgwidth\undefined%
+  \global\let\svgscale\undefined%
+  \makeatother%
+  \begin{picture}(1,0.7010582)%
+    \put(0,0){\includegraphics[width=\unitlength,page=1]{t43_time_tpl2_ops1.pdf}}%
+    \put(0.1984127,0.07989418){\makebox(0,0)[b]{\smash{0}}}%
+    \put(0.375,0.07989418){\makebox(0,0)[b]{\smash{5}}}%
+    \put(0.5515873,0.07989418){\makebox(0,0)[b]{\smash{10}}}%
+    \put(0.7281746,0.07989418){\makebox(0,0)[b]{\smash{15}}}%
+    \put(0.9047619,0.07989418){\makebox(0,0)[b]{\smash{20}}}%
+    \put(0.55158757,0.01869497){\makebox(0,0)[b]{\smash{Number of Threads}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=2]{t43_time_tpl2_ops1.pdf}}%
+    \put(0.18148148,0.20458545){\makebox(0,0)[rb]{\smash{$10^{-2}$}}}%
+    \put(0.18148148,0.29012354){\makebox(0,0)[rb]{\smash{$10^{-1}$}}}%
+    \put(0.18148148,0.37566138){\makebox(0,0)[rb]{\smash{$10^{0}$}}}%
+    \put(0.18148148,0.46119921){\makebox(0,0)[rb]{\smash{$10^{1}$}}}%
+    \put(0.18148148,0.5467373){\makebox(0,0)[rb]{\smash{$10^{2}$}}}%
+    \put(0.05079365,0.39153466){\rotatebox{90}{\makebox(0,0)[b]{\smash{Number of Transitions}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=3]{t43_time_tpl2_ops1.pdf}}%
+  \end{picture}%
+\endgroup%
