@@ -50,14 +50,11 @@
   \makeatother%
   \begin{picture}(1,0.81157025)%
     \put(0,0){\includegraphics[width=\unitlength,page=1]{indexer_time_fig.pdf}}%
-    \put(0.13057851,0.05487603){\makebox(0,0)[b]{\smash{2}}}%
-    \put(0.24132231,0.05487603){\makebox(0,0)[b]{\smash{4}}}%
-    \put(0.35206612,0.05487603){\makebox(0,0)[b]{\smash{6}}}%
-    \put(0.46280992,0.05487603){\makebox(0,0)[b]{\smash{8}}}%
-    \put(0.57355372,0.05487603){\makebox(0,0)[b]{\smash{10}}}%
-    \put(0.68429752,0.05487603){\makebox(0,0)[b]{\smash{12}}}%
-    \put(0.79504132,0.05487603){\makebox(0,0)[b]{\smash{14}}}%
-    \put(0.90578512,0.05487603){\makebox(0,0)[b]{\smash{16}}}%
+    \put(0.13057851,0.05487603){\makebox(0,0)[b]{\smash{0}}}%
+    \put(0.32438017,0.05487603){\makebox(0,0)[b]{\smash{5}}}%
+    \put(0.51818182,0.05487603){\makebox(0,0)[b]{\smash{10}}}%
+    \put(0.71198347,0.05487603){\makebox(0,0)[b]{\smash{15}}}%
+    \put(0.90578512,0.05487603){\makebox(0,0)[b]{\smash{20}}}%
     \put(0.51818215,0.01663917){\makebox(0,0)[b]{\smash{Number of Threads}}}%
     \put(0,0){\includegraphics[width=\unitlength,page=2]{indexer_time_fig.pdf}}%
     \put(0.12,0.07933884){\makebox(0,0)[rb]{\smash{$10^{-3}$}}}%
