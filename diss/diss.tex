@@ -2821,14 +2821,108 @@ had been missed by the normal testing
 process. \textbf{Give references)}
 
 \section{Performance}
-\textbf{This section compares the
-	performance of the various algorithms
-	in the project. This is achieved by
-	looking at execution times, transitions
-	explored, and numbers of states explored
-	while model checking various example
-	programs. Comparison can be made with
-	published figures.}
+After reading this section, you should
+understand how the different
+model-checking algorithms compare to
+one another in terms of reduction in
+state space explored,
+how efficient my implementations of
+them are, and how these two aspect
+combine to result in the observed execution
+times.
+
+\subsection{Methodology}
+Unfortunately, there is no concurrent program
+that is ``typical'' for verification by model
+checking. I have therefore had to pick some
+example programs for which to analyse the performance
+of my project. For each of these programs, I varied
+some test parameter, normally the number of threads
+used, and recorded for each algorithm
+both the number of (not necessarily unique) transitions
+explored, which is a measure of how successful
+the algorithm is in addressing the state
+explosion problem in this instance, and also
+the execution time, which is really the bottom
+line.
+
+The four programs I picked were:
+\begin{enumerate}
+	\item the simplest program imaginable, where
+	each thread repeatedly accesses the same location
+	for no reason;
+	to see how the algorithms behaved in this special
+	case,
+	\item a solution to the bounded-buffer problem,
+	with one producer and one consumer, to see how
+	the algorithms performed in this well-known
+	and useful example;
+	\item the ``Indexer'' example from \textbf{POPL'05},
+	to allow comparison with the published results, and
+	to see how DPOR behaves when the conditions are
+	favourable; and
+	\item the ``File System'' example from the same paper,
+	for the same reasons.
+\end{enumerate}
+
+The number of transitions for each algorithm was easily
+obtained by counting the number of recursive calls made.
+The execution times were measured using the \texttt{time}
+function in the Sys module packaged with OCaml. It returns
+measurements of time only in quanta of 0.004 seconds,
+so the accuracy of the time measurements is not good for
+very quick executions. The precision of measurements seems
+to be good, though, with very similar results being returned
+for multiple executions of the same program. For this reason,
+I took only one measurement of each execution time, preferring
+to collect more data on different examples than to collect
+redundant data on the same example.
+
+\subsection{Results}
+This section presents the performance measurements.
+For each example program, the results for all eight
+algorithms are plotted on the same graph, in the
+style indicated in figure~\ref{fig:key}.
+
+\begin{figure}
+	\includegraphics[width=\textwidth]{key}
+	\caption[Key for algorithm performance graphs.]
+	{Key for algorithm performance graphs.
+		Rather than reproduce the key on each graph,
+		it is given just once, here.}
+	\label{fig:key}
+\end{figure}
+
+\subsubsection{Example 1 -- Repeated Accesses}
+Each thread in this example is assigned a particular
+shared object, and simply accesses this object a
+fixed number of times. There are three test parameters:
+the number of threads, the number of threads that are
+assigned to access the same shared object, and the fixed
+number of accesses to the shared object that each thread
+makes. If, for example, these were set to 6, 2 and 5
+respectively, then threads 0 and 1 would access object A,
+threads 2 and 3 would access object B and threads 4 and 5
+would access object C, and each thread would make 5 accesses
+to its assigned object. This allows a controlled amount of
+dependence between the threads -- if each thread has its own
+object, then all transitions are independent; if all threads
+access the same object, then all transitions are dependent.
+
+\begin{itemize}
+	\item How well does DPOR do at reducing state space?
+	\item What difference do sleep sets make?
+	\item How does SDPOR compare to DPOR, compared with
+	simple compared with simple stateful? Number of states?
+	\item How does execution time relate to transitions explored?
+	Interplay between number of calls and time per call.
+	(Graph of time/call?)
+	\item How do my implementations of DPOR/SDPOR compare to published
+	results?
+	
+\end{itemize}
+\hrulefill
+\\
 
 \begin{itemize}
 	\item The performance depends strongly
