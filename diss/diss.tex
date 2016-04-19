@@ -2963,6 +2963,7 @@ access the same object, then all transitions are dependent.
 	\end{figtile}
 	\caption{Numbers of transitions
 		explored in the ``repeated accesses'' example.}
+	\label{fig:repeated-access-trans}
 \end{figure}
 
 \begin{figure}
@@ -3013,6 +3014,7 @@ access the same object, then all transitions are dependent.
 			each making 3 accesses.}
 	\end{figtile}
 	\caption{Execution times for the ``repeated accesses'' example.}
+	\label{fig:repeated-access-time}
 \end{figure}
 
 \subsubsection{Example 2 -- Bounded Buffer}
@@ -3033,10 +3035,12 @@ the test variable.
 	\def\svgwidth{15cm}
 	\input{figs/prod_cons_trans_fig.pdf_tex}
 	\caption{Producer-Consumer transition graph.}
+	\label{fig:prod-cons-time}
 
 	\def\svgwidth{15cm}
 	\input{figs/prod_cons_time_fig.pdf_tex}
 	\caption{Producer-Consumer time graph.}
+	\label{fig:prod-cons-trans}
 \end{figure}
 
 \subsubsection{Example 3 -- Indexer}
@@ -3052,14 +3056,16 @@ next free slot is used instead.
 
 \begin{figure}
 	\centering
-	
+
 	\def\svgwidth{15cm}
 	\input{figs/indexer_trans_fig.pdf_tex}
 	\caption{Indexer transition graph. See above for key.}
-	
+	\label{fig:indexer-trans}
+
 	\def\svgwidth{15cm}
 	\input{figs/indexer_time_fig.pdf_tex}
 	\caption{Indexer time graph. See above for key.}
+	\label{fig:indexer-time}
 \end{figure}
 
 \subsubsection{Example 4 -- File System}
@@ -3076,18 +3082,122 @@ locks.
 	\def\svgwidth{15cm}
 	\input{figs/fs_trans_fig.pdf_tex}
 	\caption{File system transition graph.}
-	
+
 	\def\svgwidth{15cm}
 	\input{figs/fs_time_fig.pdf_tex}
 	\caption{File system time graph. See above for key.}
 \end{figure}
 
 \subsection{Performance of Algorithms}
-\subsubsection{Comparison with Each Other}
-Here, we will analyse the reduction in the size of the
-state space that each model checking algorithm
-offers in comparison to the simple model checker.
-\subsubsection{Comparison with Published Results}
+
+\subsubsection{Simple Model Checker}
+As expected, the simple model checker performs
+consistently poorly, with the size of the state
+spaces explored increasing exponentially as
+the number of threads increase (seen most
+clearly in figure~\ref{fig:repeated-access-trans})
+and as the amount of work done by each thread
+increases (seen most clearly in
+figure~\ref{fig:prod-cons-trans}).
+This is the state explosion problem.
+
+\subsubsection{Stateful Simple Model Checking}
+\begin{itemize}
+	\item small benefit, getting slightly better as
+	more threads introduced but especially as
+	more threads per object, and also more
+	work per thread
+	\item this is because the accesses do nothing, so
+	if thread 0 and thread 1 both perform one access,
+	then the result is the same, which isn't identified
+	by model checking as it is assumed that if they access
+	the same object, they are dependent, but they are
+	practically independent.
+\end{itemize}
+
+\subsubsection{Dynamic Partial-Order Reduction}
+\begin{itemize}
+	\item In example 1, performs consistently
+	very well for 1 access, but less well
+	for 3 accesses.
+	\item When each thread independent,
+	basically free, because no race
+	conditions so no backtracking points
+	so only one execution.
+	\item Otherwise, introduction
+	of a thread either goes horizontally or
+	multiplicative increase.
+	\item Horizontal because new independent
+	thread makes no difference: no new
+	race condition, backtracking points, cost.
+	\item Multiplicative increase because
+	dependent, so could introduce race
+	condition, so must check this extra possibility
+	at each state.
+	\item Increase not as steep as for
+	simple though, because the independence
+	between threads sharing objects can be exploited.
+	\item 
+	\item in prod-cons, does consistently well,
+	because the threads are largely independent (only
+	when they are at same item out of eight
+	do they access the same object)
+	\item indexer and fs are examples specifically
+	designed to show off DPOR, so it does very well,
+	since it turns out in both cases that the threads
+	are independent until a particular number, beyond
+	which performance gets worse quite quickly.
+	\item aside that this suggests DPOR correctly
+	implemented
+\end{itemize}
+
+\subsubsection{Stateful Dynamic Partial-Order Reduction}
+\begin{itemize}
+	\item SDPOR either offers no improvement on DPOR,
+	or more often does a fair bit worse
+	\item Backtracking points added too conservatively
+	\item Algorithm or misimplementation or examples?
+	\item Could be algorithm
+	\item Could be I misunderstood and implemented a
+	correct but more conservative similar algorithm.
+	Inclusion of bounded buffer in their paper suggests
+	it might be this, although they used more than one
+	producer and consumer.
+	\item Could be just unlucky on the examples I chose
+	\item What examples would SDPOR be good at?
+\end{itemize}
+
+\subsubsection{Sleep Sets}
+\begin{itemize}
+	\item For simple, just nicely decreases the
+	multiplicative increase by preventing
+	re-exploration of areas of state space.
+	\item For DPOR, makes no difference
+	for ex1, and little for indexer, but
+	big benefit for FS and prod-cons
+	\item When does sleep work well?
+	\item mention DPOR/sleep interaction
+	mentioned in popl'05
+\end{itemize}
+
+\subsubsection{Static Partial-Order Reduction}
+\begin{itemize}
+	\item When all independent, does perfectly as
+	size of each persistent set is 1
+	\item otherwise, offers small benefit compared
+	to simple or simple w/ sleep, which
+	gets \emph{smaller} as threads/object increases.
+	\item does seem to offer more benefit when
+	each thread has more operations, too
+	\item in reality, my algorithm is shit, and
+	threads are unlikely to be partitioned into
+	sets accessing disjoints sets of objects
+	\item this is why it does not appear on
+	later examples, as this condition is not
+	met, so it offers literally no benefit
+	\item main lesson learnt is how difficult
+	spor is
+\end{itemize}
 
 \subsection{Efficiency of Implementations}
 \subsubsection{Comparison with Each Other}
