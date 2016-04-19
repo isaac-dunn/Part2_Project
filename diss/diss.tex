@@ -59,6 +59,14 @@
 
 \newenvironment{understandinglist}
 	{\begin{itemize} \itemsep 0em}{\end{itemize}}
+
+\newenvironment{figtile} % for evaluation graphs
+{\begin{subfigure}{0.48\textwidth}
+		\def\svgwidth{\textwidth}
+		\captionsetup{font=footnotesize}
+	}
+	{\end{subfigure}}
+
 \begin{document}
 
 \bibliographystyle{plain}
@@ -2856,119 +2864,104 @@ process. \textbf{Give references)}
 \subsection{Performance of Algorithms}
 
 \begin{figure}
-	\includegraphics[width=\textwidth]{key}
-	\caption{Key}
-\end{figure}
-\begin{figure}
-	\newenvironment{figtile}
-		{\begin{subfigure}{0.48\textwidth}
-			\def\svgwidth{\textwidth}
-			\captionsetup{font=footnotesize}
-		}
-		{\end{subfigure}}
 	\centering
 	\footnotesize
 	\begin{figtile}
 		\input{figs/t43_tpl1_ops1.pdf_tex}
-		\caption{1 thread per location,
-			each of 1 operation.}
+		\caption{1 thread per object,
+			each making 1 access.}
 	\end{figtile}%
 	\quad
 	\begin{figtile}
 		\input{figs/t43_tpl1_ops3.pdf_tex}
-		\caption{1 thread per location,
-			each of 3 operations.}
+		\caption{1 thread per object,
+			each making 3 accesses.}
 	\end{figtile}
 	\begin{figtile}
 		\input{figs/t43_tpl2_ops1.pdf_tex}
-		\caption{2 threads per location,
-			each of 1 operation.}
+		\caption{2 threads per object,
+			each making 1 access.}
 	\end{figtile}%
 	\quad
 	\begin{figtile}
 		\input{figs/t43_tpl2_ops3.pdf_tex}
-		\caption{2 threads per location,
-			each of 3 operations.}
+		\caption{2 threads per object,
+			each making 3 accesses.}
 	\end{figtile}
 	\begin{figtile}
 		\input{figs/t43_tpl3_ops1.pdf_tex}
-		\caption{3 threads per location,
-			each of 1 operation.}
+		\caption{3 threads per object,
+			each making 1 access.}
 	\end{figtile}%
 	\quad
 	\begin{figtile}
 		\input{figs/t43_tpl3_ops3.pdf_tex}
-		\caption{3 threads per location,
-			each of 3 operations.}
+		\caption{3 threads per object,
+			each making 3 accesses.}
 	\end{figtile}
 	\begin{figtile}
 		\input{figs/t43_tpl4_ops1.pdf_tex}
-		\caption{4 threads per location,
-			each of 1 operation.}
+		\caption{4 threads per object,
+			each making 1 access.}
 	\end{figtile}%
 	\quad
 	\begin{figtile}
 		\input{figs/t43_tpl4_ops3.pdf_tex}
-		\caption{4 threads per location,
-			each of 3 operations.}
+		\caption{4 threads per object,
+			each making 3 accesses.}
 	\end{figtile}
-	\caption{Graphs showing test 43 transitions explored.}
+	\caption{Numbers of transitions
+		explored in the ``repeated accesses'' example.}
 \end{figure}
 
 \begin{figure}
-	\newenvironment{figtile}
-	{\begin{subfigure}{0.48\textwidth}
-			\def\svgwidth{\textwidth}
-			\captionsetup{font=footnotesize}
-		}
-		{\end{subfigure}}
 	\centering
 	\footnotesize
 	\begin{figtile}
 		\input{figs/t43_time_tpl1_ops1.pdf_tex}
-		\caption{1 thread per location,
-			each of 1 operation.}
+		\caption{1 thread per object,
+			each making 1 access.}
 	\end{figtile}%
 	\quad
 	\begin{figtile}
 		\input{figs/t43_time_tpl1_ops3.pdf_tex}
-		\caption{1 thread per location,
-			each of 3 operations.}
+		\caption{1 thread per object,
+			each making 3 accesses.}
 	\end{figtile}
 	\begin{figtile}
 		\input{figs/t43_time_tpl2_ops1.pdf_tex}
-		\caption{2 threads per location,
-			each of 1 operation.}
+		\caption{2 threads per object,
+			each making 1 access.}
 	\end{figtile}%
 	\quad
 	\begin{figtile}
 		\input{figs/t43_time_tpl2_ops3.pdf_tex}
-		\caption{2 threads per location,
-			each of 3 operations.}
+		\caption{2 threads per object,
+			each making 3 accesses.}
 	\end{figtile}
 	\begin{figtile}
 		\input{figs/t43_time_tpl3_ops1.pdf_tex}
-		\caption{3 threads per location,
-			each of 1 operation.}
+		\caption{3 threads per object,
+			each making 1 access.}
 	\end{figtile}%
 	\quad
 	\begin{figtile}
 		\input{figs/t43_time_tpl3_ops3.pdf_tex}
-		\caption{3 threads per location,
-			each of 3 operations.}
+		\caption{3 threads per object,
+			each making 3 accesses.}
 	\end{figtile}
 	\begin{figtile}
 		\input{figs/t43_time_tpl4_ops1.pdf_tex}
-		\caption{4 threads per location,
-			each of 1 operation.}
+		\caption{4 threads per object,
+			each making 1 access.}
 	\end{figtile}%
 	\quad
 	\begin{figtile}
 		\input{figs/t43_time_tpl4_ops3.pdf_tex}
-		\caption{4 threads per location,
-			each of 3 operations.}
+		\caption{4 threads per object,
+			each making 3 accesses.}
 	\end{figtile}
-	\caption{Graphs showing test 43 execution times.}
+	\caption{Execution times for the ``repeated accesses'' example.}
 \end{figure}
 
 \begin{figure}
