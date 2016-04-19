@@ -3135,40 +3135,72 @@ This would result in more
 revisited states being spotted.
 
 \subsubsection{Dynamic Partial-Order Reduction}
-\begin{itemize}
-	\item In example 1, performs consistently
-	very well for 1 access, but less well
-	for 3 accesses.
-	\item When each thread independent,
-	basically free, because no race
-	conditions so no backtracking points
-	so only one execution.
-	\item Otherwise, introduction
-	of a thread either goes horizontally or
-	multiplicative increase.
-	\item Horizontal because new independent
-	thread makes no difference: no new
-	race condition, backtracking points, cost.
-	\item Multiplicative increase because
-	dependent, so could introduce race
-	condition, so must check this extra possibility
-	at each state.
-	\item Increase not as steep as for
-	simple though, because the independence
-	between threads sharing objects can be exploited.
-	\item 
-	\item in prod-cons, does consistently well,
-	because the threads are largely independent (only
-	when they are at same item out of eight
-	do they access the same object)
-	\item indexer and fs are examples specifically
-	designed to show off DPOR, so it does very well,
-	since it turns out in both cases that the threads
-	are independent until a particular number, beyond
-	which performance gets worse quite quickly.
-	\item aside that this suggests DPOR correctly
-	implemented
-\end{itemize}
+When all threads are independent of one another,
+as in the first two cases of
+figure~\ref{fig:repeated-access-trans},
+the DPOR algorithm explores only one path
+through the state space, because no
+backtracking points are ever added as
+no race conditions can exist. The total
+transitions explored in this case is linear in both
+number of threads and number of operations
+per thread, which is considerably better
+than the exponentially increasing costs
+of the simple algorithm.
+
+In the other cases in
+figure~\ref{fig:repeated-access-trans},
+when a new thread is added, the increase
+in transitions explored
+is either additive (with negligible cost),
+or multiplicative (with considerable cost).
+The increase is additive if the new thread
+is assigned to access a new shared object,
+in which case no new race conditions are
+added, so no new backtracking points are
+necessary. The increase is multiplicative
+if the new thread accesses the same shared
+object as a number of existing threads
+(and the increase is more severe the greater
+this number is), since at many states, there
+now could be a new race condition, since
+two threads access the same shared object,
+so more backtracking points are needed.
+The increase is not as severe as in the
+simple algorithm, though, because the new
+thread is independent of at least some of
+the threads (unless the number of threads
+is no more than the number of threads
+per shared object).
+
+In the bounded-buffer example
+(figure~\ref{fig:prod-cons-trans}),
+the DPOR algorithm is able to exploit
+the independence between the two threads
+(they are only dependent when they
+access the same item out of eight) to
+reduce the exponent in the
+exponential cost caused by the
+state explosion problem.
+
+The remaining two examples were created
+by their authors specifically to show
+off the benefits of the DPOR algorithm.
+As such, it performs very well up to
+a certain number of threads in both cases,
+being able to exploit independence that can
+only be known with dynamic runtime information,
+before the number of threads becomes high enough
+that they are no longer independent, and the
+exponential increase begins, albeit at a lesser
+rate than that of the simple algorithm.
+Incidentally, the similarity of these performance
+graphs and those shown in \textbf{POPL'05}
+is further evidence that the algorithm has
+been correctly implemented -- the shapes
+are identical, and the numerical
+differences can be explained by the
+translation of the example into PL.
 
 \subsubsection{Stateful Dynamic Partial-Order Reduction}
 \begin{itemize}
