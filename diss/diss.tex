@@ -3086,10 +3086,12 @@ locks.
 	\def\svgwidth{15cm}
 	\input{figs/fs_trans_fig.pdf_tex}
 	\caption{File system transition graph.}
+	\label{fig:fs-trans}
 
 	\def\svgwidth{15cm}
 	\input{figs/fs_time_fig.pdf_tex}
 	\caption{File system time graph. See above for key.}
+	\label{fig:fs-time}
 \end{figure}
 
 \subsection{Performance of the Algorithms}
@@ -3203,33 +3205,85 @@ differences can be explained by the
 translation of the example into PL.
 
 \subsubsection{Stateful Dynamic Partial-Order Reduction}
-\begin{itemize}
-	\item SDPOR either offers no improvement on DPOR,
-	or more often does a fair bit worse
-	\item Backtracking points added too conservatively
-	\item Algorithm or misimplementation or examples?
-	\item Could be algorithm
-	\item Could be I misunderstood and implemented a
-	correct but more conservative similar algorithm.
-	Inclusion of bounded buffer in their paper suggests
-	it might be this, although they used more than one
-	producer and consumer.
-	\item Could be just unlucky on the examples I chose
-	\item What examples would SDPOR be good at?
-\end{itemize}
+In every case presented above, the SDPOR algorithm
+explores at least as many transitions as the DPOR
+algorithm, and in some cases many more. This must
+be because the visible operation dependency graph
+mechanism for conservatively added backtracking
+points whenever the search is cut short at a
+revisited state is being too conservative to be
+of practical value in these cases. I can think
+of three explanations for this behaviour:
+\begin{enumerate}
+	\item I have misunderstood SDPOR, and
+	accidentally implemented an algorithm similar
+	to SDPOR which is sound but inefficient; or
+	\item the SDPOR algorithm generally does \emph{not}
+	give better performance than the DPOR algorithm; or
+	\item the SDPOR generally \emph{does} give better
+	performance than the DPOR algorithm, but by
+	coincidence does worse on the examples I chose.
+\end{enumerate}
+The performance of SDPOR is compared to that of DPOR
+against five benchmarks in \textbf{SDPOR PAPER},
+which suggests that the second reason is less likely.
+The fact that one of these benchmarks is an instance
+of the bounded-buffer problem (albeit one that
+has multiple producers and consumers rather than
+just one of each) suggests that the third reason
+is also less likely. This leaves only the first
+reason, and while I can't see where my
+misunderstanding is, I can accept that it is
+the most probable explanation for the very poor
+performance of SDPOR in my project.
 
 \subsubsection{Sleep Sets}
-\begin{itemize}
-	\item For simple, just nicely decreases the
-	multiplicative increase by preventing
-	re-exploration of areas of state space.
-	\item For DPOR, makes no difference
-	for ex1, and little for indexer, but
-	big benefit for FS and prod-cons
-	\item When does sleep work well?
-	\item mention DPOR/sleep interaction
-	mentioned in popl'05
-\end{itemize}
+Sleep sets can be seen to be a consistently
+effective technique for reducing the number
+of transitions explored. In every example,
+sleeps sets significantly reduce the
+severity of the exponential increase in
+the number of transitions explored by the
+simple algorithm, by preventing the
+unnecessary re-exploration of sections
+of the state space that have already been
+covered (and is considerably more effective
+at this than the simple stateful algorithm).
+
+When applied to the DPOR algorithm, the results
+are more variable. No benefit whatsoever is seen
+in figure~\ref{fig:repeated-access-time} and little
+is seen in figure~\ref{fig:indexer-trans},
+presumably because the DPOR algorithm has already
+exploited the independence of the transitions
+as fully as is possible. However, in
+figure~\ref{fig:prod-cons-trans}, sleep sets
+work in conjunction with the DPOR to greatly
+slow the rate of the exponential increase,
+and in figure~\ref{fig:fs-trans} at fourteen and
+more threads, sleep
+sets slow the rate of increase to a reasonable
+rate, whereas the loss of independence at the
+fourteenth thread meant that DPOR alone took too long
+to terminate.
+
+As well as combination with DPOR allowing
+sleep sets to reduce the number of states
+(as opposed to just transitions) explored,
+Flanagan and Godefroid note that
+\begin{quote}
+	There is a nice complementarity between sleep sets and our
+	dynamic partial-order reduction algorithm: when a process
+	$q$ is introduced in $\textit{backtrack}(\textit{pre}(\pi, i))$
+	\textellipsis \ because
+	of a potential conflict between $i$ and
+	$\textit{next}(\sigma, p)$, there
+	is no point in executing $\pi_i$ following
+	$\textit{next}(\textit{pre}(\pi, i), q)$ before
+	$\textit{next}(\sigma, p)$ is executed;
+	this optimization is captured exactly
+	by sleep sets.
+\end{quote}
 
 \subsubsection{Static Partial-Order Reduction}
 \begin{itemize}
