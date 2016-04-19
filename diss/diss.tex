@@ -2848,11 +2848,11 @@ line.
 
 The four programs I picked were:
 \begin{enumerate}
-	\item the simplest program imaginable, where
+	\item the simplest example program imaginable, where
 	each thread repeatedly accesses the same location
-	for no reason;
+	for no reason,
 	to see how the algorithms behaved in this special
-	case,
+	case;
 	\item a solution to the bounded-buffer problem,
 	with one producer and one consumer, to see how
 	the algorithms performed in this well-known
@@ -2871,7 +2871,7 @@ The execution times were measured using the \texttt{time}
 function in the Sys module packaged with OCaml. It returns
 measurements of time only in quanta of 0.004 seconds,
 so the accuracy of the time measurements is not good for
-very quick executions. The precision of measurements seems
+executions of under 0.04 seconds. The precision of measurements seems
 to be good, though, with very similar results being returned
 for multiple executions of the same program. For this reason,
 I took only one measurement of each execution time, preferring
@@ -2883,6 +2883,11 @@ This section presents the performance measurements.
 For each example program, the results for all eight
 algorithms are plotted on the same graph, in the
 style indicated in figure~\ref{fig:key}.
+As the results are
+presented on logarithmic graphs, if the timing function
+returned 0s, I plotted a point at 0.02s
+to represent the fastest possible execution, since
+$\log(0)$ is undefined.
 
 \begin{figure}
 	\includegraphics[width=\textwidth]{key}
@@ -2908,54 +2913,6 @@ to its assigned object. This allows a controlled amount of
 dependence between the threads -- if each thread has its own
 object, then all transitions are independent; if all threads
 access the same object, then all transitions are dependent.
-
-\begin{itemize}
-	\item How well does DPOR do at reducing state space?
-	\item What difference do sleep sets make?
-	\item How does SDPOR compare to DPOR, compared with
-	simple compared with simple stateful? Number of states?
-	\item How does execution time relate to transitions explored?
-	Interplay between number of calls and time per call.
-	(Graph of time/call?)
-	\item How do my implementations of DPOR/SDPOR compare to published
-	results?
-	
-\end{itemize}
-\hrulefill
-\\
-
-\begin{itemize}
-	\item The performance depends strongly
-	on the program being checked, so that
-	analysing is difficult: there is no
-	obvious ``average case"
-	\item We will instead use several
-	benchmarks published in the literature
-	for analysis of model checking performance
-	\item As well as comparing the various
-	algorithms to each other, I will also
-	compare with published results
-	\item Transitions are one measure of
-	performance: the reduction in the size
-	of the state space is a property of the
-	algorithm, not the implementation, 
-	assuming the implementation is correct
-	\item (In fact transitions can therefore
-	be used as evidence for correctness)
-	\item Execution time is another measure
-	of performance: the relationship between
-	execution time and transitions explored
-	gives information about both the
-	intrinsic complexity of the algorithm
-	and specifically the efficiency of my
-	implementation. Separating these two
-	aspects will be done below.
-	\item Analysis will be done of the above
-	things as a function of number of threads,
-	and amount of computation in each thread.
-\end{itemize}
-
-\subsection{Performance of Algorithms}
 
 \begin{figure}
 	\centering
@@ -3058,6 +3015,18 @@ access the same object, then all transitions are dependent.
 	\caption{Execution times for the ``repeated accesses'' example.}
 \end{figure}
 
+\subsubsection{Example 2 -- Bounded Buffer}
+This example is the classic bounded-buffer problem,
+in which two threads operate on a shared fixed-length
+array of items, with one thread ``producing'' items
+and writing them to the buffer and the other
+``consuming'' them and removing them from the buffer.
+In this example program, the buffer is of size 8,
+race conditions are prevented by using a lock per
+item to effect mutual exclusion, and the number
+of items that the threads produce and consume is
+the test variable.
+
 \begin{figure}
 	\centering
 
@@ -3069,35 +3038,61 @@ access the same object, then all transitions are dependent.
 	\input{figs/prod_cons_time_fig.pdf_tex}
 	\caption{Producer-Consumer time graph.}
 \end{figure}
-\begin{figure}
-	\def\svgwidth{15cm}
-	\input{figs/fs_trans_fig.pdf_tex}
-	\caption{File system transition graph.}
 
-	\def\svgwidth{15cm}
-	\input{figs/fs_time_fig.pdf_tex}
-	\caption{File system time graph. See above for key.}
-\end{figure}
+\subsubsection{Example 3 -- Indexer}
+This example is taken from figure 1 of
+\textbf{POPL'05},
+where the code can be seen.
+Each thread ``receives'' a number of
+``messages'' from a \texttt{getmsg}
+procedure, each of which is inserted
+into a shared hash table. If the
+hash table slot is already taken, the
+next free slot is used instead.
+
 \begin{figure}
 	\centering
-
+	
 	\def\svgwidth{15cm}
 	\input{figs/indexer_trans_fig.pdf_tex}
 	\caption{Indexer transition graph. See above for key.}
-
+	
 	\def\svgwidth{15cm}
 	\input{figs/indexer_time_fig.pdf_tex}
 	\caption{Indexer time graph. See above for key.}
 \end{figure}
+
+\subsubsection{Example 4 -- File System}
+This example is taken from figure 7 of
+\textbf{POPL'05},
+where the code can be seen.
+Based an idiom found in the Frangipani file
+system, each thread searches for a free
+``disk block'' for an ``inode'' to point
+to. Mutual exclusion is again achieved using
+locks.
+
+\begin{figure}
+	\def\svgwidth{15cm}
+	\input{figs/fs_trans_fig.pdf_tex}
+	\caption{File system transition graph.}
+	
+	\def\svgwidth{15cm}
+	\input{figs/fs_time_fig.pdf_tex}
+	\caption{File system time graph. See above for key.}
+\end{figure}
+
+\subsection{Performance of Algorithms}
 \subsubsection{Comparison with Each Other}
 Here, we will analyse the reduction in the size of the
 state space that each model checking algorithm
 offers in comparison to the simple model checker.
 \subsubsection{Comparison with Published Results}
 
-\subsection{Execution Times of Model Checking}
+\subsection{Efficiency of Implementations}
 \subsubsection{Comparison with Each Other}
 \subsubsection{Comparison with Published Results}
+
 
 \section{Summary}
 Having read this chapter,
