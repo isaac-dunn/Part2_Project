@@ -3092,7 +3092,7 @@ locks.
 	\caption{File system time graph. See above for key.}
 \end{figure}
 
-\subsection{Performance of Algorithms}
+\subsection{Performance of the Algorithms}
 
 \subsubsection{Simple Model Checker}
 As expected, the simple model checker performs
@@ -3106,18 +3106,33 @@ figure~\ref{fig:prod-cons-trans}).
 This is the state explosion problem.
 
 \subsubsection{Stateful Simple Model Checking}
-\begin{itemize}
-	\item small benefit, getting slightly better as
-	more threads introduced but especially as
-	more threads per object, and also more
-	work per thread
-	\item this is because the accesses do nothing, so
-	if thread 0 and thread 1 both perform one access,
-	then the result is the same, which isn't identified
-	by model checking as it is assumed that if they access
-	the same object, they are dependent, but they are
-	practically independent.
-\end{itemize}
+By looking at figure~\ref{fig:repeated-access-trans},
+we can see that the stateful model checker does
+explore fewer transitions than the stateless
+algorithm. The benefit offered increases
+when there are more operation per threads,
+which is because each time a state is
+revisited and therefore not re-explored,
+a bigger saving is made.
+
+The benefit also increases when there are more
+threads sharing each shared object, which I
+believe is due to a quirk in my implementation
+of stores: because I implement stores as
+(object, value) lists, and updates simply
+add a new pair to the start of the list,
+if two updates are made to a store, the
+results stores will only be equal in
+the eyes of OCaml if the updates are
+identical, regardless of whether the
+stores are logically equivalent or not.
+
+To resolve this quirk, I should use
+my own equality function on states,
+rather than using the inbuilt
+OCaml structural quality operator.
+This would result in more
+revisited states being spotted.
 
 \subsubsection{Dynamic Partial-Order Reduction}
 \begin{itemize}
@@ -3203,7 +3218,7 @@ This is the state explosion problem.
 	spor is
 \end{itemize}
 
-\subsection{Efficiency of Implementations}
+\subsection{Efficiency of the Implementations}
 \subsubsection{Simple Model Checker}
 \begin{itemize}
 	\item pretty unremarkable, just constant work
