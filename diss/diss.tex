@@ -3286,23 +3286,34 @@ Flanagan and Godefroid note that
 \end{quote}
 
 \subsubsection{Static Partial-Order Reduction}
-\begin{itemize}
-	\item When all independent, does perfectly as
-	size of each persistent set is 1
-	\item otherwise, offers small benefit compared
-	to simple or simple w/ sleep, which
-	gets \emph{smaller} as threads/object increases.
-	\item does seem to offer more benefit when
-	each thread has more operations, too
-	\item in reality, my algorithm is shit, and
-	threads are unlikely to be partitioned into
-	sets accessing disjoints sets of objects
-	\item this is why it does not appear on
-	later examples, as this condition is not
-	met, so it offers literally no benefit
-	\item main lesson learnt is how difficult
-	spor is
-\end{itemize}
+When every thread accesses separate objects,
+then my SPOR algorithm returns persistent sets
+of size one, which leads to the minimal number
+of transitions being explored, as shown in the
+first two cases of
+figure~\ref{fig:repeated-access-trans}.
+Otherwise, my SPOR algorithm offers only
+small reductions in the number of transitions
+explored, the benefits of which increase with
+the number of operations per thread.
+
+However, the benefits decrease as
+the number of threads sharing each object
+increase, because the persistent sets
+computed are bigger. In most practical
+programs, threads are unlikely to be
+able to be partitioned such that
+partitions access disjoint sets of objects,
+so in most practical situations, my SPOR
+algorithm will offer no benefits. This is
+the case for the bounded-buffer, indexer
+and file-system examples, so I have omitted
+the SPOR results from those graphs.
+The main benefit of attempting to implement
+an SPOR algorithm was a greater understanding
+of the complexities involved in trying to
+compute a reasonably small persistent set
+using only static information.
 
 \subsection{Efficiency of the Implementations}
 \subsubsection{Simple Model Checker}
