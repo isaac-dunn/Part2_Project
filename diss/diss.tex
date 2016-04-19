@@ -2889,6 +2889,10 @@ returned 0s, I plotted a point at 0.02s
 to represent the fastest possible execution, since
 $\log(0)$ is undefined.
 
+If an algorithm failed to terminate after around
+100 seconds, I abandoned its execution, explaining
+the incomplete data for some algorithms in some cases.
+
 \begin{figure}
 	\includegraphics[width=\textwidth]{key}
 	\caption[Key for algorithm performance graphs.]
@@ -3200,8 +3204,71 @@ This is the state explosion problem.
 \end{itemize}
 
 \subsection{Efficiency of Implementations}
-\subsubsection{Comparison with Each Other}
-\subsubsection{Comparison with Published Results}
+\subsubsection{Simple Model Checker}
+\begin{itemize}
+	\item pretty unremarkable, just constant work
+	(per thread)
+	per transition explored, so proportional to
+	state space explored, so exponential
+	\item size of state space by far dominates cost
+\end{itemize}
+
+\subsubsection{Stateful Simple Model Checking}
+\begin{itemize}
+	\item Although offers small advantage in terms
+	of state space reduction, in practice seems to
+	be counteracted by hash table operations, so that
+	it ends up being the same as simple or slightly
+	worse.
+	\item notably, the one case where is does do better
+	is (4, 3) -- perhaps in bigger, more industrial
+	problems, it would offer more of an advantage.
+	\item see note on SDPOR section about more
+	efficient stateful checking
+\end{itemize}
+
+\subsubsection{Dynamic Partial-Order Reduction}
+\begin{itemize}
+	\item constant work per thread per transition,
+	but again as threads increase it is by far
+	the state explosion problem, not this work,
+	that dominates
+	\item so expect time basically proportional
+	to transitions, so fact that data bear this
+	out is sign of correct implementation
+\end{itemize}
+
+\subsubsection{SDPOR}
+\begin{itemize}
+	\item Much worse than DPOR, and even than
+	SDPOR transitions. Clearest in
+	indexer and FS, where state space is same,
+	but time gets exponentially worse, due to
+	costs of storing states
+	\item in paper, proposed a way of better
+	storing states, because states are big,
+	but I did not implement this, explaining
+	the very poor performance
+\end{itemize}
+
+\subsubsection{Sleep Sets}
+\begin{itemize}
+	\item Simple:
+	\item overhead slightly increases
+	multiplicative increase, but benefits still great
+	\item DPOR:
+	\item in ex1, transitions same, but
+	there is a time overhead for performing
+	the sleep sets computation
+	\item this is not evident in later
+	examples, though, when the benefits
+	far outweigh this small overhead
+\end{itemize}
+
+\subsubsection{Static Partial-Order Reduction}
+\begin{itemize}
+	\item no noticeable overhead (by choice)
+\end{itemize}
 
 
 \section{Summary}
