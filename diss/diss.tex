@@ -2964,6 +2964,7 @@ access the same object, then all transitions are dependent.
 		\input{figs/t43_tpl4_ops3.pdf_tex}
 		\caption{4 threads per object,
 			each making 3 accesses.}
+		\label{fig:repeated-access-trans-h}
 	\end{figtile}
 	\caption{Numbers of transitions
 		explored in the ``repeated accesses'' example.}
@@ -3016,6 +3017,7 @@ access the same object, then all transitions are dependent.
 		\input{figs/t43_time_tpl4_ops3.pdf_tex}
 		\caption{4 threads per object,
 			each making 3 accesses.}
+		\label{fig:repeated-access-time-h}
 	\end{figtile}
 	\caption{Execution times for the ``repeated accesses'' example.}
 	\label{fig:repeated-access-time}
@@ -3317,38 +3319,46 @@ using only static information.
 
 \subsection{Efficiency of the Implementations}
 \subsubsection{Simple Model Checker}
-\begin{itemize}
-	\item pretty unremarkable, just constant work
-	(per thread)
-	per transition explored, so proportional to
-	state space explored, so exponential
-	\item size of state space by far dominates cost
-\end{itemize}
+The simple model-checking algorithm takes
+constant time (per thread) per transition
+explored, so its execution times are
+proportional to the number of transitions it
+explores. Due to the state explosion problem,
+this by far dominates the time complexity.
 
 \subsubsection{Stateful Simple Model Checking}
-\begin{itemize}
-	\item Although offers small advantage in terms
-	of state space reduction, in practice seems to
-	be counteracted by hash table operations, so that
-	it ends up being the same as simple or slightly
-	worse.
-	\item notably, the one case where is does do better
-	is (4, 3) -- perhaps in bigger, more industrial
-	problems, it would offer more of an advantage.
-	\item see note on SDPOR section about more
-	efficient stateful checking
-\end{itemize}
+Although, as notes above, using stateful model
+checking offers a small reduction in the number
+of transitions explored compared with the simple
+algorithm, in practice the overhead of having
+to perform hash table operations at every state
+mean that the execution times end up being
+generally no shorter. Notably, the one
+case where stateful checking offers a noticeable
+improvement in execution time is that shown in
+figure~\ref{fig:repeated-access-time-h},
+suggesting that perhaps in bigger, more
+industrial-scale cases, it gives more of
+an advantage. It is difficult to confirm
+or reject this hypothesis from the other three examples,
+because the executions very quickly take too
+long to measure.
 
 \subsubsection{Dynamic Partial-Order Reduction}
-\begin{itemize}
-	\item constant work per thread per transition,
-	but again as threads increase it is by far
-	the state explosion problem, not this work,
-	that dominates
-	\item so expect time basically proportional
-	to transitions, so fact that data bear this
-	out is sign of correct implementation
-\end{itemize}
+Theoretically, the DPOR does a fixed amount of
+work per thread per transition, including some
+memory operations to keep track of the backtrack
+sets. As the number of transitions explored
+varies with
+the number of threads much more than the amount
+of work per transition explored does, I would
+expect the execution times to be more or less
+proportional to the numbers of transitions
+explored. The fact that this is what can be
+seen in all four examples suggests that my
+implementation correctly implements the
+algorithm in the sense that it is not more
+complex than it needs to be.
 
 \subsubsection{SDPOR}
 \begin{itemize}
