@@ -296,26 +296,10 @@ you should understand:
 	and sleep sets address the state explosion
 	problem;
 	\item how the dynamic partial-order
-	reduction algorithm operates; and
-	\item \emph{the work I undertook before beginning
-	the implementation of my project.}
+	reduction algorithm works; and
+	\item the work I undertook before beginning
+	the implementation of my project.
 \end{understandinglist}
-
-\subsubsection{Old Introduction}
-The main preparation that was necessary before
-the implementation of the project was the
-development of a firm understanding of an
-area of computer science that was new to me,
-and in particular an understanding of the
-DPOR algorithm itself. This was achieved
-by study of the literature -- I began with
-the paper introducing DPOR, and mostly
-recursively followed references.
-
-This chapter gives an overview of
-the theoretical background, states precisely
-what I mean by model checking, and briefly
-introduces the DPOR algorithm.
 
 \section{Background Definitions} \label{sec:background-defs}
 After reading this section, you should understand the
@@ -461,27 +445,6 @@ powerful concepts of model checking do exist,
 but the algorithms used in this project check
 only these less rich properties of transition
 systems in return for better performance.
-
-\subsection{Requirements Analysis}
-A lot of the work that was necessary before
-I began implementing the project was the
-development of a firm understanding of an
-area of computer science that was new to me,
-particularly understanding the dynamic
-partial-order reduction algorithm, and
-therefore understanding precisely what
-the finished project should do. Having
-understood exactly what properties the
-DPOR algorithm can check and reached the
-above definition of model checking,
-I set out to implement two algorithms
-satisfying it: first, a simple
-algorithm to check my understanding
-of the basics, and then the DPOR
-algorithm. I would also need to
-implement a simple language which
-could be used to express concurrent
-programs to model check.
 
 \subsection{Simple Model Checking} \label{sec:simple-model-checking}
 As the definitions of both error-free and deadlock-free
@@ -1110,6 +1073,50 @@ persistent set.
 An example execution will be added here, on the same example as
 figure~\ref{fig:sdpor-motivation}.
 
+\section{Preparatory Work}
+After reading this section, you
+should understand exactly what work I
+did before beginning the implementation
+of the project.
+
+\subsection{Reading}
+
+The main work that was necessary before
+I began implementing the project was the
+development of a firm understanding of an
+area of computer science that was new to me,
+and particularly understanding the dynamic
+partial-order reduction algorithm. I achieved
+this by reading \textbf{POPL'05} and following
+its references to read the literature that
+first introduced the ideas used in DPOR.
+
+\subsection{Requirements Analysis}
+Having
+understood exactly what properties the
+DPOR algorithm can check, I was in a
+position to decide exactly what the
+finished project should do.
+I set out to implement two algorithms:
+first, the simple model-checking
+algorithm to ensure I was comfortable
+with the basics, and then the DPOR
+algorithm. I would also need to
+implement a simple language which
+could be used to express concurrent
+programs to model check.
+
+\subsection{Using OCaml}
+I implemented the project in OCaml.
+However, I had only written very small
+programs in SML previously, so I needed to
+understand both the differences between
+SML and OCaml, and how large programs
+are structured using the module system
+in OCaml. I achieved both of these
+by making use of online resources and
+experimenting with small test programs.
+
 \section{Summary}
 Having read this chapter,
 you should now understand:
@@ -1145,8 +1152,8 @@ you should now understand:
 	persistent set is explored from each state; and
 	\item that most of my work before implementing
 	the project was reading and understanding theory,
-	but I also planned how I would approach the
-	implementation.
+	but I also decided on exactly what the project
+	should do, and familiarised myself with OCaml.
 \end{understandinglist}
 
 \chapter{Implementation}
