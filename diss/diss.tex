@@ -923,11 +923,11 @@ either
 
 \subsubsection{Overview}
 
-The Dynamic Partial-Order Reduction (DPOR) algorithm
-dynamically uses information gathered during its
-exploration of a search space to explore only
+The dynamic partial-order reduction algorithm
+uses information dynamically gathered during its
+exploration of a state space to explore only
 transitions in a persistent set from each state
-encountered on the search -- a partial-order
+encountered on the search---a partial-order
 reduction technique. The idea is that the
 extra information which is available because
 the persistent sets are created dynamically
@@ -937,7 +937,7 @@ computing its persistent sets statically.
 
 In particular, at each state $\sigma$, the
 next transition
-to execute, $t$, is chosen at random, and it is
+to execute, $t$, is chosen arbitrarily, and it is
 initially assumed that that transition will
 be the only transition to be explored from
 that state. However, this is a persistent
@@ -945,17 +945,17 @@ set only if $t$ is
 independent of every transition reachable
 by exploring any transitions
 from $\sigma$ other than $t$. Clearly,
-this isn't true in general, so, at each
+this is not true in general, so, at each
 state $\sigma'$ encountered beyond
 $\sigma$, if there is a transition
 $t' \in \textit{enabled}(\sigma')$
 such that $t'$ is dependent with
-$t$ and $t'$ may appear before $t$
+$t$, and $t'$ may appear before $t$
 in an exploration from $\sigma$, then
 a backtracking point is added at
 $\sigma$ to ensure that such an
-exploration is made. Over time,
-the addition of such backtracking points
+exploration is made.
+The addition of such backtracking points
 ensures that the set of transitions
 explored from each state is a
 persistent set.
@@ -1007,7 +1007,7 @@ persistent set.
 }
 \begin{figure}
 	\dporpseudocode
-	\caption{The DPOR algorithm}
+	\caption{The dynamic partial-order reduction algorithm.}
 	\label{dpor-outline} 
 \end{figure}
 
@@ -1016,7 +1016,7 @@ persistent set.
 \begin{description}
 	\item[Lines 1--2] The \textsc{Explore} procedure implements
 	dynamic partial-order reduction. The transition sequence
-	$\pi$ which is passed as its argument specifies the state
+	$\pi$ which is passed as its argument implicitly specifies the state
 	from which the exploration is to take place, $\sigma$.
 
 	\item[Lines 3--4] First, any necessary backtracking points
@@ -1107,7 +1107,7 @@ persistent set.
 \end{description}
 
 \subsubsection{Example Execution}
-An example execution, on the same example as
+An example execution will be added here, on the same example as
 figure~\ref{fig:sdpor-motivation}.
 
 \section{Summary}
