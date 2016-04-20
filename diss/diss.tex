@@ -283,7 +283,7 @@ you should now understand:
 After reading this chapter,
 you should understand:
 \begin{understandinglist}
-	\item the precise definitions of the
+	\item the definitions of the
 	mathematical objects on which model
 	checking is performed, in the context
 	of my project;
@@ -292,10 +292,10 @@ you should understand:
 	exactly what the aim of my project was;
 	\item how a simple model checking algorithm
 	works;
-	\item exactly how the techniques of persistent sets
+	\item how the techniques of persistent sets
 	and sleep sets address the state explosion
 	problem;
-	\item exactly how the dynamic partial-order
+	\item how the dynamic partial-order
 	reduction algorithm operates; and
 	\item \emph{the work I undertook before beginning
 	the implementation of my project.}
@@ -321,24 +321,28 @@ introduces the DPOR algorithm.
 After reading this section, you should understand the
 formal definitions of the mathematical objects
 which are manipulated by the algorithms used in
-this project, \emph{as well as having an intuition for
-what each mathematical object refers to in practice}.
+this project, and also have an idea of
+what each mathematical object means intuitively.
 
 \subsection{Processes and States}
 We consider a system consisting of a finite set, $\mathcal{P}$,
-of concurrent threads or processes (I use ``thread" and
-``process" interchangeably throughout).
+of concurrent threads or processes\footnote{I use ``thread'' and
+``process'' interchangeably throughout.}.
 Each thread has its own local state, $s \in \mathcal{S}$, and there
-is some shared global state, $g \in \mathcal{G}$. The overall
+is some shared, globally-accessible state, $g \in \mathcal{G}$. The overall
 state of the system at any instant is therefore a member of the set
 $ \textit{State} = (\mathcal{P} \to \mathcal{S}) \times \mathcal{G} $.
+Local states $s$ can be thought of as comprising the instructions
+and data for each process, and the shared state $g$ can be thought
+of as a shared memory which the processes use for communication.
 
 Each process executes a sequence of operations, as
 specified in some programming language, each of which can
 operate on the thread's local state $s$ or the shared
 state $g$. If an operation
-operates on $g$, it is said to be \emph{visible}, else it is said to be
-\emph{invisible}.
+accesses $g$, it is said to be \emph{visible}, else it is said to be
+\emph{invisible}. For example, reading from a shared variable is
+visible, but writing to a thread-local variable is invisible.
 
 \subsection{Transitions}
 A \emph{transition} moves the system from one state to another,
@@ -347,7 +351,7 @@ process $p$, followed by a visible operation of the same process.
 If process $p$ has local state $s$, then the transition $t_{p,s}$
 that $p$ can make is defined to be a partial function taking the current
 global state $g$ and giving $(s', g')$, the next local state for $p$
-and the next global state for the system. Let $\mathcal{T}$ denote the
+and the next shared state for the system. Let $\mathcal{T}$ denote the
 set of all transitions, so that
 	\[\mathcal{T} = \mathcal{G} \rightharpoonup
 				(\mathcal{S} \times \mathcal{G}).\]
@@ -369,16 +373,14 @@ In this case we write $\sigma \xrightarrow{t_{p,s}} \sigma'$.
 We write $\longrightarrow^*$ to denote the transitive reflexive
 closure of $\longrightarrow$.
 A state $\sigma$ is called a \emph{stopped state} when there is no transition
-$t$ such that $t$ is enabled in $\sigma$. We say that $t_1$ and $t_2$
-may be \emph{co-enabled} if there is some state $\sigma \in \textit{State}$
-such that both $t_1$ and $t_2$ are enabled in $\sigma$.
+$t$ such that $t$ is enabled in $\sigma$.
 
 In any state $\sigma = (l, g)$, let
 $\textit{next}(\sigma, p) = t_{p,l(p)}$ denote the unique next transition
 to be executed by process $p$, and let
 \[
 	\textit{enabled}(\sigma) = \{t_{p,s} \in \mathcal{T} \mid
-	p \in \mathcal{P} \wedge t_{p,s} = \textit{next}(\sigma, p)
+	t_{p,s} = \textit{next}(\sigma, p)
 	\wedge t_{p,s} \text{ is enabled in } \sigma\}
 \]
 denote the set of enabled transitions that can be executed from $\sigma$.
@@ -386,31 +388,32 @@ For any transition $t_{p,s}$, let $\textit{proc}(t_{p,s}) = p$
 denote the unique process executing that transition.
 
 \subsection{Systems}
-The behaviour of an entire \emph{transition system} is
-specified with the tuple $A = (\textit{State}, \Delta, \sigma_0)$,
-where $\Delta \in State \to \mathbb{P}(State)$
+The behaviour of an entire concurrent program is represented by a
+\emph{transition system},
+specified by a tuple $A = (\textit{State}, \Delta, \sigma_0)$,
+where $\sigma_0 \in \textit{State}$ is the initial state of the system and
+$\Delta \in State \to \mathbb{P}(State)$
 is the \emph{transition relation} defined by
 \[
 	\sigma' \in \Delta(\sigma) \iff
 	\exists t \in \mathcal{T}. \ \sigma \xrightarrow{t} \sigma'.
 \]
-Note that transitions are also known as models,
-so model checking is the process of deciding
-whether a given transition system has certain
-properties.
+Note that transition systems are also known as models,
+as in the phrase ``model checking''.
 
 \section{Model Checking}
 After reading this section, you should
 understand exactly what I mean by a
 model-checking algorithm in the context
-of this project, \emph{how this relates to
+of this project, how this relates to
 requirements analysis and the aims
-of the project}, and how a simple
+of the project, and how a simple
 model-checking algorithm works.
 
 \subsection{Definition of Model Checking}
 \label{sec:model-checking-dfn}
-Model checking is the process of deciding
+In the context of this project,
+model checking is the process of deciding
 whether a
 given transition system is \emph{error-free} and
 \emph{deadlock-free}.
@@ -421,8 +424,7 @@ with a relation
 $\textit{err} : \mathcal{S} \to \mathbb{B}$, which states
 whether, in some given state, a particular
 thread has encountered an error.
-
-We say that a transition system
+We then say that a transition system
 $A = (\textit{State},\, \Delta,\, \sigma_0,\, \textit{err})$
 is
 \emph{error-free} if, for all stopped
@@ -439,8 +441,9 @@ We say that a transition system
 $A = (\textit{State},\, \Delta,\, \sigma_0,\, \textit{err})$
 is \textit{deadlock-free} if, for all stopped states
 $\sigma$ reachable from
-the initial state $\sigma_0$, if the shared store of
-$\sigma$ was different, it would still be a stopped state.
+the initial state $\sigma_0$, $\sigma$ would still be a stopped
+state even if its shared store was changed to any other
+$g' \in \mathcal{G}$.
 Formally,
 \[
 	\forall\, (l, g) \in \textit{State}. \;\, (\sigma_0
@@ -453,15 +456,32 @@ Formally,
 For our purposes, a model checking algorithm is an
 algorithm that takes a transition system and returns
 two Boolean results, indicating whether that system
-is error-free and deadlock-free. In general, more
-powerful concepts of model checking are possible,
-but the algorithms used in this project sacrifice
-this expressive power for performance.
+is error-free and deadlock-free. More
+powerful concepts of model checking do exist,
+but the algorithms used in this project check
+only these less rich properties of transition
+systems in return for better performance.
 
 \subsection{Requirements Analysis}
-How did I arrive at this definition of model
-checking? What does this definition mean
-that the final system will look like?
+A lot of the work that was necessary before
+I began implementing the project was the
+development of a firm understanding of an
+area of computer science that was new to me,
+particularly understanding the dynamic
+partial-order reduction algorithm, and
+therefore understanding precisely what
+the finished project should do. Having
+understood exactly what properties the
+DPOR algorithm can check and reached the
+above definition of model checking,
+I set out to implement two algorithms
+satisfying it: first, a simple
+algorithm to check my understanding
+of the basics, and then the DPOR
+algorithm. I would also need to
+implement a simple language which
+could be used to express concurrent
+programs to model check.
 
 \subsection{Simple Model Checking} \label{sec:simple-model-checking}
 As the definitions of both error-free and deadlock-free
@@ -473,7 +493,6 @@ can be expressed in the form
 for some predicate $\Phi$, the simplest strategy is to
 perform an exhaustive search of the reachable state space,
 checking whether $\Phi$ holds at each state encountered.
-
 In practice, algorithms are used which decide both
 properties in one exploration of the reachable state space,
 but separate algorithms for each are presented
@@ -510,7 +529,7 @@ depth-first search of the reachable state space.
 	\State
 	\State Initially: $\textsc{SimpleErrorFree}(\sigma_0)$
 	\end{algorithmic}
-	\caption{Algorithm deciding if a transition system is error-free}
+	\caption{Algorithm deciding if a transition system is error-free.}
 	\label{fig:simple-error-free}
 \end{figure}
 
@@ -531,7 +550,7 @@ transitions that can be executed. If not, then
 $\Phi$ is checked to hold, else again recursive calls implement a
 depth-first search of the reachable state space.
 In practice, it is easy to decide whether or not
-there exists a shared store which would allow
+there exists a shared state which would allow
 execution to continue, by looking at whether
 any thread is waiting for a lock, for instance,
 or whether all threads have simply terminated
@@ -541,13 +560,13 @@ their computations.
 	\begin{algorithmic}[1]
 		\Procedure{SimpleDeadlockFree}{$\sigma$}
 		\Let{$(l, g)$}{$\sigma$}
-		\Let{SuccessorStates}{$\{\sigma' \mid \sigma \xrightarrow{t}
+		\Let{\textit{Successors}}{$\{\sigma' \mid \sigma \xrightarrow{t}
 			\sigma' \wedge t \in \textit{enabled}(\sigma)\}$}
-		\If{$\text{SuccessorStates} = \emptyset$}
+		\If{$\textit{Successors} = \emptyset$}
 		\State\Return $(\forall g' \in \mathcal{G}.\; \textit{enabled}(l, g')
 				= \emptyset)$
 			\Else
-			\ForAll{$\sigma' \in \text{SuccessorStates}$}
+			\ForAll{$\sigma' \in \textit{Successors}$}
 				\If{$\textbf{not } \textsc{SimpleDeadlockFree}(\sigma')$}
 					\Return \textit{false}
 				\EndIf
@@ -558,39 +577,38 @@ their computations.
 		\State
 		\State Initially: $\textsc{SimpleDeadlockFree}(\sigma_0)$
 	\end{algorithmic}
-	\caption{Algorithm deciding if a transition system is deadlock-free}
+	\caption{Algorithm deciding if a transition system is deadlock-free.}
 	\label{fig:simple-deadlock-free}
 \end{figure}
 
 \section{Partial-Order Reduction}
-After reading this section, you should
-understand the formal definitions of
-dependency between transitions,
-persistent sets and sleep sets,
-as well as having an intuition for
-what each concept means in practice.
+
 
 Although such na\"{\i}ve algorithms as those given
 in section~\ref{sec:simple-model-checking}
-are correct, due to the \emph{state explosion problem},
-more efficient algorithms have been developed.
+are correct, their performance suffers due to
+the state explosion problem.
 \emph{Partial-order reduction} is a category of
-techniques which aim to reduce the size of the
-state space explored. Some concepts in
-partial-order reduction are introduced in
-this section.
+techniques which aim to address this problem.
+After reading this section, you should
+understand some concepts
+relating to partial-order reduction, namely
+what it means for transitions to be independent,
+and the persistent-set and sleep-set techniques.
+You should also have an intuition for
+what each concept means in practice.
 
 \subsection{Independence} \label{sec:independence}
 In plain English, two transitions are independent if executing one
-can never disable the other, and if they are commutative.
+can never disable the other, and if their effects are commutative.
 
 More formally, suppose that $\mathcal{T}$ is the set of
 transitions for some transition system, and
-that $I \subseteq \mathcal{T} \times \mathcal{T}$
+that $D \subseteq \mathcal{T} \times \mathcal{T}$
 is a reflexive and symmetric relation. We say
-that $I$ is a valid \emph{independency relation}
+that $D$ is a valid \emph{dependency relation}
 whenever the following two conditions hold for
-all $(t_1, t_2) \in I$:
+all $(t_1, t_2) \not \in D$:
 \begin{enumerate}
 	\item for all states $\sigma \in \textit{State}$,
 		if $t_1$ is enabled in $\sigma$ and
@@ -627,12 +645,12 @@ all $(t_1, t_2) \in I$:
 		\caption{If $t_1$ and $t_2$ do not commute then they
 			are not independent.}
 	\end{subfigure}
-	\caption{Illustration of transition independence}
+	\caption{Illustrations of transition independence.}
 	\label{fig:independence}
 \end{figure}
-Two transitions $t_1$ and $t_2$ are said to be \emph{independent}
-if there is a valid independency relation $I$ such that $(t_1, t_2) \in I$.
-If $t_1$ and $t_2$ are not independent, they are said to be \emph{dependent}.
+Two transitions $t_1$ and $t_2$ are said to be \emph{dependent}
+if there is a valid dependency relation $D$ such that $(t_1, t_2) \in D$.
+If $t_1$ and $t_2$ are not dependent, they are said to be \emph{independent}.
 
 \subsection{Persistent Sets}
 \label{sec:persistent}
@@ -643,17 +661,18 @@ search of the reachable state space
 (as the algorithms in
 section~\ref{sec:simple-model-checking} do), but at each
 state $\sigma$ they explore only a subset
-$T \subseteq \textit{enabled}(\sigma)$. Of course, the subsets
+$T \subseteq \textit{enabled}(\sigma)$ of the possible transition.
+Of course, the subsets
 $T$ must be computed in a way such that the search
-is still sound --- it must guarantee to
+is still sound---it must guarantee to
 produce the correct result.
 
 \subsubsection{Definition}
 One partial-order reduction technique for
 computing such sound subsets is known
-as the \emph{persistent set} technique. Informally,
+as the \emph{persistent-set} technique. Informally,
 a subset of transitions $T$ from a state $\sigma$
-is called \emph{persistent in $\sigma$} if every
+is called \emph{persistent} in $\sigma$ if every
 possible transition $t \not \in T$ that is reachable
 from $\sigma$ by exploring only transitions not in
 $T$ does not interact with the transitions
@@ -667,7 +686,7 @@ for all sequences of transitions
 	\sigma_1 \xrightarrow{\ t_1\ } \sigma_2 \xrightarrow{\ t_2\ } \ldots
 	\xrightarrow{t_{n-1}} \sigma_n,
 \]
-if for all $1 \leq i < n$, $t_i \not \in T$ then each $t_i$ is
+if for all $1 \leq i < n$, $t_i \not \in T$, then each $t_i$ is
 independent with every transition in $T$.
 
 \subsubsection{An Example}
@@ -675,7 +694,8 @@ For illustration, in the state space shown in
 figure~\ref{fig:persistent}, $T = \{t_1\}$ is
 a persistent set in the initial state, as each
 transition reachable following only transitions
-not in $T$ is independent with $t_1$.
+not in $T$ (in this case, all transitions other
+than $t_1$) is independent with $t_1$.
 Likewise, $T = \{t_2, t_3\}$ is
 a persistent set in the initial state, as the
 only transition reachable from the initial state
@@ -683,6 +703,7 @@ without executing any transitions in $T$ is $t_1$,
 and $t_1$ is independent with both $t_2$ and $t_3$.
 However, $T = \{t_2\}$ is not a persistent set in the
 initial state, as $t_2$ and $t_3$ are not independent.
+
 As we might hope, if we choose only transitions
 in a persistent set (either $\{t_1\}$ or $\{t_2, t_3\}$)
 from the initial state to begin
@@ -718,7 +739,7 @@ problem is that of \emph{sleep sets}. Suppose that
 we are at state $\sigma_0$ when performing a search
 of the state space (see figure~\ref{fig:sleep}).
 Suppose that the first transition
-we explore is $t_1$, reaching $\sigma_1$,
+we explore from $\sigma_0$ is $t_1$, reaching $\sigma_1$,
 and the second is $t_2$, reaching $\sigma_2$.
 If $t_1$ and $t_2$ are independent, then there
 is a state $\sigma'$ reachable by both
@@ -727,8 +748,8 @@ $\sigma \xrightarrow{t_1} \sigma_1
 $\sigma \xrightarrow{t_2} \sigma_2
 \xrightarrow{t_1} \sigma'$.
 Any stopped state reachable from $\sigma'$
-is reachable from $\sigma_1$, as $\sigma_1$
-is reachable from $\sigma'$. By assumption,
+is reachable from $\sigma_1$, as $\sigma'$
+is reachable from $\sigma_1$. By assumption,
 when the search is at $\sigma_2$, we have already
 explored all the stopped states reachable from
 $\sigma_1$ (the dotted area in figure~\ref{fig:sleep}),
@@ -754,7 +775,7 @@ section of the state space\footnotemark.
 	better definition cannot be given here.}
 The technique of
 sleep sets is orthogonal to the technique
-of persistent sets -- there is no interaction
+of persistent sets---there is no interaction
 between the two techniques, so implementing
 both simultaneously can be achieved with
 no extra difficulty.
@@ -762,25 +783,27 @@ no extra difficulty.
 \begin{figure}
 	\centering
 	\includegraphics[height=8cm]{sleep}
-	\caption{Diagram illustrating of the theory
+	\caption{Diagram illustrating of the motivation
 		of sleep sets.}
 	\label{fig:sleep}
 \end{figure}
 
 \section{Dynamic Partial-Order Reduction}
 \label{sec:dpor-prep}
+Before implementing the dynamic partial-order
+reduction algorithm, I first had to
+understand how it works.
 After reading this section, you should
-understand how the dynamic
+also understand how the dynamic
 partial-order reduction algorithm works.
 
 \subsection{Background Definitions}
-The DPOR makes use of several new concepts,
-which are presented here.
 
 \subsubsection{Transition Sequences}
 Instead of keeping track of just the current state, as
 the algorithms in section~\ref{sec:simple-model-checking}
-did, the DPOR algorithm keeps track of a \emph{transition
+did, the dynamic partial-order reduction (DPOR) algorithm
+keeps track of a \emph{transition
 sequence} $\pi \in \mathcal{T}^*$. This transition
 sequence is implicitly executed from the initial state of
 the transition system, $\sigma_0$, so that in practice,
@@ -799,9 +822,11 @@ we use the following notation:
 		--- the transition $t_i$;}
 	\item{\makebox[\defsindent]{\hfill$\pi.t$}
 		--- the transition sequence $\pi$ extended with
-		an additional transition $t$;}
+		an additional transition, $t$;}
 	\item{\makebox[\defsindent]{\hfill$\textit{dom}(\pi)$}
 		--- the set $\{i \in \mathbb{N} \mid 0 \leq i < n \}$;}
+	\item{\makebox[\defsindent]{\hfill$|\pi|$}
+		--- the length of the transition sequence, $n$;}
 	\item{\makebox[\defsindent]{\hfill$\textit{pre}(\pi, i)$}
 		--- the state $\sigma_i$ (i.e. the
 		state immediately before transition $t_i$); and}
@@ -827,12 +852,12 @@ can be executed, as it cannot be disabled by $\pi_{i+1}$.
 Because independent transitions commute, the state reached by
 executing $\pi_i$ followed by $\pi_{i+1}$ is the same
 as the state reached by executing $\pi_{i+1}$ followed
-by $\pi_i$.
-So $\textit{pre}(\pi, i+2) = \textit{pre}(\pi', i+2)$. Since 
+by $\pi_i$ (see figure~\ref{fig:sequence-equivalence}).
+So $\textit{pre}(\pi, i+2) = \textit{pre}(\pi', i+2)$. Since
 for all $j \geq i + 2$, $\pi_j = \pi'_j$, it follows that
 $\textit{last}(\pi) = \textit{last}(\pi')$. So swapping
 a pair of adjacent transitions results in the same
-final state if the transitions are independent.
+final state if the swapped transitions are independent.
 
 \begin{figure}
 	\centering
@@ -851,7 +876,7 @@ members of the same equivalence class, we need only
 explore one.
 
 To help us to reason about such equivalence classes,
-we will use a ``happens-before" relation to identify
+we will use a ``happens-before'' relation to identify
 when one transition cannot be swapped with another.
 In particular, we define the \emph{happens-before}
 relation $\longrightarrow_\pi$ for a transition
@@ -859,7 +884,7 @@ sequence $\pi$ to be the smallest relation on
 $\textit{dom}(\pi)$ such that
 \begin{enumerate}
 	\item if $i \leq j$ and $\pi_i$ is dependent with
-		$\pi_j$ then $i \longrightarrow_\pi j$; and
+		$\pi_j$ then $i \longrightarrow_\pi j$, and
 	\item $\longrightarrow_\pi$ is transitively closed.
 \end{enumerate}
 
@@ -871,7 +896,7 @@ partial order are the equivalent sequences of
 transitions which can be obtained by swapping
 adjacent pairs of independent transitions in $\pi$.
 
-The DPOR algorithm also makes use of a variant of the
+The DPOR algorithm makes use of a variant of the
 happens-before relation.
 Informally, if $(i, p)\!\hookrightarrow_\pi$ then
 in every linearisation $\hat{\pi}$ of the
@@ -887,7 +912,7 @@ if $i \in \textit{dom}(\pi)$ and $p \in
 say that $(i, p)\!\hookrightarrow_\pi$ if
 either
 \begin{enumerate}
-	\item $\textit{proc}(\pi_i) = p$; or
+	\item $\textit{proc}(\pi_i) = p$, or
 	\item $\exists k \in \textit{dom}(\pi).\;
 	i < k \,\wedge\, \textit{proc}(\pi_k) = p
 	\,\wedge\, i \longrightarrow_\pi k $.
@@ -3452,9 +3477,8 @@ you should now understand:
 
 \chapter{Conclusions}
 
-\textbf{This chapter makes some
-	interesting conclusions, which I
-	haven't thought of yet.}
+Set out to implement DPOR and succeeded, also implementing
+stateful, SDPOR, sleep sets, SPOR, counter-example traces.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
