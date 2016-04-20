@@ -3131,7 +3131,8 @@ The benefit also increases when there are more
 threads sharing each shared object, which I
 believe is due to a quirk in my implementation
 of stores: because I implement stores as
-(object, value) lists, and updates simply
+(\textit{object}, \textit{value}) lists,
+and updates simply
 add a new pair to the start of the list,
 if two updates are made to a store, the
 results stores will only be equal in
@@ -3223,8 +3224,11 @@ mechanism for conservatively added backtracking
 points whenever the search is cut short at a
 revisited state is being too conservative to be
 of practical value in these cases. I can think
-of three explanations for this behaviour:
+of four possible explanations for this behaviour:
 \begin{enumerate}
+	\item the `quirk' that worsened the performance
+	of the simple stateful model checker causes
+	much more serious problems for SDPOR; or
 	\item I have misunderstood SDPOR, and
 	accidentally implemented an algorithm similar
 	to SDPOR which is sound but inefficient; or
@@ -3236,15 +3240,20 @@ of three explanations for this behaviour:
 \end{enumerate}
 The performance of SDPOR is compared to that of DPOR
 against five benchmarks in \textbf{SDPOR PAPER},
-which suggests that the second reason is less likely.
+which suggests that the third reason is less likely.
 The fact that one of these benchmarks is an instance
 of the bounded-buffer problem (albeit one that
 has multiple producers and consumers rather than
-just one of each) suggests that the third reason
-is also less likely. This leaves only the first
-reason, and while I can't see where my
+just one of each) suggests that the fourth reason
+is also less likely. The first reason is certainly
+possible: it could be that by failing to notice
+when some states are revisited, the algorithm's
+advantages are lost, leaving only its overhead
+costs.
+The second reason is also possible:
+while I can not see where any
 misunderstanding is, I can accept that it is
-the most probable explanation for the very poor
+a reasonable explanation for the very poor
 performance of SDPOR in my project.
 
 \subsubsection{Sleep Sets}
