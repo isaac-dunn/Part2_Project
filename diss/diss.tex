@@ -2341,6 +2341,7 @@ a simple depth-first search.
 \end{figure}
 
 \section{Static Partial-Order Reduction}
+\label{sec:spor-imp}
 After reading this section, you should
 understand the static partial-order
 reduction algorithm that I implemented,
@@ -2357,7 +2358,7 @@ in the literature that was straightforward enough
 to understand and implement in the short amount
 of time I had. I therefore designed my own
 rudimentary static partial-order reduction algorithm,
-which I will refer to at the Static POR (SPOR,
+which I will refer to as the Static POR (SPOR,
 not to be confused with SDPOR) algorithm.
 While it is simple to understand and implement,
 the trade-off is that it returns large persistent sets.
@@ -2376,6 +2377,13 @@ object that any process whose next
 transition is in $T$ accesses.
 The algorithm constructing a persistent set in a given state
 is shown in figure~\ref{fig:spor-code}.
+
+My initial idea was to compute the objects that
+each thread could access at every state encountered.
+While this would result in marginally smaller
+persistent sets as threads progresses, the cost
+of performing this expensive computation at
+every state was too high.
 
 \begin{figure}
 	\begin{algorithmic}[1]
