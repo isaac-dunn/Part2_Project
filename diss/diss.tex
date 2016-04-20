@@ -1323,7 +1323,7 @@ figure~\ref{fig:pl-expressions}.
 		& \\
 		\textit{int} $\in$ & $\{\ldots, -1, 0, 1, \ldots\}$ \\
 		\textit{bool} $\in$ & $\{\textbf{true}, \textbf{false}\}$ \\
-		\textit{var} $\in$ & \textit{Variable}
+
 	\end{tabular}
 	\qquad\quad
 	\begin{tabular}{rcl}
@@ -1338,12 +1338,14 @@ figure~\ref{fig:pl-expressions}.
 		$\vert$ & $\&$ &\\
 		$\vert$ & $\mid$ &\\
 		& &\\
-		\textit{local} & $\in$ & \textit{Location} \\
-		\textit{global} & $\in$ & \textit{Location} \\
-		\textit{spinlock} & $\in$ & \textit{Location} \\
-		& &\\
-		\textit{Location} & $=$ & $\{a, b, c, \ldots\}^\ast$\\
-		\textit{Variable} & $=$& $\{x, y, z, \ldots\}$ \\
+		\textit{local} & $\in$ &
+			$\{\textit{loc}_0, \textit{loc}_1, \textit{loc}_2, \ldots\}$ \\
+		\textit{global} & $\in$ &
+			$\{\textit{glo}_0, \textit{glo}_1, \textit{glo}_2, \ldots\}$ \\
+		\textit{spinlock} & $\in$ &
+			$\{\textit{spin}_0, \textit{spin}_1, \textit{spin}_2, \ldots\}$ \\
+		\textit{var} & $\in$ & $\{x, y, z, \ldots\}$ \\
+		& & \\
 	\end{tabular}
 	\caption{The grammar for PL expressions.}
 	\label{fig:pl-expressions}
@@ -1357,9 +1359,9 @@ To express the semantics
 of PL, then, we need to give whether or not an
 expression $e$ reduces for local store $s$ and
 global store $g$, and if it does, we need to give
-the expression $e'$ that it reduces to in one ``step",
+the expression $e'$ that it reduces to in one ``step'',
 as well as any updates to $s$ and $g$ that result.
-Note that each such ``step" is assumed to be atomic.
+Note that each such ``step'' is assumed to be atomic.
 The semantics of PL expressions are as you would expect
 (see \textbf{THE APPENDIX} for a full definition), but
 the rules for the reduction of expressions that interact
@@ -1367,23 +1369,23 @@ with the global store $g$ are given in figure~\ref{fig:pl-rules}.
 
 \begin{figure}
 	\begin{gather*}
-		\frac{g(\textit{spin}) = \textbf{true}}
-			{(\textbf{unlock}\ \textit{spin},\ s,\ g)
-				\longrightarrow (\textbf{skip},\ s,\
-				g[\textit{spin} \mapsto \textbf{false}])} \\
-		\\
 		\frac{g(\textit{spin}) = \textbf{false}}
 		{(\textbf{lock}\ \textit{spin},\ s,\ g)
 			\longrightarrow (\textbf{skip},\ s,\
 			g[\textit{spin} \mapsto \textbf{true}])} \\
 		\\
-		\frac{g(\textit{glob}) = e_\textit{curr}}
-			 {(\textbf{cas}(\textit{glob},\, e_\textit{curr},\, e_\textit{new})
-			 	,\ s,\ g) \longrightarrow (\textbf{true},\ s,
-			 	\ g[\textit{glob} \mapsto e_\textit{new}])} \\
+		\frac{g(\textit{spin}) = \textbf{true}}
+			{(\textbf{unlock}\ \textit{spin},\ s,\ g)
+				\longrightarrow (\textbf{skip},\ s,\
+				g[\textit{spin} \mapsto \textbf{false}])} \\
 		\\
-		\frac{g(\textit{glob}) \neq e_\textit{curr}}
-			{(\textbf{cas}(\textit{glob},\, e_\textit{curr},\, e_\textit{new})
+		\frac{g(\textit{glo}) = e_\textit{curr}}
+			 {(\textbf{cas}(\textit{glo},\, e_\textit{curr},\, e_\textit{new})
+			 	,\ s,\ g) \longrightarrow (\textbf{true},\ s,
+			 	\ g[\textit{glo} \mapsto e_\textit{new}])} \\
+		\\
+		\frac{g(\textit{glo}) \neq e_\textit{curr}}
+			{(\textbf{cas}(\textit{glo},\, e_\textit{curr},\, e_\textit{new})
 				,\ s,\ g) \longrightarrow
 				(\textbf{false},\ s,\ g)} 
 	\end{gather*}
@@ -1444,7 +1446,7 @@ figure~\ref{fig:parsing}, to produce a PL parser.
 There are actually two datatypes which are used to
 represent PL expressions in the
 PL implementation of the \emph{Expression} module.
-The first of these is the ``raw" expression, which
+The first of these is the ``raw'' expression, which
 uses strings to represent variables (this is the
 datatype that the parser produces). However,
 manipulation of expressions is much easier when
@@ -1452,7 +1454,7 @@ variables are represented using \emph{de Bruijn indices},
 which is the purpose of the second expression datatype.
 This is the only one required by the \emph{Expression}
 signature. A function exists to recursively convert
-from the ``raw" datatype to this second datatype.
+from the ``raw'' datatype to this second datatype.
 
 The remainder of the \emph{Expression} module
 consists of auxiliary functions, which are
@@ -1462,7 +1464,7 @@ of information or perform a simple manipulation.
 
 \subsubsection{The Store Module}
 As mentioned above, I implemented a functor
-called \textbf{ListStore}, which, given a structure
+called ListStore, which, given a structure
 matching the \emph{Expression} signature,
 gives a structure matching the \emph{Store}
 signature. The \emph{Store} implementation produced
