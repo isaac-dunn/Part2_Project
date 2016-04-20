@@ -3377,64 +3377,78 @@ implementation correctly implements the
 algorithm in the sense that it is not more
 complex than it needs to be.
 
-\subsubsection{SDPOR}
-\begin{itemize}
-	\item Much worse than DPOR, and even than
-	SDPOR transitions. Clearest in
-	indexer and FS, where state space is same,
-	but time gets exponentially worse, due to
-	costs of storing states
-	\item in paper, proposed a way of better
-	storing states, because states are big,
-	but I did not implement this, explaining
-	the very poor performance
-\end{itemize}
+\subsubsection{Stateful Dynamic Partial-Order Reduction}
+The execution times for the SDPOR algorithm
+are both much worse than the DPOR execution
+times and much worse than what might be
+expected from looking at the number of
+transitions explored. This can be
+seen particularly clearly in figures
+\ref{fig:indexer-time} and \ref{fig:fs-time},
+in which the execution times of the SDPOR
+algorithm get exponentially worse, despite
+the linearly-increasing numbers of
+transitions explored. This again
+suggests that I might not have
+correctly implemented the algorithm.
+
+In the \textbf{SDPOR PAPER}, they
+introduce and use a light-weight
+scheme for capturing the local states of
+threads (based on storing only changes
+to the stores, rather than the full stores
+every time), which I decided not to
+implement for time reasons. However,
+this should not affect the correctness
+of SDPOR, nor the numbers of transitions
+is explores, and I would be surprised
+to learn that not using this technique
+was the main reason that the SDPOR
+execution times are so long. 
 
 \subsubsection{Sleep Sets}
-\begin{itemize}
-	\item Simple:
-	\item overhead slightly increases
-	multiplicative increase, but benefits still great
-	\item DPOR:
-	\item in ex1, transitions same, but
-	there is a time overhead for performing
-	the sleep sets computation
-	\item this is not evident in later
-	examples, though, when the benefits
-	far outweigh this small overhead
-\end{itemize}
+The overhead costs associated with implementing
+sleep sets for the simple model checker
+mean that the multiplicative
+increases in execution times are slightly
+higher than the multiplicative increases
+in number of explored transitions. The
+benefits of using sleep sets are still
+profound, though.
+
+In the repeated-accesses example,
+sleep sets do not reduce the number
+of explored transitions when applied
+to DPOR, so the overhead costs of
+implementing sleep sets can be clearly
+seen in figure~\ref{fig:repeated-access-time}.
+However, in the other examples, these
+small costs are insignificant compared
+to the huge benefits of using sleep
+sets.
 
 \subsubsection{Static Partial-Order Reduction}
-\begin{itemize}
-	\item no noticeable overhead (by choice)
-\end{itemize}
-
+The extra work done at per transition
+in implementing my SPOR
+algorithm is deliberately little
+(see section~\ref{sec:spor-imp}).
+Execution times are more or less proportional
+to the number of transitions explored.
 
 \section{Summary}
 Having read this chapter,
 you should now understand:
 \begin{understandinglist}
-	\item the extent to which I believe
-	the project is correct, and the evidence
-	motivating that belief;
-	\item that correctness is not
-	essential for a model-checking
-	system to be of practical use;
-	\item how my implementations
-	of the model-checking algorithms
-	perform, in terms of their
-	execution times;
-	\item how the model-checking
-	algorithms themselves perform
-	in comparison to one another,
-	in terms of the reduction in the
-	size of the explored state space; and
-	\item the relationship between the
-	inherent complexity of the
-	algorithms and the performance of
-	my implementations of them.
+	\item that I believe my project to
+	be sound, but not entirely bug-free;
+	\item how model checking systems are
+	useful even without a cast-iron guarantee
+	of their correctness;
+	\item the relative merits of the model-checking
+	algorithms I have implemented; and
+	\item the efficiency of my implementations of
+	those algorithms.
 	\end{understandinglist}
-\textbf{TO DO: update these with summaries.}
 
 \chapter{Conclusions}
 
