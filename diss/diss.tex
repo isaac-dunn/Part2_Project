@@ -771,10 +771,10 @@ Indeed, it can be shown that if a stopped state is reachable by an exhaustive
 search of the state space, then by computing a persistent set $T$ at
 each state $\sigma$ and exploring only those transitions from
 $\sigma$ that are in $T$, that stopped state is still reachable
-(cf. Theorem 4.3 in \textbf{Godefroid thesis}). It can also be shown
+\cite[Theorem~4.3]{god96}. It can also be shown
 that by exploring only transitions in persistent sets, all reachable
-local states of each process are explored (cf. Theorem 6.14 in
-\textbf{Godefroid thesis}). Therefore, if we are interested in
+local states of each process are explored
+\cite[Theorem~6.14]{god96}. Therefore, if we are interested in
 the definition of model checking given in 
 section~\ref{sec:simple-model-checking}, then it is sufficient
 to explore transitions from the persistent sets of the states we
@@ -1170,9 +1170,10 @@ The main work that was necessary before
 I began implementing the project was the
 development of a firm understanding of an
 area of computer science that was new to me,
-and particularly understanding the dynamic
-partial-order reduction algorithm. I achieved
-this by reading \textbf{POPL'05} and following
+and particularly understanding the DPOR algorithm.
+I achieved this by reading the paper that
+introduced dynamic partial-order reduction \cite{flan05}
+and following
 its references to read the literature that
 first introduced the ideas used in DPOR.
 
@@ -1449,7 +1450,7 @@ the expression $e'$ that it reduces to in one ``step'',
 as well as any updates to $s$ and $g$ that result.
 Note that each such ``step'' is assumed to be atomic.
 The semantics of PL expressions are as you would expect
-(see \textbf{THE APPENDIX} for a full definition), but
+(see appendix~\ref{app:pl-def} for a full definition), but
 the rules for the reduction of expressions that interact
 with the global store $g$ are given in figure~\ref{fig:pl-rules}.
 
@@ -1508,7 +1509,7 @@ also error-prone. For the language to be of any practical use,
 a parser is a necessity.
 
 To create a parser for PL, two program generators were used:
-\emph{OCamllex} and \emph{Menhir}. When presented with a
+OCamllex and Menhir. When presented with a
 file giving a mapping from strings of characters to tokens,
 OCamllex produces a lexical analyser, which converts a sequence
 of characters into a sequence of tokens. When presented with a
@@ -1587,7 +1588,7 @@ matching on PL expressions to determine what the next atomic
 operation, if any, to be executed in the reduction
 of the expression is. There is a close correspondence
 between the
-rules of the operational semantics (see \textbf{APPENDIX})
+rules of the operational semantics (see appendix~\ref{app:pl-def})
 and the different cases in the pattern matching. This is
 because each rule specifies that an expression of a
 particular form, perhaps with some conditions on the
@@ -1704,7 +1705,7 @@ the simplest possible model checking algorithm.
 \subsection{Implementation}
 \label{sec:simple-imp}
 
-See the \textbf{APPENDIX} for an illustration
+See appendix~\ref{app:simple-code} for an illustration
 of the relationship between the actual OCaml
 code, and the pseudocode given in
 figure~\ref{fig:simple-imp-code}, which gives
@@ -1827,7 +1828,7 @@ the correctness of my implementation.
 The reason that I have fully explained
 the operation of this simple model checker,
 provided a mapping
-in the \textbf{APPENDIX} from the OCaml
+in appendix~\ref{app:simple-code} from the OCaml
 implementation to the high-level
 pseudocode, and described
 tests of its correctness is to give the reader
@@ -2028,7 +2029,8 @@ was implemented.
 
 To decide the happens-before relation,
 $\hookrightarrow_\pi$, I used the method
-of clock vectors, as outlined in \textbf{POPL'05.}
+of clock vectors, as outlined by Flanagan
+and Godefroid \cite{flan05}.
 
 \subsubsection{Using Clock Vectors}
 
@@ -2351,9 +2353,9 @@ backtracking points must be added for soundness, but not
 so conservatively that all practical benefits are lost.
 
 One such method is to use a \emph{visible operation dependency
-graph}, and its use was proposed by \textbf{names} in an
-algorithm which is known as Stateful Dynamic Partial-
-Order Reduction (SDPOR). The idea is that, when we first explore
+graph}, and its use was proposed by Yang et al.\@ in an
+algorithm which is known as stateful dynamic partial-
+order reduction (SDPOR) \cite{yang08}. The idea is that, when we first explore
 a section of the state space,
 we make a note of the visible operations
 that may be executed, so that if we encounter that section again,
@@ -2478,8 +2480,8 @@ in the literature that was straightforward enough
 to understand and implement in the short amount
 of time I had. I therefore designed my own
 rudimentary static partial-order reduction algorithm,
-which I will refer to as the Static POR (SPOR,
-not to be confused with SDPOR) algorithm.
+which I will refer to as the static partial-order reduction
+(SPOR, not to be confused with SDPOR) algorithm.
 While it is simple to understand and implement,
 the trade-off is that it returns large persistent sets.
 
@@ -3586,9 +3588,17 @@ stateful, SDPOR, sleep sets, SPOR, counter-example traces.
 \appendix
 
 \chapter{PL Definition}
+\label{app:pl-def}
  
-\textbf{This will be the definition
+\textbf{This will be the operational semantics
 	of PL.}
+
+\chapter{Simple Model Checker Implementation}
+\label{app:simple-code}
+
+\textbf{This will be a side-by-side comparison
+	of the simple model checker OCaml code and
+	the pseudocode it is supposed to implement.}
  
 \chapter{Example PL Programs}
 
