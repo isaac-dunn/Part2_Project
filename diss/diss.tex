@@ -172,114 +172,200 @@ you should understand:
 \end{understandinglist}
 
 \section{Model Checking}
-After reading this section,
-you should understand why formal methods for
-verifying the correctness of software and
-hardware systems are useful, that model
-checking is such a formal method, and
-how model checking works.
+%After reading this section,
+%you should understand why formal methods for
+%verifying the correctness of software and
+%hardware systems are useful, that model
+%checking is such a formal method, and
+%how model checking works.
 
-We want to be very sure that some computer
-programs are correct. Testing is not good
-enough -- all software products have been
-tested, but according to Dijkstra,
-\emph{``Testing shows the presence,
-	not the absence, of bugs''}.
+There are many reasons for ensuring that
+software and hardware systems have as
+few defects as possible. Failure of a
+safety- or mission-critical system can
+have devastating consequences, but even the
+presence of bugs in everyday commercial systems has
+serious economic consequences; in 2002,
+software bugs were estimated to cost
+the U.S. economy \$59.5 billion per year \cite{tass02}.
 
-Model checking is a category of formal
-methods, in which \textbf{(basic explanation of
-model checking)}
+Complimentary to traditional testing methods
+and peer review, formal verification methods have been
+increasing in popularity as a strategy
+to minimise the number of defects in a
+software or hardware system. A formal
+method uses some form of automated
+mathematical analysis to increase
+the confidence that a system meets its
+specification, or shows that it does not.
+
+Model checking is a category of
+verification techniques
+that explore all possible system states in a
+brute-force manner \cite{bai08}. In particular,
+given a formal model of a system, and a
+formal specification of a property, a model
+checking algorithm automatically checks whether the
+system satisfies that property by an
+exhaustive search of the state space.
+Model checking has been used with considerable
+success in practice, for instance in verifying
+software controlling a flood barrier near
+Rotterdam \cite{kars96},
+a NASA Mars Rover \cite{brat04},
+and an ``industrial-size design of an
+ultra-modern satellite platform'' \cite{est12}.
 
 \section{The State Explosion Problem}
-After reading this section, you should
-understand what the state explosion problem
-is, and its practical implications.
+%After reading this section, you should
+%understand what the state explosion problem
+%is, and its implications for model checking.
 
-Concurrent software programs in practice often
-use threads as their model. The number of possible
-interleavings of concurrent threads blows up very 
-quickly.
+One of the advantages of model checking is
+that it can be used to verify that concurrent
+systems are free of deadlocks, livelocks, or
+obscure race conditions that could result in
+an error, whereas such exposing such defects
+using solely conventional testing is notoriously
+difficult, since when the operating system
+schedules the different processes to run
+cannot be specified or known in advance by the
+test engineer. However, model checking does
+suffer from what is known as the
+\textit{state explosion problem} when verifying
+concurrent systems.
 
-Give some maths, some empirical results,
-and a state space diagram showing this.
+Consider a concurrent system system consisting
+of $n$ different processes, each of which
+has $k$ instructions to execute before it
+completes. Suppose that the threads are
+executed asynchronously, so that the next
+process to run is always decided non-deterministically.
+How many possible different executions are there?
+That is, how many different interleavings of
+the instructions of the different threads are
+there? This problem is equivalent to deciding
+the number of permutations of $kn$ letters,
+where there are $n$ groups of $k$ identical
+letters. For example, if $n = 3$ and $k = 2$,
+how many different permutations of the string
+\textsc{AABBCC} are there?
+
+The solution is that there are
+\[\frac{(kn)!}{(k!)^n}\]
+different permutations of the letters,
+or different interleavings of the instructions.
+This expression increases exponentially with
+both $n$ and $k$, which is very bad news for
+model checking: if each different interleaving
+of the instructions can end with a different
+result, then each of these must be checked,
+meaning that the running time of any model
+checker has the above expression as a lower
+bound for its running time. As most programs
+of interest are at \emph{least}
+one hundred instructions per thread long,
+this can severely limit
+the practical uses of model checking.
 
 \section{Partial-Order Reduction}
-After reading this section, you should
-understand how partial-order reduction
-techniques aim to address the state
-explosion problem.
+%After reading this section, you should
+%understand how partial-order reduction
+%techniques address the state
+%explosion problem.
 
-Idea: some interleavings are equivalent. If you
-can identifying which are equivalent, you only
-have to explore a subset. \emph{Give picture.}
+However, despite the state explosion problem, model
+checking is still used in practice, thanks
+to various techniques that
+reduce the number of interleavings that must
+be explored to show that the system has the
+desired property. Partial-order reduction
+is a category of such techniques, which
+exploits the fact that, in some cases, it
+does not matter which instruction executes
+first. For example, if the next instruction
+of thread 0 is to write a value to shared
+variable \texttt{x}, and the next instruction
+of thread 1 is to read
+the value of shared variable \texttt{y}, then
+the system will be in the same state whether
+thread 0 is next run before or after thread 1. If
+it is known that the same result will be reached
+either way, then it is sufficient to check
+only one of the two options. Fully exploiting
+this idea can very effectively mitigate the
+state explosion problem.
 
-Partial-order reduction is a category of techniques
-that aim to identify such equivalences and so
-perform model checking more efficiently.
+\section{My Project}
+%After reading this section, you should
+%understand the idea behind the dynamic
+%partial-order reduction algorithm, and
+%the nature of my project.
 
-\section{Dynamic Partial-Order Reduction}
-After reading this section, you should
-understand the idea behind the dynamic
-partial-order reduction algorithm.
+Dynamic partial-order reduction is a
+specific partial-order reduction algorithm,
+which uses information gathered during its
+exploration of the state space to allow it
+to identify which instructions can be
+executed in any order and still give the
+same result. In fact, it initially assumes that
+all possible interleavings of instructions will
+give the same result, and only explores
+more interleavings if it learns that
+they are necessary.
 
-DPOR uses runtime information to identify
-equivalent interleavings. In fact, it assumes
-that all interleavings are equivalent, picks
-one arbitrarily, and takes note of backtracking
-points which might lead to un-equivalent
-interleavings, which are then explored on
-backtrack.
+The original aim of my project was to
+implement the dynamic partial-order
+reduction algorithm. This was successfully
+achieved, and various other model checking
+algorithms and techniques were also
+implemented as extensions.
 
-\section{This Project}
-After reading this section, you should
-understand the aims of my project,
-my motivation for deciding on this
-project, and have a shallow
-understanding of its success.
+I chose this
+project because I was interested to see
+how theoretical developments in computer
+science have significant practical benefits,
+and also to see how high-level mathematical
+algorithms can be implemented as real
+executable programs.
 
-The aim of this project is to implement DPOR.
+\section{This Dissertation}
+%After reading this section, you should
+%understand the aims of this dissertation.
 
-It succeeded, and went further, implementing
-a stateful version of DPOR, in which a table
-of visited states is kept, and when a state is
-re-visited, it is not re-explored. However, care
-must be taken to make sure that this approach is
-sound.
-
-I chose this project to see how theory is
-implemented in practice.
+After reading this dissertation, you should
+understand how the algorithms I implemented
+work (chapter~\ref{cha:prep}),
+how I implemented them (chapter~\ref{cha:imp}),
+and how they perform relative to one another
+(chapter~\ref{cha:evaluation}).
 
 \section{Summary}
 Having read this chapter,
 you should now understand:
 \begin{understandinglist}
 	\item that model checking is a formal
-	technique used to verify the correctness
-	of programs;
-	\item that model checking can be used in
-	practice to find bugs in software and hardware
-	implementations, and to provide evidence of
-	correctness;
+	technique used to minimise the number
+	of defects in software and hardware systems;
 	\item that the state explosion problem is the
-	exponentially increasing time required to model
-	check concurrent programs, as the number and
+	exponentially increasing cost involved in
+	fully exploring the state space of
+	concurrent programs, as the number and
 	complexity of threads increases;
-	\item that partial-order reduction and other
+	\item that partial-order reduction
 	techniques aim to address the state explosion
 	problem by exploring only a sufficient subset
 	of the state space of a given program;
-	\item that my project aimed to implement a
-	simple concurrent programming language
-	and the dynamic partial-order reduction
-	algorithm to perform model checking for
-	programs in that language; and
-	\item that this dissertation aims to give
-	you an understanding of the work I have done,
-	and of the relative merits of algorithms
-	aiming to address the state space problem.
+	\item that the main goal of my project was
+	the implementation of the dynamic partial-order
+	reduction algorithm; and
+	\item that I succeeded in meeting this goal
+	and also implemented several extensions to the
+	project.
 \end{understandinglist}
 
 \chapter{Preparation}
+\label{cha:prep}
 After reading this chapter,
 you should understand:
 \begin{understandinglist}
@@ -320,8 +406,7 @@ Local states $s$ can be thought of as comprising the instructions
 and data for each process, and the shared state $g$ can be thought
 of as a shared memory which the processes use for communication.
 
-Each process executes a sequence of operations, as
-specified in some programming language, each of which can
+Each process executes a sequence of operations, each of which can
 operate on the thread's local state $s$ or the shared
 state $g$. If an operation
 accesses $g$, it is said to be \emph{visible}, else it is said to be
@@ -1157,6 +1242,7 @@ you should now understand:
 \end{understandinglist}
 
 \chapter{Implementation}
+\label{cha:imp}
 After reading this chapter,
 you should understand:
 \begin{understandinglist}
