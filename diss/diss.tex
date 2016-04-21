@@ -204,7 +204,7 @@ mathematical analysis to increase
 the confidence that a system meets its
 specification, or shows that it does not.
 
-Model checking is a category of
+Model checking is a category of formal
 verification techniques
 that explore all possible system states in a
 brute-force manner \cite{bai08}. In particular,
@@ -240,17 +240,18 @@ suffer from what is known as the
 \textit{state explosion problem} when verifying
 concurrent systems.
 
-Consider a concurrent system system consisting
+Consider a concurrent system consisting
 of $n$ different processes, each of which
 has $k$ instructions to execute before it
-completes. Suppose that the threads are
+terminates. Suppose that the threads are
 executed asynchronously, so that the next
-process to run is always decided non-deterministically.
+process to run is always decided non-deterministically
+from all possibilities.
 How many possible different executions are there?
 That is, how many different interleavings of
 the instructions of the different threads are
 there? This problem is equivalent to deciding
-the number of permutations of $kn$ letters,
+the number of different permutations of $kn$ letters,
 where there are $n$ groups of $k$ identical
 letters. For example, if $n = 3$ and $k = 2$,
 how many different permutations of the string
@@ -285,8 +286,8 @@ to various techniques that
 reduce the number of interleavings that must
 be explored to show that the system has the
 desired property. Partial-order reduction
-is a category of such techniques, which
-exploits the fact that, in some cases, it
+is a category of such techniques which
+exploit the fact that, in some cases, it
 does not matter which instruction executes
 first. For example, if the next instruction
 of thread 0 is to write a value to shared
@@ -294,7 +295,8 @@ variable \texttt{x}, and the next instruction
 of thread 1 is to read
 the value of shared variable \texttt{y}, then
 the system will be in the same state whether
-thread 0 is next run before or after thread 1. If
+thread 0 writes to \texttt{x} and thread 1
+then reads from \texttt{y}, or vice versa. If
 it is known that the same result will be reached
 either way, then it is sufficient to check
 only one of the two options. Fully exploiting
@@ -312,7 +314,7 @@ specific partial-order reduction algorithm,
 which uses information gathered during its
 exploration of the state space to allow it
 to identify which instructions can be
-executed in any order and still give the
+executed in a different order and still give the
 same result. In fact, it initially assumes that
 all possible interleavings of instructions will
 give the same result, and only explores
