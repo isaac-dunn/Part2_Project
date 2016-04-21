@@ -3011,8 +3011,8 @@ function in the Sys module packaged with OCaml. It returns
 measurements of time only in quanta of 0.004 seconds,
 so the accuracy of the time measurements is not good for
 executions of under around 0.04 seconds.
-The precision of measurements seems
-to be good, though, with very similar results being returned
+The precision of measurements
+is good, though, with very similar results being returned
 for multiple executions of the same program. For this reason,
 I took only one measurement of each execution time, preferring
 to collect more data on different examples than to collect
@@ -3340,7 +3340,8 @@ that they are no longer independent, and the
 exponential increase begins, albeit at a lesser
 rate than that of the simple algorithm.
 Incidentally, the similarity of these performance
-graphs and those shown in \textbf{POPL'05}
+graphs and those shown in the paper introducing
+dynamic partial-order reduction \cite{flan05}
 is further evidence that the algorithm has
 been correctly implemented -- the shapes
 are identical, and the numerical
@@ -3370,8 +3371,8 @@ of four possible explanations for this behaviour:
 	performance than the DPOR algorithm, but by
 	coincidence does worse on the examples I chose.
 \end{enumerate}
-The performance of SDPOR is compared to that of DPOR
-against five benchmarks in \textbf{SDPOR PAPER},
+The paper introducing SDPOR compared its performance
+with that of DPOR against five benchmarks \cite{yang08},
 which suggests that the third reason is less likely.
 The fact that one of these benchmarks is an instance
 of the bounded-buffer problem (albeit one that
