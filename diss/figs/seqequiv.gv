@@ -1,17 +1,16 @@
 digraph SeqEquiv {
     rankdir=LR;
-    fontname="Palatino-Italic";
     node [shape=circle, fixedsize=true, label=""];
-    edge [fontname="Palatino-Italic"];
+    edge [fontname="Palatino"];
     dots1, dots2 [shape=none, label="..."];
 
-    init -> dots1 [label=<&#960;<sub>0</sub>>];
+    init -> dots1 [label=<<i>&#960;</i><sub>0</sub>>];
     dots1 -> 0;
-    0 -> 1 [label=<&#960;<sub>i</sub>>];
-    0 -> 2 [label=<&#960;<sub>i+1</sub>>];
-    1 -> 12 [label=<&#960;<sub>i+1</sub>>];
-    2 -> 12 [label=<&#960;<sub>i</sub>>];
+    0 -> 1 [label=<<i>&#960;</i><sub><i>i</i></sub>>];
+    0 -> 2 [label=<<i>&#960;</i><sub><i>i</i>+1</sub>>];
+    1 -> 12 [label=<<i>&#960;</i><sub><i>i</i>+1</sub>>];
+    2 -> 12 [label=<<i>&#960;</i><sub><i>i</i></sub>>];
     12 -> dots2
-    dots2 -> final [label=<&#960;<sub>n-1</sub>>];
+    dots2 -> final [label=<<i>&#960;</i><sub><i>n</i>&ndash;1</sub>>];
 
 }
