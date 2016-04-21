@@ -2762,12 +2762,22 @@ practice without being known to be
 sound.
 
 \subsection{Evidence for Soundness}
-While any program of a reasonable size
-is extremely likely to contain bugs
-\textbf{[citation]}, I believe that
+Any program of a reasonable size is very
+likely to contain bugs. Industry average
+is about 1 to 25 errors per thousand lines
+of delivered code \cite{mccon04}, my project
+consists of at least 3,250 lines of
+code\footnote{Computed using
+	\texttt{\,find .\@ -name
+		\textquoteleft*.ml\textquoteright
+		| xargs wc -l}},
+and there is no reason to think that I would
+produce fewer errors than the average
+professional software developer.
+However, I believe that
 on the balance of probabilities,
-all remaining bugs in my project will
-probably relate
+all remaining bugs in my project
+are likely to relate
 to functionality not necessary for
 soundness. For instance, I would
 not be surprised to learn that there
@@ -2776,19 +2786,19 @@ function for PL, whereas I would be
 surprised if such a bug existed in
 my implementation of the DPOR
 algorithm. There are two main reasons
-for this belief: my testing process,
-and my understanding of the
-algorithms involved.
+for this belief: my review and understanding
+of the code, and my testing process.
 
-\subsubsection{Examination of Source Code}
+\subsubsection{Review of Source Code}
 OCaml is a very high-level language, so
 its use allowed me to keep the source code
 relatively simple. As a result,
 the correspondence between
 the published pseudocode for an algorithm
-and my source code implementing it was
-as clear as possible, meaning that it
-is possible to convince yourself that
+and my source code implementing it is
+relatively simple, meaning that it
+is possible to greatly increase
+your confidence that
 the implementation is correct by simply
 comparing the two. In the development
 process, I spent a lot of time trying
@@ -2796,9 +2806,8 @@ to find ways in which my programs did
 not match the pseudocode; at the end
 of the development process, I can be
 reasonably confident that any differences
-in semantics
-(apart from perhaps very subtle ones)
-have been found. This is especially
+in semantics have been found.
+This is especially
 true for the simple model checker,
 due to its simplicity.
 
@@ -2837,10 +2846,10 @@ in any of the test cases, then,
 assuming that these test cases cover a
 varied and representative selection
 of systems to be verified,
-the bug must be very obscure.
+the bug must be obscure.
 
 \subsection{Model Checking In Practice}
-Even if I think it is unlikely, it is
+Even if I think it unlikely, it is
 certainly possible that there is a subtle
 bug in my project which results in its
 unsoundness; it may report a transition system
@@ -3001,7 +3010,8 @@ The execution times were measured using the \texttt{time}
 function in the Sys module packaged with OCaml. It returns
 measurements of time only in quanta of 0.004 seconds,
 so the accuracy of the time measurements is not good for
-executions of under 0.04 seconds. The precision of measurements seems
+executions of under around 0.04 seconds.
+The precision of measurements seems
 to be good, though, with very similar results being returned
 for multiple executions of the same program. For this reason,
 I took only one measurement of each execution time, preferring
