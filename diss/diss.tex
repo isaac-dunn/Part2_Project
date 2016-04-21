@@ -2553,6 +2553,30 @@ simple model checking algorithm and
 the dynamic partial-order reduction
 algorithm.
 
+To implement sleep sets, I adapted my
+code for the simple model-checking
+algorithm as shown in figure~\ref{fig:sleep-code},
+which is adapted from pseudocode
+given by Godefroid \cite{god96}, the main
+difference being that Godefroid uses
+iteration and an explicit stack, rather
+than recursion. As usual, I used a
+library hash table implementation,
+and used lists of process identifiers
+to represent sleep sets, since one
+integer takes up much less memory
+than one representation of a transition,
+while providing sufficient information
+for this purpose.
+
+Applying the sleep-set technique to the
+dynamic partial-order reduction
+algorithm involves keeping track of the
+sleep sets in the same way, and never
+adding backtracking points for
+processes that are in the sleep set
+of the relevant state.
+
 \begin{figure}
 	\begin{algorithmic}[1]
 		\Let{$H$}{an empty hash table mapping
@@ -2560,14 +2584,14 @@ algorithm.
 		\State
 		\Procedure{Check}{$\sigma,\, \textit{Sleep}$}
 			\If{$\sigma \not \in H$}
-				\State add $(\sigma, \textit{Sleep})$ to $H$
+				\State add $(\sigma, \textit{Sleep})$ to $H$;
 				\State$T := \textit{enabled}(\sigma)
 					\setminus \textit{Sleep}$
 			\Else
 				\State$T := H(\sigma) \setminus
-					\textit{Sleep}$
+					\textit{Sleep}$;
 				\State $\textit{Sleep} := \textit{Sleep}
-					\cap H(\sigma)$
+					\cap H(\sigma)$;
 				\State $H(\sigma) := \textit{Sleep}$
 			\EndIf
 			\ForAll{$t \in T$}
@@ -2575,13 +2599,17 @@ algorithm.
 					$\sigma \xrightarrow{t} \sigma'$}
 				\Let{$\textit{Sleep}'$}{$\{t' \in \textit{Sleep}
 					\mid t' \text{ is independent with } t\}$}
-				\State\Call{Check}{$\sigma',\, \textit{Sleep}'$}
+				\State\Call{Check}{$\sigma',\, \textit{Sleep}'$};
+				\State $\textit{Sleep} := \textit{Sleep} \cup \{t\}$
 			\EndFor
 		\EndProcedure
 		\State
 		\State Initially: \Call{Check}{$\sigma_0,\, \emptyset$}
 	\end{algorithmic}
-	\caption{Simple model checker with sleep sets}
+	\caption[The sleep sets algorithm.]
+			{The simple model-checking algorithm with sleep sets.
+				$H(\sigma)$ refers to the set of states stored
+				in $H$ for $\sigma$.}
 	\label{fig:sleep-code}
 \end{figure}
 
