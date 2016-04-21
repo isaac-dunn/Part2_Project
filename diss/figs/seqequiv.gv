@@ -2,6 +2,7 @@ digraph SeqEquiv {
     rankdir=LR;
     fontname="Palatino-Italic";
     node [shape=circle, fixedsize=true, label=""];
+    edge [fontname="Palatino-Italic"];
     dots1, dots2 [shape=none, label="..."];
 
     init -> dots1 [label=<&#960;<sub>0</sub>>];
