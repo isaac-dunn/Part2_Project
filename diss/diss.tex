@@ -1268,10 +1268,10 @@ you should now understand:
 After reading this chapter,
 you should understand:
 \begin{understandinglist}
+	\item the software development approach
+	I used;
 	\item the high-level structure and
 	organisation of my project;
-	\item the software development approach
-	I used in developing the project;
 	\item the decisions I made
 	when designing and implementing
 	the programming language used
@@ -1282,15 +1282,49 @@ you should understand:
 	algorithms in the project.
 \end{understandinglist}
 
-\section{Design of the Software}
-After reading this section, you
-should understand the high-level
-design decisions I made in the
-development of the project, and
-the reasoning behind them.
-\bigskip
 
-\noindent
+\section{Software Engineering}
+After reading this section, you should
+understand how I approached the
+development of a project of this
+size, and what the high-level
+structure of the project software is.
+
+\subsection{Development Strategy}
+I used what can be described as an
+\textit{incremental} approach to the
+development of my project. That is,
+I broke the end goal down into
+several subgoals, then I effectively
+used miniature versions of the waterfall
+strategy to implement each subgoal. That
+is, for my next target, I would make sure
+I knew exactly what the target was, then
+I would implement it, and then I would
+test it.
+I chose this incremental approach
+because it allowed me to focus on one
+small goal at a time, made it easy for
+me to frequently test new components as
+they were built, and gradually built up
+to a working project.
+
+My first subgoal was to design
+a simple programming language and write an interpreter
+for it; my next was to design and implement
+a concurrent language
+by using the sequential language to
+specify code for different threads;
+my next (which was not in my original plan but
+the need for it became apparent) was to write
+a parser for the language; next was to implement
+the simple model-checking algorithm; and the
+last task before reaching the goal was to
+implement the DPOR algorithm. I also implemented
+each extension as an increment.
+
+
+\subsection{Structure of the Project}
 The project was implemented in OCaml, which
 offers a few key advantages:
 \begin{itemize}
@@ -1308,15 +1342,14 @@ offers a few key advantages:
 I took particular advantage of the module system when
 designing and implementing the project. OCaml modules
 are used to encapsulate related definitions and hide
-information -- \emph{signatures} are software interfaces
+information---\emph{signatures} are software interfaces
 providing declarations,
 and \emph{structures} are implementations which 
 provide definitions. A structure \emph{matches} a
 signature if it has a definition for each declaration
 in the signature. \emph{Functors} can be thought of
-as functions from structures to structures. If a
-module matches a given signatures, then it can be
-passed to a functor to give a new structure.
+as functions from structures matching a
+particular signature to structures matching another.
 
 \begin{figure}
 	\centering
@@ -1332,8 +1365,10 @@ passed to a functor to give a new structure.
 		\centering
 		\includegraphics[height=12cm]{functors}
 		\caption{Diagram showing generation of
-			structures using functors. The blue files must be provided;
-			the functors are part of this project; the remaining files
+			structures using functors.
+			The shaded files must be provided,
+			the functors are part of my project,
+			and the remaining files
 			are generated using the functors.}
 		\label{fig:functors}
 	\end{subfigure}
@@ -1348,11 +1383,11 @@ In the project, there are five main signatures:
 	contains information about the structure of expressions
 	in the programming language of interest;
 	\item a structure that matches \emph{Store}
-	implements a store (i.e. a mapping from locations
-	to expressions) for some implementation of \emph{Expression};
+	implements a mapping from locations
+	to expressions for some implementation of \emph{Expression};
 	\item a structure that matches \emph{Thread} contains
-	the information about the semantics of expressions
-	for a programming language;
+	the information about the semantics
+	of the programming language;
 	\item a structure that matches \emph{Program}
 	contains declarations relating to
 	transition systems as expressed in some programming
@@ -1370,12 +1405,14 @@ my project to perform model checking for programs
 in any other language, the work that would have to
 be done would be minimal. In particular, given implementations
 of \emph{Expression} and \emph{Thread} (effectively
-specifying the semantics of a programming language), my system uses
+specifying the syntax and semantics of a programming
+language), my system uses
 functors to automatically generate implementations of
 \emph{Store}, \emph{Program} and \emph{Checker}, the
 last of which can then be used to immediately perform
 model checking. This process is shown explicitly in
-figure~\ref{fig:functors}.
+figure~\ref{fig:functors} for
+a hypothetical language called NL.
 
 \section{Development of Project Language}
 \label{sec:language}
