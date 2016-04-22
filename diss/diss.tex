@@ -1414,26 +1414,20 @@ model checking. This process is shown explicitly in
 figure~\ref{fig:functors} for
 a hypothetical language called NL.
 
-\section{Development of Project Language}
+\section{Development of the Project Language}
 \label{sec:language}
 After reading this section, you should
-understand the process of designing
-and implementing the programming
+understand how I designed
+and implemented the programming
 language in which the programs to
-be model checked are written,
-including the reasoning behind
-the decisions I made.
+be model checked are written.
 
 \subsection{Language Design}
-\textbf{First, the language had to be designed.
-	Explain design choices, give sense of what
-	the language is, maybe an example program,
-	and point to the appendix for a full definition.}
-
-Although, as mentioned above, any programming language
+Although, as mentioned above, any concurrent
+thread-based programming language
 could be used to express transition systems for model
 checking, I chose to design and implement a simple
-ML-like language, PL (Project Language), to avoid
+ML-like language, PL (short for Project Language), to avoid
 the unnecessary complexity of implementing a full
 industrial language.
 The grammar for valid PL expressions is given in
@@ -1487,8 +1481,8 @@ figure~\ref{fig:pl-expressions}.
 			$\{\textit{loc}_0, \textit{loc}_1, \textit{loc}_2, \ldots\}$ \\
 		\textit{global} & $\in$ &
 			$\{\textit{glo}_0, \textit{glo}_1, \textit{glo}_2, \ldots\}$ \\
-		\textit{spinlock} & $\in$ &
-			$\{\textit{spin}_0, \textit{spin}_1, \textit{spin}_2, \ldots\}$ \\
+		\textit{lock} & $\in$ &
+			$\{\textit{lock}_0, \textit{lock}_1, \textit{lock}_2, \ldots\}$ \\
 		\textit{var} & $\in$ & $\{x, y, z, \ldots\}$ \\
 		& & \\
 	\end{tabular}
@@ -1497,16 +1491,25 @@ figure~\ref{fig:pl-expressions}.
 \end{figure}
 
 As required by the \emph{Thread} interface, each
-PL thread has access to both its local store $s$
-and the global store $g$. Both $s$ and $g$ are
+PL thread has access to both its local store
+$s$\footnote{Note that
+	here, $s$ is not the full local state
+	as defined in chapter~\ref{cha:prep},
+	because it does not include the instructions
+	for the thread. An (expression, store) pair
+	gives the full local state.}
+and the shared store $g$. Both $s$ and $g$ are
 maps from locations to expressions.
 To express the semantics
-of PL, then, we need to give whether or not an
+of PL, then, we need to decide whether an
 expression $e$ reduces for local store $s$ and
 global store $g$, and if it does, we need to give
 the expression $e'$ that it reduces to in one ``step'',
 as well as any updates to $s$ and $g$ that result.
-Note that each such ``step'' is assumed to be atomic.
+Each such step is assumed to be atomic, so care
+must be taken to ensure that each step really is
+atomic, else race conditions could exist that would
+not be found by a model checker.
 The semantics of PL expressions are as you would expect
 (see appendix~\ref{app:pl-def} for a full definition), but
 the rules for the reduction of expressions that interact
@@ -1514,25 +1517,28 @@ with the global store $g$ are given in figure~\ref{fig:pl-rules}.
 
 \begin{figure}
 	\begin{gather*}
-		\frac{g(\textit{spin}) = \textbf{false}}
-		{(\textbf{lock}\ \textit{spin},\ s,\ g)
-			\longrightarrow (\textbf{skip},\ s,\
-			g[\textit{spin} \mapsto \textbf{true}])} \\
+		\frac{g(\textit{glo}_i) = e}
+		{(!\textit{glo}_i,\ s,\ g) \longrightarrow (e,\ s,\ g)} \\
 		\\
-		\frac{g(\textit{spin}) = \textbf{true}}
-			{(\textbf{unlock}\ \textit{spin},\ s,\ g)
-				\longrightarrow (\textbf{skip},\ s,\
-				g[\textit{spin} \mapsto \textbf{false}])} \\
-		\\
-		\frac{g(\textit{glo}) = e_\textit{curr}}
-			 {(\textbf{cas}(\textit{glo},\, e_\textit{curr},\, e_\textit{new})
+		\frac{g(\textit{glo}_i) = e_\textit{curr}}
+			 {(\textbf{cas}(\textit{glo}_i,\, e_\textit{curr},\, e_\textit{new})
 			 	,\ s,\ g) \longrightarrow (\textbf{true},\ s,
-			 	\ g[\textit{glo} \mapsto e_\textit{new}])} \\
+			 	\ g[\textit{glo}_i \mapsto e_\textit{new}])} \\
 		\\
-		\frac{g(\textit{glo}) \neq e_\textit{curr}}
-			{(\textbf{cas}(\textit{glo},\, e_\textit{curr},\, e_\textit{new})
+		\frac{g(\textit{glo}_i) \neq e_\textit{curr}}
+			{(\textbf{cas}(\textit{glo}_i,\, e_\textit{curr},\, e_\textit{new})
 				,\ s,\ g) \longrightarrow
-				(\textbf{false},\ s,\ g)} 
+				(\textbf{false},\ s,\ g)} \\
+		\\
+		\frac{g(\textit{lock}_i) = \textbf{false}}
+		{(\textbf{lock}\ \textit{lock}_i,\ s,\ g)
+			\longrightarrow (\textbf{skip},\ s,\
+			g[\textit{lock}_i \mapsto \textbf{true}])} \\
+		\\
+		\frac{g(\textit{lock}_i) = \textbf{true}}
+		{(\textbf{unlock}\ \textit{lock}_i,\ s,\ g)
+			\longrightarrow (\textbf{skip},\ s,\
+			g[\textit{lock}_i \mapsto \textbf{false}])} \\
 	\end{gather*}
 	\caption{Rules for the atomic reduction of PL
 		expressions that interact with the shared store.}
@@ -1551,12 +1557,12 @@ correct decision.
 \subsection{Parser}
 On the other hand, I decided that investing time in creating a
 parser for PL would pay itself off over the course of the project.
-This allows me to write, for example,
+A parser allowed me to write, for example,
 \begin{align*}
 	\texttt{let y = ref 1 in cas(Gx, 7 * !y - 3, 0)},
 \end{align*}
 instead of having to type the OCaml meta-language abstract
-syntax tree representing the structure of the Pl expression:
+syntax tree representing the structure of the PL expression:
 \begin{align*}
 	\texttt{Let (Ref (Integer}& \texttt{ 1), Cas (Global "x",
 		Op (Op (Integer 7,} \\ \texttt{Mult,}& \texttt{ Deref (Var 0)), Minus, Integer 3),
@@ -1564,7 +1570,7 @@ syntax tree representing the structure of the Pl expression:
 \end{align*}
 Writing such expressions is not only extremely time-consuming but
 also error-prone. For the language to be of any practical use,
-a parser is a necessity.
+a parser was a necessity.
 
 To create a parser for PL, two program generators were used:
 OCamllex and Menhir. When presented with a
@@ -1574,7 +1580,7 @@ of characters into a sequence of tokens. When presented with a
 grammar and a set of precedence rules, Menhir produces a parser,
 which converts a sequence of tokens into an abstract syntax tree
 of the grammar. These were used in conjunction, as shown in
-figure~\ref{fig:parsing}, to produce a PL parser.
+figure~\ref{fig:parsing}, to produce a full PL parser.
 
 \begin{figure}
 	\centering
