@@ -3083,18 +3083,18 @@ that is ``typical'' for verification by model
 checking. I have therefore had to pick some
 example programs for which to analyse the performance
 of my project. For each of these programs, I varied
-some test parameter, normally the number of threads
-used, and recorded for each algorithm
+some test parameter---normally the number of threads
+used---and recorded for each algorithm
 both the number of (not necessarily unique) transitions
 explored, which is a measure of how successful
 the algorithm is in addressing the state
-explosion problem in this instance, and also
+explosion problem for the given case, and also
 the execution time, which is really the bottom
 line.
 
 The four programs I picked were:
 \begin{enumerate}
-	\item the simplest example program imaginable, where
+	\item the simplest example program I could think of, where
 	each thread repeatedly accesses the same location
 	for no reason,
 	to see how the algorithms behaved in this special
@@ -3103,7 +3103,8 @@ The four programs I picked were:
 	with one producer and one consumer, to see how
 	the algorithms performed in this well-known
 	and useful example;
-	\item the ``Indexer'' example from \textbf{POPL'05},
+	\item the ``Indexer'' example used in the paper
+	that introduced dynamic partial-order reduction \cite{flan05},
 	to allow comparison with the published results, and
 	to see how DPOR behaves when the conditions are
 	favourable; and
@@ -3120,8 +3121,10 @@ so the accuracy of the time measurements is not good for
 executions of under around 0.04 seconds.
 The precision of measurements
 is good, though, with very similar results being returned
-for multiple executions of the same program. For this reason,
-I took only one measurement of each execution time, preferring
+for multiple executions of the same program.
+having established this,
+I therefore took only one measurement
+of each execution time, preferring
 to collect more data on different examples than to collect
 redundant data on the same example.
 
@@ -3137,8 +3140,9 @@ to represent the fastest possible execution, since
 $\log(0)$ is undefined.
 
 If an algorithm failed to terminate after around
-100 seconds, I abandoned its execution, explaining
-the incomplete data for some algorithms in some cases.
+100 seconds, I abandoned its execution,
+resulting in incomplete data
+for some algorithms in some cases.
 
 \begin{figure}
 	\includegraphics[width=\textwidth]{key}
@@ -3297,9 +3301,9 @@ the test variable.
 \end{figure}
 
 \subsubsection{Example 3 -- Indexer}
-This example is taken from figure 1 of
-\textbf{POPL'05},
-where the code can be seen.
+This example is taken from
+the paper that introduced DPOR,
+where the code can be seen \cite[figure~1]{flan05}.
 Each thread ``receives'' a number of
 ``messages'' from a \texttt{getmsg}
 procedure, each of which is inserted
@@ -3322,11 +3326,11 @@ next free slot is used instead.
 \end{figure}
 
 \subsubsection{Example 4 -- File System}
-This example is taken from figure 7 of
-\textbf{POPL'05},
-where the code can be seen.
+This example is taken from
+the paper that introduced DPOR,
+where the code can be seen \cite[figure~7]{flan05}.
 Based an idiom found in the Frangipani file
-system, each thread searches for a free
+system \cite{thek97}, each thread searches for a free
 ``disk block'' for an ``inode'' to point
 to. Mutual exclusion is again achieved using
 locks.
@@ -3369,7 +3373,7 @@ a bigger saving is made.
 The benefit also increases when there are more
 threads sharing each shared object, which I
 believe is due to a quirk in my implementation
-of stores: because I implement stores as
+of stores: because I implemented stores as
 (\textit{object}, \textit{value}) lists,
 and updates simply
 add a new pair to the start of the list,
@@ -3458,12 +3462,7 @@ translation of the example into PL.
 \subsubsection{Stateful Dynamic Partial-Order Reduction}
 In every case presented above, the SDPOR algorithm
 explores at least as many transitions as the DPOR
-algorithm, and in some cases many more. This must
-be because the visible operation dependency graph
-mechanism for conservatively added backtracking
-points whenever the search is cut short at a
-revisited state is being too conservative to be
-of practical value in these cases. I can think
+algorithm, and in some cases many more. I can think
 of four possible explanations for this behaviour:
 \begin{enumerate}
 	\item the `quirk' that worsened the performance
@@ -3488,7 +3487,7 @@ just one of each) suggests that the fourth reason
 is also less likely. The first reason is certainly
 possible: it could be that by failing to notice
 when some states are revisited, the algorithm's
-advantages are lost, leaving only its overhead
+advantages are lost, leaving only its substantial
 costs.
 The second reason is also possible:
 while I can not see where any
@@ -3541,7 +3540,7 @@ Flanagan and Godefroid note that
 	$\textit{next}(\textit{pre}(\pi, i), q)$ before
 	$\textit{next}(\sigma, p)$ is executed;
 	this optimization is captured exactly
-	by sleep sets.
+	by sleep sets. \cite{flan05}
 \end{quote}
 
 \subsubsection{Static Partial-Order Reduction}
@@ -3632,14 +3631,15 @@ transitions explored. This again
 suggests that I might not have
 correctly implemented the algorithm.
 
-In the \textbf{SDPOR PAPER}, they
-introduce and use a light-weight
+As well as introducing SDPOR, Yang et al.\@
+also introduced a light-weight
 scheme for capturing the local states of
 threads (based on storing only changes
 to the stores, rather than the full stores
-every time), which I decided not to
-implement for time reasons. However,
-this should not affect the correctness
+every time), to be used in conjunction with
+SDPOR. Although I decided not to
+implement this for time reasons,
+it should not affect the correctness
 of SDPOR, nor the numbers of transitions
 is explores, and I would be surprised
 to learn that not using this technique
@@ -3664,15 +3664,15 @@ implementing sleep sets can be clearly
 seen in figure~\ref{fig:repeated-access-time}.
 However, in the other examples, these
 small costs are insignificant compared
-to the huge benefits of using sleep
+to the considerable benefits of using sleep
 sets.
 
 \subsubsection{Static Partial-Order Reduction}
 The extra work done at per transition
 in implementing my SPOR
 algorithm is deliberately little
-(see section~\ref{sec:spor-imp}).
-Execution times are more or less proportional
+(see section~\ref{sec:spor-imp}), so
+execution times are more or less proportional
 to the number of transitions explored.
 
 \section{Summary}
@@ -3692,9 +3692,26 @@ you should now understand:
 
 \chapter{Conclusions}
 
-Set out to implement DPOR and succeeded, also implementing
-stateful, SDPOR, sleep sets, SPOR, counter-example traces.
+\section{Successes}
 
+
+Met goals. Did extensions. Mostly correct.
+Stuck to timetable.
+Learnt lots, was interesting.
+
+\section{Regrets}
+
+\begin{itemize}
+	\item SDPOR---ideally would have worked better
+	\item SPOR---ideally would have time to do legit one
+	\item locks---classic design error, should have thought in advance
+\end{itemize}
+
+\section{Extensions}
+Read/write sensitivity.
+Actual programming language.
+Research, implement and compare more
+recent developments.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the bibliography
