@@ -3699,23 +3699,112 @@ you should now understand:
 
 \section{Successes}
 
+As well as meeting the aims of the
+project ahead of schedule, I also
+managed to implement several
+extensions, allowing an
+interesting quantitative
+comparison of various
+model-checking algorithms
+and partial-order techniques.
+I also gained experience of
+reading relatively dense academic
+writing, learnt the skill of
+translating such writing into
+executable programs, and
+improved my understanding
+of how theoretical developments
+in computer science affect the
+everyday realities of the
+software industry.
 
-Met goals. Did extensions. Mostly correct.
-Stuck to timetable.
-Learnt lots, was interesting.
+Perhaps most importantly,
+I am glad I decided on the
+project that I did, and
+I have (mostly) enjoyed
+developing a significant
+software system independently
+for the first time.
 
 \section{Regrets}
 
-\begin{itemize}
-	\item SDPOR---ideally would have worked better
-	\item SPOR---ideally would have time to do legit one
-	\item locks---classic design error, should have thought in advance
-\end{itemize}
+Although the development
+process went mostly to
+plan, the incremental
+strategy that I used
+allowed me to overlook
+an aspect of the system
+design that became
+issues in later
+increments, as I mentioned
+in section~\ref{sec:lock-difficulties}.
+More time spent designing
+the software before jumping
+in with the implementation
+(as is so tempting) would
+have been beneficial.
+
+It would have been interesting
+to see how the DPOR algorithm
+compared to full-strength
+static partial-order reduction
+algorithms, as opposed to the
+poor one that I came up with.
+Ideally, I should have
+timetable in time to research
+and implement one of these
+algorithms, which would have
+allowed a fuller analysis
+of the benefits of DPOR.
+
+I only realised that there was
+something wrong with my
+implementation of the SDPOR
+algorithm when recording
+data for use in the
+evaluation chapter of this
+dissertation, by which time
+it was too late to fix.
+Ideally, I would have
+evaluated its performance
+earlier on, rather than just
+its soundness, to ensure that
+my implementation was behaving
+as expected.
 
 \section{Extensions}
-Read/write sensitivity.
-Actual programming language.
-Research, implement and compare more
+Instead of assuming that any
+two processes that access the
+same object must be dependent,
+it is possible to distinguish
+between reads and writes to
+shared object, allowing
+two reads to be identified
+as independent.
+Flanagan and Godefroid suggest
+that this could be implemented
+by keeping two clock vectors per
+shared object---one for reads and
+the other for writes \cite{flan05}.
+It would
+be interesting to implement
+this algorithm and evaluate its
+performance in relation to the
+algorithm I implemented.
+
+It would also be interesting
+to use my system to check
+programs written in a widely-used
+language. As mentioned previously,
+the only work necessary for this
+is implementations of my
+\textit{Expression} and
+\textit{Thread} signatures.
+
+Dynamic partial-order reduction
+was introduced in 2005. It would
+be interesting to read up on,
+implement and evaluate more
 recent developments.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
