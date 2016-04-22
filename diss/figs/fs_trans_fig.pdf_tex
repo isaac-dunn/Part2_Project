@@ -36,7 +36,7 @@
   }%
   \providecommand\rotatebox[2]{#2}%
   \ifx\svgwidth\undefined%
-    \setlength{\unitlength}{484bp}%
+    \setlength{\unitlength}{514.4bp}%
     \ifx\svgscale\undefined%
       \relax%
     \else%
@@ -48,34 +48,22 @@
   \global\let\svgwidth\undefined%
   \global\let\svgscale\undefined%
   \makeatother%
-  \begin{picture}(1,0.81157025)%
+  \begin{picture}(1,0.70606532)%
     \put(0,0){\includegraphics[width=\unitlength,page=1]{fs_trans_fig.pdf}}%
-    \put(0.13057851,0.05487603){\makebox(0,0)[b]{\smash{0}}}%
-    \put(0.32438017,0.05487603){\makebox(0,0)[b]{\smash{5}}}%
-    \put(0.51818182,0.05487603){\makebox(0,0)[b]{\smash{10}}}%
-    \put(0.71198347,0.05487603){\makebox(0,0)[b]{\smash{15}}}%
-    \put(0.90578512,0.05487603){\makebox(0,0)[b]{\smash{20}}}%
-    \put(0.51818215,0.01663917){\makebox(0,0)[b]{\smash{Number of Threads}}}%
+    \put(0.13063764,0.04696734){\makebox(0,0)[b]{\smash{0}}}%
+    \put(0.32426128,0.04696734){\makebox(0,0)[b]{\smash{5}}}%
+    \put(0.51788491,0.04696734){\makebox(0,0)[b]{\smash{10}}}%
+    \put(0.71150855,0.04696734){\makebox(0,0)[b]{\smash{15}}}%
+    \put(0.90513219,0.04696734){\makebox(0,0)[b]{\smash{20}}}%
+    \put(0.51788523,0.0109902){\makebox(0,0)[b]{\smash{Number of Threads}}}%
     \put(0,0){\includegraphics[width=\unitlength,page=2]{fs_trans_fig.pdf}}%
-    \put(0.12,0.07933884){\makebox(0,0)[rb]{\smash{$10^{0}$}}}%
-    \put(0.12,0.21157025){\makebox(0,0)[rb]{\smash{$10^{1}$}}}%
-    \put(0.12,0.34380165){\makebox(0,0)[rb]{\smash{$10^{2}$}}}%
-    \put(0.12,0.47603306){\makebox(0,0)[rb]{\smash{$10^{3}$}}}%
-    \put(0.12,0.60826446){\makebox(0,0)[rb]{\smash{$10^{4}$}}}%
-    \put(0.12,0.74049587){\makebox(0,0)[rb]{\smash{$10^{5}$}}}%
-    \put(0.04,0.41983504){\rotatebox{90}{\makebox(0,0)[b]{\smash{Number of Transitions}}}}%
+    \put(0.12068429,0.06998445){\makebox(0,0)[rb]{\smash{$10^{0}$}}}%
+    \put(0.12068429,0.18475894){\makebox(0,0)[rb]{\smash{$10^{1}$}}}%
+    \put(0.12068429,0.29953344){\makebox(0,0)[rb]{\smash{$10^{2}$}}}%
+    \put(0.12068429,0.41430793){\makebox(0,0)[rb]{\smash{$10^{3}$}}}%
+    \put(0.12068429,0.52908243){\makebox(0,0)[rb]{\smash{$10^{4}$}}}%
+    \put(0.12068429,0.64385692){\makebox(0,0)[rb]{\smash{$10^{5}$}}}%
+    \put(0.04541213,0.36625226){\rotatebox{90}{\makebox(0,0)[b]{\smash{Number of Transitions}}}}%
     \put(0,0){\includegraphics[width=\unitlength,page=3]{fs_trans_fig.pdf}}%
-    \put(0.6446281,0.28306165){\makebox(0,0)[lb]{\smash{Simple}}}%
-    \put(0,0){\includegraphics[width=\unitlength,page=4]{fs_trans_fig.pdf}}%
-    \put(0.6446281,0.25069653){\makebox(0,0)[lb]{\smash{Stateful Simple}}}%
-    \put(0,0){\includegraphics[width=\unitlength,page=5]{fs_trans_fig.pdf}}%
-    \put(0.6446281,0.21833141){\makebox(0,0)[lb]{\smash{Simple with Sleep}}}%
-    \put(0,0){\includegraphics[width=\unitlength,page=6]{fs_trans_fig.pdf}}%
-    \put(0.6446281,0.18596612){\makebox(0,0)[lb]{\smash{DPOR}}}%
-    \put(0,0){\includegraphics[width=\unitlength,page=7]{fs_trans_fig.pdf}}%
-    \put(0.6446281,0.15360099){\makebox(0,0)[lb]{\smash{SDPOR}}}%
-    \put(0,0){\includegraphics[width=\unitlength,page=8]{fs_trans_fig.pdf}}%
-    \put(0.6446281,0.12123587){\makebox(0,0)[lb]{\smash{DPOR with Sleep \quad}}}%
-    \put(0,0){\includegraphics[width=\unitlength,page=9]{fs_trans_fig.pdf}}%
   \end{picture}%
 \endgroup%

@@ -36,7 +36,7 @@
   }%
   \providecommand\rotatebox[2]{#2}%
   \ifx\svgwidth\undefined%
-    \setlength{\unitlength}{484bp}%
+    \setlength{\unitlength}{514.4bp}%
     \ifx\svgscale\undefined%
       \relax%
     \else%
@@ -48,23 +48,27 @@
   \global\let\svgwidth\undefined%
   \global\let\svgscale\undefined%
   \makeatother%
-  \begin{picture}(1,0.81157025)%
+  \begin{picture}(1,0.70606532)%
     \put(0,0){\includegraphics[width=\unitlength,page=1]{indexer_trans_fig.pdf}}%
-    \put(0.13057851,0.05487603){\makebox(0,0)[b]{\smash{0}}}%
-    \put(0.32438017,0.05487603){\makebox(0,0)[b]{\smash{5}}}%
-    \put(0.51818182,0.05487603){\makebox(0,0)[b]{\smash{10}}}%
-    \put(0.71198347,0.05487603){\makebox(0,0)[b]{\smash{15}}}%
-    \put(0.90578512,0.05487603){\makebox(0,0)[b]{\smash{20}}}%
-    \put(0.51818215,0.01663917){\makebox(0,0)[b]{\smash{Number of Threads}}}%
+    \put(0.13063764,0.04696734){\makebox(0,0)[b]{\smash{0}}}%
+    \put(0.22744946,0.04696734){\makebox(0,0)[b]{\smash{2}}}%
+    \put(0.32426128,0.04696734){\makebox(0,0)[b]{\smash{4}}}%
+    \put(0.42107309,0.04696734){\makebox(0,0)[b]{\smash{6}}}%
+    \put(0.51788491,0.04696734){\makebox(0,0)[b]{\smash{8}}}%
+    \put(0.61469673,0.04696734){\makebox(0,0)[b]{\smash{10}}}%
+    \put(0.71150855,0.04696734){\makebox(0,0)[b]{\smash{12}}}%
+    \put(0.80832037,0.04696734){\makebox(0,0)[b]{\smash{14}}}%
+    \put(0.90513219,0.04696734){\makebox(0,0)[b]{\smash{16}}}%
+    \put(0.51788523,0.0109902){\makebox(0,0)[b]{\smash{Number of Threads}}}%
     \put(0,0){\includegraphics[width=\unitlength,page=2]{indexer_trans_fig.pdf}}%
-    \put(0.12,0.07933884){\makebox(0,0)[rb]{\smash{$10^{0}$}}}%
-    \put(0.12,0.18953174){\makebox(0,0)[rb]{\smash{$10^{1}$}}}%
-    \put(0.12,0.29972446){\makebox(0,0)[rb]{\smash{$10^{2}$}}}%
-    \put(0.12,0.40991736){\makebox(0,0)[rb]{\smash{$10^{3}$}}}%
-    \put(0.12,0.52011025){\makebox(0,0)[rb]{\smash{$10^{4}$}}}%
-    \put(0.12,0.63030298){\makebox(0,0)[rb]{\smash{$10^{5}$}}}%
-    \put(0.12,0.74049587){\makebox(0,0)[rb]{\smash{$10^{6}$}}}%
-    \put(0.04,0.41983504){\rotatebox{90}{\makebox(0,0)[b]{\smash{Number of Transitions}}}}%
+    \put(0.12068429,0.06998445){\makebox(0,0)[rb]{\smash{$10^{0}$}}}%
+    \put(0.12068429,0.16562986){\makebox(0,0)[rb]{\smash{$10^{1}$}}}%
+    \put(0.12068429,0.26127527){\makebox(0,0)[rb]{\smash{$10^{2}$}}}%
+    \put(0.12068429,0.35692068){\makebox(0,0)[rb]{\smash{$10^{3}$}}}%
+    \put(0.12068429,0.4525661){\makebox(0,0)[rb]{\smash{$10^{4}$}}}%
+    \put(0.12068429,0.54821151){\makebox(0,0)[rb]{\smash{$10^{5}$}}}%
+    \put(0.12068429,0.64385692){\makebox(0,0)[rb]{\smash{$10^{6}$}}}%
+    \put(0.04541213,0.36625226){\rotatebox{90}{\makebox(0,0)[b]{\smash{Number of Transitions}}}}%
     \put(0,0){\includegraphics[width=\unitlength,page=3]{indexer_trans_fig.pdf}}%
   \end{picture}%
 \endgroup%

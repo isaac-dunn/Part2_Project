@@ -16,17 +16,16 @@ semilogy(threads, transitions(:, 6), 'bs-')
 hold off
 grid on
 
-%% adding legend and axis labels
-set(gca, 'FontName', 'Palatino Linotype', 'FontSize', 14);
-legend({'Simple', 'Stateful Simple', 'Simple with Sleep', ...
-	'DPOR', 'SDPOR', 'DPOR with Sleep \quad'}, ...
-    'Location','southeast', 'Interpreter', 'latex');
+%% adding axis labels
+ax = gca;
+set(ax, 'FontName', 'Palatino Linotype', 'FontSize', 14);
 xlabel('Number of Items Processed');
 ylabel('Number of Transitions')
+axis([0 20 10 100000000])
+ax.YTick = [10 100 1000 10000 100000 1000000 10000000 100000000];
 
 %% output pdf file
 h = figure(1);
 h.Units = 'centimeters'; % set figure position to cm
-%h.Position(2) = [h.Position(2)-9]; % set figure position bevore resize
-h.Position([3:4]) = [16,13]; % resize figure
+h.Position([3:4]) = [17,12]; % resize figure
 Plot2LaTeX( h, 'prod_cons_trans_fig' )
