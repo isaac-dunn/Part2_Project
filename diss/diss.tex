@@ -18,6 +18,7 @@
 \usepackage{listings}
 \usepackage{subcaption}
 \usepackage[labelfont=bf]{caption}
+\usepackage[sort,nocompress]{cite} % sort multiple citations, but don't group
 
 \definecolor{dkgreen}{rgb}{0,0.6,0}
 \definecolor{grey}{rgb}{0.5,0.5,0.5}
@@ -3058,18 +3059,12 @@ concurrency bugs, takes time.
 When a bug \emph{is} found, model checking
 provides information that is likely to lead the
 developer to immediately identify its cause.
-here have been many examples of serious bugs
-which have been found using model checking
-which would not have been found until much
-later otherwise.
 
 Perhaps the best argument for the practical
-benefits of model checking, (without the
-model checker being verified)
-is the many cases where the technique has
-discovered bugs in real applications which
-had been missed by the normal testing
-process. \textbf{Give references)}
+benefits of model checking
+is its widespread practical use, with considerable
+success.
+\cite{kur08, brat04, est12, kars96, cof10, mill08}
 
 \section{Performance}
 After reading this section, you should
