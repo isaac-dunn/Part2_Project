@@ -381,7 +381,7 @@ you should understand:
 	checking is performed, in the context
 	of my project;
 	\item exactly what I mean by model checking
-	in the context of this project, and therefore
+	in the context of my project, and therefore
 	exactly what the aim of my project was;
 	\item how a simple model checking algorithm
 	works;
@@ -433,7 +433,7 @@ set of all transitions, so that
 				(\mathcal{S} \times \mathcal{G}).\]
 
 A transition $t_{p,s}$ is said to be \emph{enabled} in a state
-$(l, g)$ if and only if $l(p) = s$ and $t_{p,s}(g)$ is defined.
+$(l, g)$ if $l(p) = s$ and $t_{p,s}(g)$ is defined.
 If $t_{p,s}$ is enabled in $\sigma = (l, g)$ and 
 $t_{p,s}(g) = (s', g')$, then we say that the
 execution of $t_{p,s}$ from $\sigma$ results in the unique successor
@@ -497,16 +497,17 @@ given transition system is \emph{error-free} and
 To specify exactly what it means for a system to
 be error-free, we extend each transition system
 with a relation
-$\textit{err} : \mathcal{S} \to \mathbb{B}$, which states
+$\textit{err} : \mathcal{S} \to \mathbb{B}$, which decides
 whether, in some given state, a particular
-thread has encountered an error.
+thread has encountered an error---for example,
+an assertion failing to hold.
 We then say that a transition system
 $A = (\textit{State},\, \Delta,\, \sigma_0,\, \textit{err})$
 is
-\emph{error-free} if, for all stopped
+\emph{error-free} if, for all
 states $\sigma$ reachable from
-the initial state $\sigma_0$, if the shared store of
-$\sigma$ was different, it would still be a stopped state.
+the initial state $\sigma_0$, no thread
+has encountered an error.
 Formally,
 \[
 	\forall\, (l, g) \in \textit{State}.\; \ \sigma_0 \longrightarrow^* (l, g)
@@ -532,7 +533,9 @@ Formally,
 For our purposes, a model checking algorithm is an
 algorithm that takes a transition system and returns
 two Boolean results, indicating whether that system
-is error-free and deadlock-free. More
+is error-free and deadlock-free. The properties
+that the model-checking algorithms decide are
+therefore fixed in advance. More
 powerful concepts of model checking do exist,
 but the algorithms used in this project check
 only these less rich properties of transition
@@ -572,19 +575,19 @@ depth-first search of the reachable state space.
 	\Let{$(l, g)$}{$\sigma$}
 	\ForAll{$p \in \mathcal{P}$}
 		\If{$err(l(p))$}
-		\Return \textit{false}
+		\Return false
 		\EndIf
 	\EndFor \ForAll{$\sigma' \in \{\sigma' \mid \sigma \xrightarrow{t} \sigma' \wedge t \in \textit{enabled}(\sigma)\}$}
 		\If{$\textbf{not } \textsc{SimpleErrorFree}(\sigma')$}
-		\Return \textit{false}
+		\Return false
 		\EndIf
 	\EndFor
-	\State \Return \textit{true}
+	\State \Return true
 	\EndProcedure
 	\State
 	\State Initially: $\textsc{SimpleErrorFree}(\sigma_0)$
 	\end{algorithmic}
-	\caption{Algorithm deciding if a transition system is error-free.}
+	\caption{Algorithm deciding whether a transition system is error-free.}
 	\label{fig:simple-error-free}
 \end{figure}
 
@@ -623,16 +626,16 @@ their computations.
 			\Else
 			\ForAll{$\sigma' \in \textit{Successors}$}
 				\If{$\textbf{not } \textsc{SimpleDeadlockFree}(\sigma')$}
-					\Return \textit{false}
+					\Return false
 				\EndIf
 			\EndFor
-		\State \Return \textit{true}
+		\State \Return true
 		\EndIf
 		\EndProcedure
 		\State
 		\State Initially: $\textsc{SimpleDeadlockFree}(\sigma_0)$
 	\end{algorithmic}
-	\caption{Algorithm deciding if a transition system is deadlock-free.}
+	\caption{Algorithm deciding whether a transition system is deadlock-free.}
 	\label{fig:simple-deadlock-free}
 \end{figure}
 
@@ -672,14 +675,14 @@ all $(t_1, t_2) \not \in D$:
 		$t_2$ is enabled in $\sigma'$; and
 	\item for all states $\sigma \in \textit{State}$,
 		if both $t_1$ and $t_2$ are enabled in $\sigma$
-		then there are unique states $\sigma_1$, $\sigma_2$ and
+		then there are states $\sigma_1$, $\sigma_2$ and
 		$\sigma'$ such that
 		$\sigma \xrightarrow{t_1} \sigma_1 \xrightarrow{t_2} \sigma'$
 		and
 		$\sigma \xrightarrow{t_2} \sigma_2 \xrightarrow{t_1} \sigma'$.
 \end{enumerate}
 
-\begin{figure}[h]
+\begin{figure}
 	\centering
 	\begin{subfigure}{\textwidth}
 		\centering
@@ -716,10 +719,11 @@ search of the reachable state space
 (as the algorithms in
 section~\ref{sec:simple-model-checking} do), but at each
 state $\sigma$ they explore only a subset
-$T \subseteq \textit{enabled}(\sigma)$ of the possible transition.
+$T \subseteq \textit{enabled}(\sigma)$
+of the possible transitions.
 Of course, the subsets
 $T$ must be computed in a way such that the search
-is still sound---it must guarantee to
+is still sound---it must always
 produce the correct result.
 
 \subsubsection{Definition}
@@ -735,7 +739,7 @@ in $T$.
 
 Formally, a subset of transitions $T \subseteq \mathcal{T}$
 from a state $\sigma_1$
-is called \emph{persistent in $\sigma_1$} if and only if
+is called \emph{persistent} in $\sigma_1$ if
 for all sequences of transitions
 \[
 	\sigma_1 \xrightarrow{\ t_1\ } \sigma_2 \xrightarrow{\ t_2\ } \ldots
@@ -747,9 +751,9 @@ independent with every transition in $T$.
 \subsubsection{An Example}
 For illustration, in the state space shown in
 figure~\ref{fig:persistent}, $T = \{t_1\}$ is
-a persistent set in the initial state, as each
+a persistent set in the initial state, as every
 transition reachable following only transitions
-not in $T$ (in this case, all transitions other
+not in $T$ (in this case, every transition other
 than $t_1$) is independent with $t_1$.
 Likewise, $T = \{t_2, t_3\}$ is
 a persistent set in the initial state, as the
@@ -757,10 +761,15 @@ only transition reachable from the initial state
 without executing any transitions in $T$ is $t_1$,
 and $t_1$ is independent with both $t_2$ and $t_3$.
 However, $T = \{t_2\}$ is not a persistent set in the
-initial state, as $t_2$ and $t_3$ are not independent.
+initial state, as $t_3$ is reachable without
+executing $t_2$, but $t_2$ and $t_3$ are not independent.
+Note that the set of all enabled transitions,
+$T = \textit{enabled}(\sigma)$, is always a
+persistent set since there are no transitions
+that are reachable without executing one in $T$.
 
 As we might hope, if we choose only transitions
-in a persistent set (either $\{t_1\}$ or $\{t_2, t_3\}$)
+in a persistent set
 from the initial state to begin
 an otherwise exhaustive search of the state space, then
 both stopped states are reachable.
@@ -768,8 +777,12 @@ both stopped states are reachable.
 \begin{figure}
 	\centering
 	\includegraphics[height=9cm]{persistent1}
-	\caption{Diagram of an example state space, for
-		the illustration of persistent sets.}
+	\caption[Diagram of an example state space, for
+	the illustration of persistent sets.]
+		{Diagram of an example state space, for
+		the illustration of persistent sets. Transition
+		$t_1$ is independent with the others, which are
+		all dependent with one another.}
 	\label{fig:persistent}
 \end{figure}
 
@@ -816,8 +829,8 @@ In fact, there is no need to consider executing
 $t_1$ in our recursive exploration from $\sigma_2$
 until we execute some transition $t'$ which is
 \emph{not} independent of $t_1$, as after
-the execution of $t'$, exploring $t_1$ may
-now lead to an unexplored area of the state space.
+the execution of such a $t'$, exploring $t_1$ may
+then lead to an unexplored area of the state space.
 
 A \emph{sleep set} for a particular state
 is then the set of transitions which, when
@@ -831,7 +844,7 @@ section of the state space\footnotemark.
 The technique of
 sleep sets is orthogonal to the technique
 of persistent sets---there is no interaction
-between the two techniques, so implementing
+between the two, so implementing
 both simultaneously can be achieved with
 no extra difficulty.
 
@@ -884,7 +897,7 @@ we use the following notation:
 		--- the length of the transition sequence, $n$;}
 	\item{\makebox[\defsindent]{\hfill$\textit{pre}(\pi, i)$}
 		--- the state $\sigma_i$ (i.e. the
-		state immediately before transition $t_i$); and}
+		state immediately before transition $\pi_i$); and}
 	\item{\makebox[\defsindent]{\hfill$\textit{last}(\pi)$}
 		--- the final state, $\sigma_n$.}
 \end{itemize}
@@ -917,7 +930,7 @@ final state if the swapped transitions are independent.
 \begin{figure}
 	\centering
 	\includegraphics[width=\textwidth]{seqequiv}
-	\caption{Illustration}
+	\caption{Illustration of equivalent transition sequences.}
 	\label{fig:sequence-equivalence}
 \end{figure}
 
@@ -958,7 +971,7 @@ in every linearisation $\hat{\pi}$ of the
 happens-before relation (that is, every sequence
 obtained by swapping pairs of adjacent,
 independent transitions in $\pi$), the next
-transition that process $p$ executes in
+transition for process $p$ in
 state $\textit{pre}(\pi, i)$ is executed
 at some point before $\textit{last}(\hat{\pi})$.
 Formally, 
@@ -974,7 +987,7 @@ either
 \end{enumerate}
 
 
-\subsection{The DPOR Algorithm}
+\subsection{The Dynamic Partial-Order Reduction Algorithm}
 
 \subsubsection{Overview}
 
@@ -1090,7 +1103,8 @@ persistent set.
 	maintaining two sets of transitions: \textit{backtrack}
 	and \textit{done}. The \textit{backtrack} set contains
 	those transitions from $\sigma$ which should be explored,
-	and is initialised to any enabled transition. Recursive calls to
+	and is initialised to contained any single enabled transition.
+	Recursive calls to
 	\textsc{Explore} may add more transitions to \textit{backtrack}.
 	The \textit{done} set contains those transitions
 	in \textit{backtrack} that have been explored.
@@ -1102,7 +1116,7 @@ persistent set.
 	\item[Lines 10--12] If there is some transition that needs
 	exploring, \textsc{Explore} is recursively called with that
 	transition extending the current transition sequence $\pi$,
-	that transition is added to \textit{done}.
+	and that transition is added to \textit{done}.
 
 	\item[Line 14] The \textsc{UpdateBacktrackSets} procedure
 	can use the information that a given transition, $t_{p,s}$ can be
@@ -1162,7 +1176,7 @@ persistent set.
 \end{description}
 
 \subsubsection{Example Execution}
-An example execution will be added here, on the same example as
+An example execution could be added here, on the same example as
 figure~\ref{fig:sdpor-motivation}.
 
 \section{Preparatory Work}
@@ -1177,16 +1191,16 @@ The main work that was necessary before
 I began implementing the project was the
 development of a firm understanding of an
 area of computer science that was new to me,
-and particularly understanding the DPOR algorithm.
+and particularly an understanding the DPOR algorithm.
 I achieved this by reading the paper that
 introduced dynamic partial-order reduction \cite{flan05}
 and following
 its references to read the literature that
-first introduced the ideas used in DPOR.
+first introduced the various ideas.
 
 \subsection{Requirements Analysis}
 Having
-understood exactly what properties the
+understood precisely what properties the
 DPOR algorithm can check, I was in a
 position to decide exactly what the
 finished project should do.
@@ -1222,7 +1236,7 @@ you should now understand:
 	system is both error-free and deadlock-free
 	by exploring possible executions of the
 	system;
-	\item that a simple model checking algorithm
+	\item that the simplest model checking algorithm
 	performs an exhaustive depth-first search
 	of the state space, checking for errors and
 	deadlocks at each state encountered;
