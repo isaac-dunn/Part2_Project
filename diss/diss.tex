@@ -1601,7 +1601,7 @@ The first of these is the ``raw'' expression, which
 uses strings to represent variables (this is the
 datatype that the parser produces). However,
 manipulation of expressions is much easier when
-variables are represented using \emph{de Bruijn indices},
+variables are represented using De Bruijn indices \cite{debr72},
 which is the purpose of the second expression datatype.
 This is the only one required by the \emph{Expression}
 signature. A function exists to recursively convert
@@ -1620,19 +1620,19 @@ matching the \emph{Expression} signature,
 gives a structure matching the \emph{Store}
 signature. The \emph{Store} implementation produced
 represents stores using a simple list of
-(location, expression) pairs. If a location
+(location,~expression) pairs. If a location
 appears twice in the list, the occurrence
 nearest the head of the list is taken to be
 the correct value. A function is provided
 which walks through from head to tail and
-removes any stale pairs, which although
-linear in time, reduces the space taken
-by the list.
+removes any stale pairs---although this
+takes time linear in the length of the list,
+it reduces the space it takes up.
 
 More efficient store implementations are of
 course possible (for example, one based on
 a hash table rather than a list), but
-I went for the simplest reasonable
+I decided on the simplest reasonable
 implementation I could think of, to
 ensure correctness.
 
@@ -1640,8 +1640,9 @@ The only other function of note is
 \texttt{get\_fresh\_loc},
 which queries the \emph{Expression} \texttt{random\_loc}
 function until it returns a result which is
-unbound in the store. This is used to generate a location
-to use when a new local reference is created using the
+unbound in the store. This is used in PL
+to generate a location
+whenever a new local reference is created using the
 \textbf{ref} keyword.
 
 \subsubsection{The Thread Module}
@@ -1650,7 +1651,7 @@ the \texttt{next\_step} and \texttt{next\_transition}
 functions. The \texttt{next\_step} function uses pattern
 matching on PL expressions to determine what the next atomic
 operation, if any, to be executed in the reduction
-of the expression is. There is a close correspondence
+of an expression is. There is a close correspondence
 between the
 rules of the operational semantics (see appendix~\ref{app:pl-def})
 and the different cases in the pattern matching. This is
@@ -1714,7 +1715,7 @@ only the  \texttt{next\_step} function to be provided by
 the user, with a functor being used to automatically
 produce the \texttt{next\_transition} function. However,
 in this case, I decided that the additional design complexity
-cost was not worth the slight improvement to the abstraction
+cost was not worth the slight improvement to the generality
 of the project.
 
 \subsubsection{The Program Module}
@@ -1725,12 +1726,12 @@ functions necessary to fully represent
 transition systems (cf. section~\ref{sec:background-defs}.)
 In particular, a state $\sigma \in \textit{State}$ is
 represented by an instance of the \texttt{state} type:
-\lstinputlisting[frame=none, firstline=107, lastline=107]
+\lstinputlisting[frame=none, firstline=115, lastline=115]
 	{../src/interfaces.ml}
 
 \subsubsection{Testing}
 To ensure that the implementation of the PL
-language was correct, I wrote unit tests for
+language was correct, I wrote around twenty unit tests for
 the \texttt{next\_transition} and
 \texttt{next\_step} functions. These tests
 consisted of a series of inputs and expected outputs
@@ -1738,9 +1739,10 @@ to these functions. My aim in writing these tests
 was to ensure that most of the code was covered,
 so that any obvious bugs could be corrected
 immediately. However, I did not invest time
-making these tests very rigorous for two reasons:
+in writing exhaustive test cases for two reasons:
 any bugs found later would be relatively straightforward
-to correct, and getting the PL implementation
+to correct since they must be quite localised to avoid
+being caught by my tests, and getting the PL implementation
 fully correct was not the aim of the project, but
 just a necessary step before the main work on the
 model checking algorithms.
@@ -1755,31 +1757,34 @@ deadlock-free) are computed,
 and also how this implementation
 was tested.
 
-In order to ensure the correctness of my implementation
-of the DPOR algorithm, to have a baseline to use
-for performance comparison, and to begin by implementing
-a relatively simple model checking algorithm, I first wrote the
-SimpleChecker functor, which takes an implementation of
-\emph{Program} as its input, and outputs a structure
-which provides
-a function that performs model checking by performing
-an exhaustive depth-first search of the state space --
-the simplest possible model checking algorithm.
 
 \subsection{Implementation}
 \label{sec:simple-imp}
 
-See appendix~\ref{app:simple-code} for an illustration
-of the relationship between the actual OCaml
-code, and the pseudocode given in
-figure~\ref{fig:simple-imp-code}, which gives
-a high-level description of the algorithm,
-which performs an exhaustive depth-first
-search of the state space as outlined in
-section~\ref{sec:simple-model-checking},
-deciding at each state whether the state space
+Writing the simple model checker first allowed
+me to be more prepared when implementing the DPOR
+algorithm, and later provided a useful way of checking
+its correctness. As with all model-checking
+algorithms, I implemented the simple algorithm
+as a functor which takes an implementation of
+\textit{Program} as its input, and outputs
+a structure that matches \textit{Checker}---in
+other words, one that provides a model-checking
+function.
+
+Figure~\ref{fig:simple-imp-code} gives a high-level
+description of the model-checking algorithm I
+implemented. As outlined in
+section~\ref{sec:simple-model-checking}, it
+performs an exhaustive depth-first
+search of the state space,
+recursively deciding at each
+state whether the state space
 from the current state onwards is error-free
 and deadlock-free.
+Appendix~\ref{app:simple-code} shows the
+correspondence between this pseudocode
+and my actual OCaml function.
 
 \subsubsection{Detecting Errors}
 
@@ -1877,9 +1882,9 @@ better to catch them as soon as possible,
 when it would be easiest to identify the
 causes.
 
-Each simply gave a PL program,
-ran the simple model checker on it, and
-raised a flag if the result was not as
+Each test ran the simple model checker
+on a PL program, and
+warned if the result was not as
 I expected. It wasn't difficult to
 provide high code coverage of this
 relatively simple algorithm. Along
@@ -1903,13 +1908,13 @@ section~\ref{sec:model-checking-dfn}; in
 chapter~\ref{cha:evaluation}, the
 correctness of the simple model checker will be used
 to provide evidence that the implementations of
-other model checking algorithms are also correct.
+other model-checking algorithms are also correct.
 
 \section{Dynamic Partial-Order Reduction}
-The Dynamic Partial-Order Reduction (DPOR)
+The dynamic partial-order reduction (DPOR)
 algorithm was presented in section~\ref{sec:dpor-prep},
 which gave an overview of its operation,
-including high-level pseudocode, reproduced
+including high-level pseudocode, which is reproduced
 in figure~\ref{fig:dpor-imp-pscode} for ease
 of reference. Several
 aspects of the algorithm mean that it
@@ -1968,7 +1973,7 @@ was implemented.
 	iteration through the threads,
 	that it is decided whether the current
 	state is an error or a deadlock
-	(see section~\ref{sec:spor-imp-detecting}
+	(see section~\ref{sec:dpor-imp-detecting}
 	below).
 
 	\item[Lines 15--17] In this project,
@@ -1979,10 +1984,9 @@ was implemented.
 	dependent if and only if they access
 	the same shared object (or belong to the
 	same process). Therefore, the most
-	recent transition $\pi_i$ such that
+	recent transition $\pi_i$, if any, such that
 	$\pi_i$ is dependent with $t_{p,s}$
 	and $(i,p)\!\not\hookrightarrow_\pi$,
-	if any,
 	is precisely the last transition
 	to access the shared object that
 	$t_{p,s}$ accesses.
@@ -1993,7 +1997,7 @@ was implemented.
 	a function $L$ from shared objects to
 	the index of the last transition that
 	accessed them, so that the index of the
-	necessary backtracking point (if any) is
+	necessary backtracking point, if any, is
 	$L(\alpha(t_{p,s}))$. However, this
 	is not a necessary backtracking point if
 	$\pi_{L(\alpha(t_{p,s}))}$ happens-before
@@ -2005,17 +2009,23 @@ was implemented.
 	clock vectors are used, as described 
 	in section~\ref{sec:clock-vectors}.
 
-	The \texttt{pre} function is used to
-	obtain $\sigma_d$ from $L(\alpha(t_{p,s}))$.
+	The \texttt{pre} function mentioned above is used to
+	obtain $\sigma_d$ from the index of the
+	transition executed from it, $L(\alpha(t_{p,s}))$.
 
-	\item[Lines 18--19]	\textbf{TODO: how do we know if a transition
-		is enabled? And how do we get the set of
-		all enabled transitions?}
+	\item[Lines 18--19]	As explained in
+	section~\ref{sec:lock-difficulties}, it can
+	easily be decided whether the next transition of
+	a process is enabled in a given state. This also
+	means it is easy to compute the entire enabled
+	set of a state, by iterating through the processes
+	and looking at whether the next transition of each
+	is enabled.
 
 	\item[Lines 5--6] If, while iterating through the
 	processes in lines 3 and 4, any transition is found to be
 	enabled, then a reference is set to it. If at line 5,
-	that variable has been set at all, then it is chosen
+	that reference has been set at all, then it is chosen
 	as the $t \in \textit{enabled}(\sigma)$ in line 6,
 	otherwise lines 6 to 12 are not executed.
 
@@ -2115,7 +2125,7 @@ then given any other transition of
 process $q$, $\pi_i$, we know that
 $(i, p)\!\hookrightarrow_\pi$ if and only if
 $i \leq k$. A clock vector $c$ is
-a function from processes $q$ to
+a function from processes $q$ to such
 indices into the transition sequence, $k$,
 and we maintain one clock vector, $c_p$, per
 process $p$. To decide whether
@@ -2131,9 +2141,10 @@ to decide whether
 $(L(\alpha(t_{p,s})), p)\!\hookrightarrow_\pi$.
 For this to work, the correct clock values need
 to be passed to each call of \texttt{check}.
-Assuming that the correct value (each $k$
-set to anything less than 0) is passed for
-the initial call, we need to ensure that the
+Assuming that the correct value is passed for
+the initial call,
+(each $k$ set to anything less than 0)
+we need to ensure that the
 clock vectors are correctly updated when
 making a recursive call, when a new
 transition, $t_{p,s}$, is being explored.
@@ -2143,7 +2154,7 @@ is $c_p$, the clock vector for the process
 of the transition being explored, because
 a transition of process $p'$ must happen-before
 the end of the extended transition
-sequence, $\pi'.t_{p,s}$,
+sequence, $\pi' = \pi.t_{p,s}$, if and
 only if it must happen-before the end
 of the original transition sequence,
 $\pi$, assuming that $p' \neq p$.
@@ -2225,7 +2236,7 @@ of index $c_p(q)$ must also happen-before
 $t_{p,s}$. Therefore, there is a transition
 (namely $t_{p,s}$) which
 accesses $\alpha(t_{p,s})$ and is guaranteed
-to happen after $pi_{c_p(q)}$. So we can
+to happen after $\pi_{c_p(q)}$. So we can
 safely perform the following update:
 \[ c_{\alpha(t_{p,s})}'(q) =\textit{max}(c_p(q),
 c_{\alpha(t_{p,s})}(q)),
@@ -2247,7 +2258,7 @@ more efficient implementation of
 the updates.
 
 \subsection{Difficulties with Locks}
-
+\label{sec:lock-difficulties}
 When initially implementing the project,
 I decided not to include locks in PL,
 so that transitions became total functions
@@ -2258,17 +2269,16 @@ I first implemented it (for example,
 the checks on lines 5 and 19 of the
 pseudocode in figure~\ref{fig:dpor-imp-pscode}
 would be unnecessary), when I decided
-to add locks to PL, since many
-concurrent algorithms rely on them,
+to add locks to PL in a later ``increment'',
 I ran into difficulties.
 
 In particular, the specification of the
 \texttt{next\_transition} function in the
 \textit{Thread} module either returned
-a transition, or it didn't; there was
+a transition, or it did not; there was
 no way of specifying whether or not
 the transition returned for the
-given local state was enabled in the
+given state was enabled in the
 given shared state. To solve this,
 then, I changed the specification
 of the \texttt{next\_step} and
@@ -2318,8 +2328,8 @@ When exploring a state space, the same state may be
 encountered twice. However, the part of the state
 space from that state onwards need only be explored
 once. An obvious technique for improving the
-time complexity of a model checking algorithm
-(at the cost of using extra space) is to notice
+time complexity of a model checking algorithm---at
+the cost of using extra space---is to notice
 when we visit a state twice, by making a note
 of which states we have explored. After reading
 this chapter, you should understand how I
@@ -2327,12 +2337,19 @@ implemented this technique for both the simple
 model-checking algorithm and for the
 DPOR algorithm.
 
+Note that these algorithms,
+and the other remaining sections of this chapter,
+are beyond the original aims of the project. I
+was interested to compare different techniques for
+addressing the state explosion problem---both the
+algorithms themselves, and their effectiveness.
+
 \subsection{Simple Model Checker}
 
-Applying this technique to the Simple model
+Applying this technique to the simple model
 checking algorithm is straightforward: whenever
-we visit a state, add it to some data structure,
-then don't re-explore those states which are
+a state is visited, add it to some data structure,
+then explore those states which are not
 present in that data structure. As the operations
 of checking if a state is in the data structure
 and of adding a state to the data structure will
@@ -2343,12 +2360,12 @@ constant, so I used the OCaml library implementation
 of hash tables for this function.
 
 \subsection{Dynamic Partial-Order Reduction}
-Although it is not obvious, na\"{\i}vely
+Unfortunately, na\"{\i}vely
 applying this technique to the DPOR
 algorithm results in an
-unsound model checking algorithm. Instead,
-a new algorithm, Stateful Dynamic
-Partial-Order Reduction (SDPOR), is used.
+unsound model-checking algorithm. Instead,
+a different algorithm, stateful dynamic
+partial-order reduction (SDPOR), is used.
 
 \subsubsection{Na\"{\i}ve Approach}
 
@@ -2369,7 +2386,7 @@ made, and as no backtracking points have been added
 at either of the previous stages, the algorithm
 terminates. However, this leaves part of the state
 space entirely unexplored (the dotted section in
-the diagram), meaning that the algorithm is unsound:
+the diagram), meaning that the algorithm is unsound;
 any error or deadlock in a dotted state would go
 undetected.
 
@@ -2417,9 +2434,10 @@ backtracking points must be added for soundness, but not
 so conservatively that all practical benefits are lost.
 
 One such method is to use a \emph{visible operation dependency
-graph}, and its use was proposed by Yang et al.\@ in an
-algorithm which is known as stateful dynamic partial-
-order reduction (SDPOR) \cite{yang08}. The idea is that, when we first explore
+graph}, thw use of which was proposed by Yang et al.\@ in an
+algorithm known as stateful dynamic
+partial-order reduction (SDPOR) \cite{yang08}.
+The idea is that, when we first explore
 a section of the state space,
 we make a note of the visible operations
 that may be executed, so that if we encounter that section again,
@@ -2445,11 +2463,11 @@ can be added by calling the
 on each transition in the set
 $\mathcal{U} = \{u \mid \exists t \in \textit{enabled}(\sigma).\;
    u \text{ is reachable from node } t \text{ in graph } G\}$.
-The assumption that Stateful DPOR algorithm 
-relies on fir its efficiency is that
+The assumption that the stateful DPOR algorithm 
+relies on for its efficiency is that
 although state spaces are generally very large,
 the sets $\mathcal{U}$ of reachable transitions
-are generally small.
+are generally reasonable in size.
 
 The pseudocode for the SDPOR algorithm is shown
 in figure~\ref{fig:sdpor-code}. The lines that
@@ -2552,7 +2570,7 @@ the trade-off is that it returns large persistent sets.
 The algorithm explores the state space using a
 depth-first search, but exploring only those
 transitions in a persistent set from each
-state, as mentioned in section \ref{sec:persistent}.
+state, as outlined in section \ref{sec:persistent}.
 Before the algorithm begins its search, it compiles a table
 listing all the shared objects that each process may
 access, then, during the search, persistent sets $T$ are built
@@ -2564,10 +2582,17 @@ transition is in $T$ accesses.
 The algorithm constructing a persistent set in a given state
 is shown in figure~\ref{fig:spor-code}.
 
+This algorithm assumes that every thread only
+accesses shared objects mentioned in its own
+local state, as opposed to being communicated
+through the shared state, giving it a more
+limited scope than the other model-checking
+algorithms I implemented.
+
 My initial idea was to compute the objects that
 each thread could access at every state encountered.
 While this would result in marginally smaller
-persistent sets as threads progresses, the cost
+persistent sets as the threads progress, the cost
 of performing this expensive computation at
 every state was too high.
 
@@ -2632,7 +2657,9 @@ algorithm involves keeping track of the
 sleep sets in the same way, and never
 adding backtracking points for
 processes that are in the sleep set
-of the relevant state.
+of the relevant state. This is
+sound, although not as obviously as
+it might first seem \cite{flan05addm}.
 
 \begin{figure}
 	\begin{algorithmic}[1]
@@ -2688,17 +2715,16 @@ error state being entered, it would be preferable
 to instead present the user with a
 \emph{partial order} of the transitions which,
 whenever linearised in an execution,
-results in the error/deadlock state.
+results in the error or deadlock state.
 Given a sequence of transitions which lead to
 some state of interest, the problem is
 then to give the most general partial order
 which, however linearised, results a sequence
-of transitions that leads to the same error
-state.
+of transitions that leads to the same state.
 
 This partial order is simply the happens-before
 relation, as described in
-section~\ref{sec:happens-before}). As
+section~\ref{sec:happens-before}. As
 two transitions are dependent if and only
 if they belong to the same thread or if
 they access the same shared object, my
@@ -2720,7 +2746,7 @@ same shared object.
 I thought that the most helpful way to
 present the resulting partial-order
 graph would be in the form of an
-image, so I wrote a function which
+image, so I wrote a procedure which
 automatically output the graph as
 a GraphViz graph, with the nodes
 labelled with the thread and the
@@ -2789,11 +2815,11 @@ you should now understand:
 	particular use of functors to generate
 	code that implements different model-checking
 	algorithms on a given language implementation;
-	\item that I used an iterative development
+	\item that I used an incremental development
 	process to first implement the project
 	language (PL), then to implement the simple
 	model-checking algorithm, then
-	the DPOR algorithm, and then extend the project
+	the DPOR algorithm, and then to extend the project
 	with extra algorithms and features; and
 	\item the details of my
 	implementations of PL and the
@@ -2807,25 +2833,21 @@ After reading this chapter,
 you should understand:
 \begin{understandinglist}
 	\item the extent to which I believe
-	the project is correct, and the evidence
+	my project is correct, and the evidence
 	motivating that belief;
-	\item that being certain of the
+	\item why being certain of the
 	correctness of a model checking
 	system is not essential for it
 	to be of practical use;
-	\item how my implementations
-	of the model-checking algorithms
-	perform, in terms of their
-	execution times;
 	\item how the model-checking
-	algorithms themselves perform
+	algorithms I implemented perform
 	in comparison to one another,
 	in terms of the reduction in the
 	size of the explored state space; and
-	\item the relationship between the
-	inherent complexity of the
-	algorithms and the performance of
-	my implementations of them.
+	\item how my implementations
+	of the model-checking algorithms
+	perform, in terms of their
+	execution times.
 \end{understandinglist}
 
 \section{Soundness}
@@ -2856,7 +2878,7 @@ sound.
 \subsection{Evidence for Soundness}
 Any program of a reasonable size is very
 likely to contain bugs. Industry average
-is about 1 to 25 errors per thousand lines
+is about 1 to 25 errors per 1,000 lines
 of delivered code \cite{mccon04}, my project
 consists of at least 3,250 lines of
 code\footnote{Computed using
@@ -2897,16 +2919,16 @@ process, I spent a lot of time trying
 to find ways in which my programs did
 not match the pseudocode; at the end
 of the development process, I can be
-reasonably confident that any differences
+reasonably confident that any significant differences
 in semantics have been found.
 This is especially
 true for the simple model checker,
-due to its simplicity.
+due to its lack of complexity.
 
 \subsubsection{Tests}
 \label{sec:pl-checker-tests}
 As part of the development process,
-I wrote over forty test cases, each
+I wrote over forty varied test cases, each
 consisting of a transition system
 implemented as a PL program, and
 the expected
@@ -2922,8 +2944,7 @@ of the transition system in PL),
 or the implementation was incorrect.
 To ensure the former was not a possibility,
 I used the simple model checker---whose
-correctness I have a lot of confidence in due
-to its simplicity---to check that my
+correctness I have confidence in---to check that my
 expectations of the results were correct.
 
 The primary use of these tests was to
@@ -2966,8 +2987,7 @@ main notions of proof \cite[p.~2]{buss98}:
 \begin{enumerate}
 	\item a (social) proof is an argument
 	designed to convince human readers that some
-	result is true and ideally create a consensus
-	in the relevant community, and
+	result is true, and
 	\item a (formal) proof is a sequence of
 	symbols, which, according to a particular
 	set of formal rules, lead to some
@@ -2981,7 +3001,7 @@ system is correct.
 There are several reasons that obtaining a formal
 proof of the correctness of my project,
 produced by some other verification system,
-would not be as useful as you might think:
+would not be as useful as you might at first think:
 \begin{itemize}
 	\item the proof would be impractically
 	long to read and verify by hand, and so
@@ -2994,7 +3014,7 @@ would not be as useful as you might think:
 	experience from long-term use, and
 	especially performing cross-checking
 	with other,
-	independently developed
+	ideally independently developed,
 	model-checking implementations \cite{tau02};
 	\item a verified project may still be
 	unsound in practice, due a bug
@@ -3018,9 +3038,9 @@ implementation is not verified, and
 as of 2006, there were only
 two verified model checking
 systems, neither of which was widely
-used \cite{beck06} (despite model
-checking having been around for
-over two decades). 
+used, despite model
+checking having been in use for
+over two decades \cite{beck06}. 
 
 \subsubsection{Model Checking as Rigorous Testing}
 The value in an unverified model-checking system
