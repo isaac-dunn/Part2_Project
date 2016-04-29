@@ -1,6 +1,3 @@
-(* Store Functors *)
-(* Isaac Dunn 17/12/2015 *)
-
 module ListStore (Expr : Interfaces.Expression) = struct
     module ExprImp = Expr
 

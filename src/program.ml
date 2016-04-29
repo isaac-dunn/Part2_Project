@@ -1,6 +1,3 @@
-(* PL Program *)
-(* Isaac Dunn 17/12/2015 *)
-
 module Program (Thr : Interfaces.Thread) = struct
     module ThrImp = Thr
 

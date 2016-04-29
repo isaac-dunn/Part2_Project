@@ -1,6 +1,3 @@
-(* PL Threads *)
-(* Isaac Dunn 17/12/2015 *)
-
 module ExpImp = Pl_expression
 module StoreImp = Store.PLStore
 
