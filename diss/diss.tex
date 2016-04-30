@@ -503,94 +503,25 @@ can be expressed in the form
 \]
 for some predicate $\Phi$, the simplest strategy is to
 perform an exhaustive search of the reachable state space,
-checking whether $\Phi$ holds at each state encountered.
-In practice, algorithms are used which decide both
-properties in one exploration of the reachable state space,
-but separate algorithms for each are presented
-below for clarity.
-
-\subsubsection{Detecting Errors}
-When deciding whether the transition system
-is error-free, we have
-\[
-	\Phi(l, g) = \forall p \in \mathcal{P}.\; \neg\,err(l(p)),
-\]
-so the algorithm in figure~\ref{fig:simple-error-free}
-decides whether a given transition system
-is error-free. At each
-state encountered, beginning with $\sigma_0$, first $\Phi$
-is checked to hold, then recursive calls implement a
-depth-first search of the reachable state space.
-
-\begin{figure}
-	\begin{algorithmic}[1]
-	\Procedure{SimpleErrorFree}{$\sigma$}
-	\Let{$(l, g)$}{$\sigma$}
-	\ForAll{$p \in \mathcal{P}$}
-		\If{$err(l(p))$}
-		\Return false
-		\EndIf
-	\EndFor \ForAll{$\sigma' \in \{\sigma' \mid \sigma \xrightarrow{t} \sigma' \wedge t \in \textit{enabled}(\sigma)\}$}
-		\If{$\textbf{not } \textsc{SimpleErrorFree}(\sigma')$}
-		\Return false
-		\EndIf
-	\EndFor
-	\State \Return true
-	\EndProcedure
-	\State
-	\State Initially: $\textsc{SimpleErrorFree}(\sigma_0)$
-	\end{algorithmic}
-	\caption{Algorithm deciding whether a transition system is error-free.}
-	\label{fig:simple-error-free}
-\end{figure}
-
-\subsubsection{Detecting Deadlocks}
-When deciding whether the transition system
-is deadlock-free, we have
-\[
-	\Phi(l, g) = (\textit{enabled}(l, g) = \emptyset)
-	\implies \forall g' \in \mathcal{G}. \;
-	\textit{enabled}(l, g') = \emptyset,
-\]
-so the algorithm in figure~\ref{fig:simple-deadlock-free}
-below decides whether a given transition system
-is deadlock-free. As $\Phi$ can only fail to hold
-at stopped states, it is first
-checked whether the state has any
-transitions that can be executed. If not, then
-$\Phi$ is checked to hold, else again recursive calls implement a
-depth-first search of the reachable state space.
+checking whether $\Phi_\text{error}(\sigma) \wedge
+\Phi_\text{deadlock}(\sigma)$
+holds at each state $\sigma$ encountered,
+where $\Phi_\text{error}$ is that
+no thread has encountered an error, and $\Phi_\text{deadlock}$ is
+that if the state is a stopped state, then it would be no matter
+what the shared store was.
 In practice, it is easy to decide whether or not
-there exists a shared state which would allow
-execution to continue, by looking at whether
+$\Phi_\text{deadlock}$ holds, by looking at whether
 any thread is waiting for a lock, for instance,
 or whether all threads have simply terminated
 their computations.
 
-\begin{figure}
-	\begin{algorithmic}[1]
-		\Procedure{SimpleDeadlockFree}{$\sigma$}
-		\Let{$(l, g)$}{$\sigma$}
-		\Let{\textit{Successors}}{$\{\sigma' \mid \sigma \xrightarrow{t}
-			\sigma' \wedge t \in \textit{enabled}(\sigma)\}$}
-		\If{$\textit{Successors} = \emptyset$}
-		\State\Return $(\forall g' \in \mathcal{G}.\; \textit{enabled}(l, g')
-				= \emptyset)$
-			\Else
-			\ForAll{$\sigma' \in \textit{Successors}$}
-				\If{$\textbf{not } \textsc{SimpleDeadlockFree}(\sigma')$}
-					\Return false
-				\EndIf
-			\EndFor
-		\State \Return true
-		\EndIf
-		\EndProcedure
-		\State
-		\State Initially: $\textsc{SimpleDeadlockFree}(\sigma_0)$
-	\end{algorithmic}
-	\caption{Algorithm deciding whether a transition system is deadlock-free.}
-	\label{fig:simple-deadlock-free}
-\end{figure}
+The exhaustive search is usually
+implemented as a stateless depth-first search,
+and therefore can only be applied to acyclic state spaces; if
+a cycle was encountered, the search would not notice and would
+continue getting ``deeper'' as it looped
+through the cycle, with no end in sight.
 
 \section{Partial-Order Reduction}
 
