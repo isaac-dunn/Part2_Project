@@ -1,6 +1,3 @@
-(* Store Functors *)
-(* Isaac Dunn 17/12/2015 *)
-
 module ListStore (Expr : Interfaces.Expression) = struct
     module ExprImp = Expr
 
@@ -54,6 +51,19 @@ module ListStore (Expr : Interfaces.Expression) = struct
             [] -> []
           | (l, e)::rest ->
                 union (ExprImp.locations_accessed e) (globals_stored rest)
+
+    let eq s t =
+        let rec sub s t = match s with [] -> true
+          | ((l, e)::rest) -> get t l = (Some e) && sub rest t in
+        let ms = minimise s in
+        let mt = minimise t in
+        sub ms mt && sub mt ms
+
+    let hash st =
+        let rec haux s = match s with
+            [] -> max_int
+          | x::xs -> Hashtbl.hash x land haux xs
+    in haux (minimise st)
 end
 
 module PLStore = ListStore (Pl_expression)

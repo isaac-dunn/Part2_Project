@@ -1,8 +1,3 @@
-(* PL Expressions *)
-(* Isaac Dunn 17/12/2015 *)
-
-(*** SYNTAX ***)
-
 type loc = string
 
 let string_of_loc l = l

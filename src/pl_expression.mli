@@ -1,6 +1,3 @@
-(* Expressions *)
-(* Isaac Dunn 17/12/2015 *)
-
 (** Need some way of referring to locations for stores etc. *)
 type loc = string
 

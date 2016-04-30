@@ -1,6 +1,3 @@
-(* Unit tests for language for Part II Project *)
-(* Isaac Dunn 15/11/2015 *)
-
 open Pl_expression
 
 type out_style = Verbose | Time | Calls

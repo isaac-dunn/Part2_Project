@@ -1,6 +1,3 @@
-(* Unit tests for language for Part II Project *)
-(* Isaac Dunn 15/11/2015 *)
-
 module Thr : (Interfaces.Thread with type ExpImp.expr = Pl_expression.expr) = Pl_thread
 
 open Pl_expression

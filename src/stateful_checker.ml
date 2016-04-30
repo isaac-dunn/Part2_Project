@@ -1,11 +1,12 @@
 module SimpleStatefulChecker (Prog : Interfaces.Program) =
   struct
     module ProgImp = Prog
+    module ProgHashtbl = Hashtbl.Make(Prog)
     let do_stateful = true
     let write_error_traces = false
     let max_depth = ref 0
     let calls = ref 0
-    let ht = Hashtbl.create ~random:true 10000
+    let ht = ProgHashtbl.create 10000
 
     (* True iff error-free *)
     let rec check init_prog t_seq =
@@ -17,8 +18,8 @@ module SimpleStatefulChecker (Prog : Interfaces.Program) =
         let one_thread_can_advance = ref false in
         let all_stopped_threads_are_values = ref true in
         let recursive_calls_deadlock_free = ref true in
-        if do_stateful && Hashtbl.mem ht (tds, g) then () else (
-        if do_stateful then Hashtbl.add ht (tds, g) true;
+        if do_stateful && ProgHashtbl.mem ht (tds, g) then () else (
+        if do_stateful then ProgHashtbl.add ht (tds, g) true;
         for i = 0 to Array.length tds - 1 do
             let (e, s) = Array.get tds i in
             match ProgImp.ThrImp.next_transition (e, s, g) with
@@ -44,18 +45,19 @@ module SimpleStatefulChecker (Prog : Interfaces.Program) =
                 (!one_thread_can_advance || !all_stopped_threads_are_values))
 
     let error_and_deadlock_free init_prog =
-        Hashtbl.reset ht;
+        ProgHashtbl.reset ht;
         check init_prog []
   end
 
 module SDPORChecker (Prog : Interfaces.Program) =
   struct
     module ProgImp = Prog
+    module ProgHashtbl = Hashtbl.Make(Prog)
     module T = ProgImp.ThrImp
     let do_stateful = true
     let max_depth = ref 0
     let calls = ref 0
-    let ht = Hashtbl.create ~random:true 10000
+    let ht = ProgHashtbl.create 10000
     let vodg = Hashtbl.create ~random:true 1000
     let write_error_traces = true
 
@@ -112,7 +114,7 @@ module SDPORChecker (Prog : Interfaces.Program) =
                     )
         in
 
-        if do_stateful && Hashtbl.mem ht (tds, g) then (
+        if do_stateful && ProgHashtbl.mem ht (tds, g) then (
         (* For each transition enabled from s *)
         for p = 0 to Array.length tds - 1 do
             let (e, s) = Array.get tds p in
@@ -131,7 +133,7 @@ module SDPORChecker (Prog : Interfaces.Program) =
                 (* Update backtracking sets for each node reachable graph node *)
                 in search_and_update (p, next_t)
         done);
-        if do_stateful then Hashtbl.add ht (tds, g) true;
+        if do_stateful then ProgHashtbl.add ht (tds, g) true;
 
         (* for all processes p *)
         for p = 0 to Array.length tds - 1 do
@@ -230,7 +232,7 @@ module SDPORChecker (Prog : Interfaces.Program) =
             (!one_thread_can_advance || !all_stopped_threads_are_values))
 
     let error_and_deadlock_free (tds, g) =
-        Hashtbl.reset ht;
+        ProgHashtbl.reset ht;
         Hashtbl.reset vodg;
         let n = Array.length tds in
         check (tds, g) [] (fun _ -> Clockvector.fresh n) (fun _ -> Clockvector.fresh n) (fun _ -> ~-1)

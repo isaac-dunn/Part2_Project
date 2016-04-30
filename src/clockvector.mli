@@ -1,6 +1,3 @@
-(* Clock vector interface *)
-(* Isaac Dunn 22/12/2015 *)
-
 type cv
 
 val fresh : int -> cv
