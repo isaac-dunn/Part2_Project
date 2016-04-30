@@ -1661,168 +1661,6 @@ fully correct was not the aim of the project, but
 just a necessary step before the main work on the
 model checking algorithms.
 
-\section{Simple Model Checker}
-After reading this section, you
-should understand how I implemented
-the simple model-checking algorithm,
-particularly how the results (whether
-a given state is error-free and
-deadlock-free) are computed,
-and also how this implementation
-was tested.
-
-
-\subsection{Implementation}
-\label{sec:simple-imp}
-
-Writing the simple model checker first allowed
-me to be more prepared when implementing the DPOR
-algorithm, and later provided a useful way of checking
-its correctness. As with all model-checking
-algorithms, I implemented the simple algorithm
-as a functor which takes an implementation of
-\textit{Program} as its input, and outputs
-a structure that matches \textit{Checker}---in
-other words, one that provides a model-checking
-function.
-
-Figure~\ref{fig:simple-imp-code} gives a high-level
-description of the model-checking algorithm I
-implemented. As outlined in
-section~\ref{sec:simple-model-checking}, it
-performs an exhaustive depth-first
-search of the state space,
-recursively deciding at each
-state whether the state space
-from the current state onwards is error-free
-and deadlock-free.
-Appendix~\ref{app:simple-code} shows the
-correspondence between this pseudocode
-and my actual OCaml function.
-
-\subsubsection{Detecting Errors}
-
-The algorithm assumes that if a thread
-encounters an error, then the execution
-of that thread will not proceed, meaning
-that only threads which do not have an
-enabled next transition need to be checked
-for errors. The Boolean \textit{error\_free}
-tracks whether any threads in the current state
-have encountered an error (line 14) and whether any
-recursive calls report an error (line 11), and is
-returned as one of the two Boolean results
-of the call (line 17).
-
-\subsubsection{Detecting Deadlocks}
-
-Deciding whether the state space from the current
-state onwards is deadlock-free is more complicated.
-The \textit{calls\_deadlock\_free} keeps track of
-whether any recursive call reports a deadlock. If
-any do, then it is set to false (line 12), causing the
-algorithm to report that the state space herein
-is not deadlock-free (line 17).
-
-Assuming that no
-recursive calls report a deadlock, then the state
-space is deadlock-free if and only if the current
-state is not a deadlock state, which is the case
-if and only if either there is some thread with an
-enabled transition,
-or every thread had terminated its computation and
-is not waiting for some change in the global state.
-Two Booleans keep track of these two possibilities:
-if any transition is enabled, then
-\textit{is\_enabled\_thread} is set to true (line 9),
-and if any thread without an enabled transition is
-waiting for some change in the shared state (for
-instance a lock to become available), then
-\textit{no\_waiting\_threads} is set to false.
-If either Boolean is true at the end of the call
-to \textsc{Check}, then, providing no recursive
-calls reported a deadlock, the algorithm returns
-that the state space is deadlock-free.
-
-\begin{figure}
-	\begin{algorithmic}[1]
-		\Procedure{Check}{$\sigma_0,\,\pi$}
-		\Let{$(l, g)$}
-			{$\textit{last}(\pi)$}
-		\Let{\textit{error\_free}}{true}
-		\Let{\textit{is\_enabled\_thread}}{false}
-		\Let{\textit{no\_waiting\_threads}}{true}
-		\Let{\textit{calls\_deadlock\_free}}{true}
-		\ForAll{$p \in \mathcal{P}$}
-		\If{$\textit{next}(\sigma, p) \in \textit{enabled}(\sigma)$}
-			\State \textit{is\_enabled\_thread} := true;
-			\Let{$(\textit{result\_ef}, \textit{result\_df})$}
-				{\Call{Check}{$\sigma_0, \pi.\textit{next}(\sigma, p)$}}
-			\State \textit{error\_free} := \textit{error\_free}
-				\& \textit{result\_ef};
-			\State \textit{calls\_deadlock\_free}
-			:= \textit{calls\_deadlock\_free}
-			\& \textit{result\_df}
-		\Else
-			\If{$\textit{err}(l(p))$}{ \textit{error\_free} := false};
-			\EndIf
-			\If{$\exists g' \in \mathcal{G}.\;
-				\textit{next}(\sigma,p) \in \textit{enabled}(l,g')$}
-				{\textit{no\_waiting\_threads} := false}
-			\EndIf
-		\EndIf
-		\EndFor
-		\Let{\textit{deadlock\_free}}{\textit{calls\_deadlock\_free} \&
-			(\textit{is\_enabled\_thread} | \textit{no\_waiting\_threads})}
-		\State \Return (\textit{error\_free}, \textit{deadlock\_free})
-		\EndProcedure
-	\end{algorithmic}
-	\caption{Simple model checking algorithm}
-	\label{fig:simple-imp-code}
-\end{figure}
-
-\subsection{Testing}
-
-Although more detail will be given in
-section~\ref{sec:pl-checker-tests}, it
-is worth mentioning here that before going
-on to implement anything else, I first
-tested the simple model checker to weed
-out any obvious bugs in either the
-implementation of PL or of the simple
-model checker itself; the bugs would need
-dealing with at some point anyway, so
-better to catch them as soon as possible,
-when it would be easiest to identify the
-causes.
-
-Each test ran the simple model checker
-on a PL program, and
-warned if the result was not as
-I expected. It wasn't difficult to
-provide high code coverage of this
-relatively simple algorithm. Along
-with the simplicity of the algorithm,
-these tests gave me confidence in
-the correctness of my implementation.
-
-\subsection{Correctness}
-
-The reason that I have fully explained
-the operation of this simple model checker,
-provided a mapping
-in appendix~\ref{app:simple-code} from the OCaml
-implementation to the high-level
-pseudocode, and described
-tests of its correctness is to give the reader
-as much confidence as possible
-that the implementation performs
-model checking as defined in
-section~\ref{sec:model-checking-dfn}; in
-chapter~\ref{cha:evaluation}, the
-correctness of the simple model checker will be used
-to provide evidence that the implementations of
-other model-checking algorithms are also correct.
 
 \section{Dynamic Partial-Order Reduction}
 The dynamic partial-order reduction (DPOR)
@@ -2237,7 +2075,281 @@ whether any transitions are enabled,
 and whether any threads are blocked
 because of the current shared state.
 
-\section{Stateful Model Checking}
+\section{Counter-Example Traces} \label{sec:traces}
+After reading this section, you should understand
+how I implemented a feature which produces a
+visual counter-example trace.
+
+One of the advantages of model checking
+is that, in the case that
+an error is found, it is trivial to give
+an example of an execution of the given
+program which leads to an error state---in
+our case, this is just the sequence of
+transitions executed at the point when
+an error state it found.
+To give more insight into the reason for the
+error state being entered, it would be preferable
+to instead present the user with a
+\emph{partial order} of the transitions which,
+whenever linearised in an execution,
+results in the error or deadlock state.
+Given a sequence of transitions which lead to
+some state of interest, the problem is
+then to give the most general partial order
+which, however linearised, results a sequence
+of transitions that leads to the same state.
+
+This partial order is simply the happens-before
+relation, as described in
+section~\ref{sec:happens-before}. As
+two transitions are dependent if and only
+if they belong to the same thread or if
+they access the same shared object, my
+algorithm simply executes the given transition
+sequence, using a function from processes
+to sequence indices to keep track
+of the last transition to access each
+process, and a function from shared
+objects to sequence indices to keep
+track of the last transition to
+access each shared object. For each
+transition executed, two edges are added
+to the graph representing the partial
+order: one from the last transition
+belonging to the same process, and one
+from the last transition accessing the
+same shared object.
+
+I thought that the most helpful way to
+present the resulting partial-order
+graph would be in the form of an
+image, so I wrote a procedure which
+automatically output the graph as
+a GraphViz graph, with the nodes
+labelled with the thread and the
+shared object accessed of each transition.
+GraphViz is an open-source program which
+draws graphs.
+Figure~\ref{fig:trace-example} gives a program
+and shows an example of such an
+automatically-generated GraphViz graph.
+
+\begin{figure}
+	\centering
+	\begin{subfigure}{0.5\textwidth}
+		\centering
+		\begin{tabular}{l}
+			Shared variables: \\
+			\qquad \texttt{n}, \texttt{w},
+			\texttt{x} and \texttt{y},
+			initially \texttt{0} \\
+			\qquad \texttt{t} and \texttt{z},
+			initially \texttt{false} \\
+			\\
+			Thread 0: \\
+			\qquad \texttt{t := z;} \\
+			\qquad \texttt{if t then x := y} \\
+			\\
+			Thread 1: \\
+			\qquad \texttt{n := 1;} \\
+			\qquad \texttt{z := true} \\
+			\\
+			Thread 2: \\
+			\qquad \texttt{y := 2;} \\
+			\qquad \texttt{if w = 1 \& x = 2 then \textbf{error}} \\
+			\\
+			Thread 3: \\
+			\qquad \texttt{w := n} \\
+			\\
+			Thread 4: \\
+			\qquad \texttt{t := false} \\
+		\end{tabular}
+	\end{subfigure}%
+	\begin{subfigure}{0.5\textwidth}
+		\centering
+		\includegraphics[height=15cm]{error_trace}
+	\end{subfigure}
+	\caption[An example partial-order
+	error trace.]{An example partial-order
+		error trace. The two nodes marked
+		``0 : t'' have two edges between them
+		as their happens-before relationship
+		is due to both possible reasons:
+		belonging to the
+		same process and accessing the same
+		shared object. The assignments in
+		the program are implemented in PL
+		using compare-and-swap operations.}
+	\label{fig:trace-example}
+\end{figure}
+
+\section{Extensions For Evaluation}
+
+\subsection{Simple Model Checker}
+After reading this section, you
+should understand how I implemented
+the simple model-checking algorithm,
+particularly how the results (whether
+a given state is error-free and
+deadlock-free) are computed,
+and also how this implementation
+was tested.
+
+
+\subsubsection{Implementation}
+\label{sec:simple-imp}
+
+Writing the simple model checker first allowed
+me to be more prepared when implementing the DPOR
+algorithm, and later provided a useful way of checking
+its correctness. As with all model-checking
+algorithms, I implemented the simple algorithm
+as a functor which takes an implementation of
+\textit{Program} as its input, and outputs
+a structure that matches \textit{Checker}---in
+other words, one that provides a model-checking
+function.
+
+Figure~\ref{fig:simple-imp-code} gives a high-level
+description of the model-checking algorithm I
+implemented. As outlined in
+section~\ref{sec:simple-model-checking}, it
+performs an exhaustive depth-first
+search of the state space,
+recursively deciding at each
+state whether the state space
+from the current state onwards is error-free
+and deadlock-free.
+Appendix~\ref{app:simple-code} shows the
+correspondence between this pseudocode
+and my actual OCaml function.
+
+\subsubsection{Detecting Errors}
+
+The algorithm assumes that if a thread
+encounters an error, then the execution
+of that thread will not proceed, meaning
+that only threads which do not have an
+enabled next transition need to be checked
+for errors. The Boolean \textit{error\_free}
+tracks whether any threads in the current state
+have encountered an error (line 14) and whether any
+recursive calls report an error (line 11), and is
+returned as one of the two Boolean results
+of the call (line 17).
+
+\subsubsection{Detecting Deadlocks}
+
+Deciding whether the state space from the current
+state onwards is deadlock-free is more complicated.
+The \textit{calls\_deadlock\_free} keeps track of
+whether any recursive call reports a deadlock. If
+any do, then it is set to false (line 12), causing the
+algorithm to report that the state space herein
+is not deadlock-free (line 17).
+
+Assuming that no
+recursive calls report a deadlock, then the state
+space is deadlock-free if and only if the current
+state is not a deadlock state, which is the case
+if and only if either there is some thread with an
+enabled transition,
+or every thread had terminated its computation and
+is not waiting for some change in the global state.
+Two Booleans keep track of these two possibilities:
+if any transition is enabled, then
+\textit{is\_enabled\_thread} is set to true (line 9),
+and if any thread without an enabled transition is
+waiting for some change in the shared state (for
+instance a lock to become available), then
+\textit{no\_waiting\_threads} is set to false.
+If either Boolean is true at the end of the call
+to \textsc{Check}, then, providing no recursive
+calls reported a deadlock, the algorithm returns
+that the state space is deadlock-free.
+
+\begin{figure}
+	\begin{algorithmic}[1]
+		\Procedure{Check}{$\sigma_0,\,\pi$}
+		\Let{$(l, g)$}
+		{$\textit{last}(\pi)$}
+		\Let{\textit{error\_free}}{true}
+		\Let{\textit{is\_enabled\_thread}}{false}
+		\Let{\textit{no\_waiting\_threads}}{true}
+		\Let{\textit{calls\_deadlock\_free}}{true}
+		\ForAll{$p \in \mathcal{P}$}
+		\If{$\textit{next}(\sigma, p) \in \textit{enabled}(\sigma)$}
+		\State \textit{is\_enabled\_thread} := true;
+		\Let{$(\textit{result\_ef}, \textit{result\_df})$}
+		{\Call{Check}{$\sigma_0, \pi.\textit{next}(\sigma, p)$}}
+		\State \textit{error\_free} := \textit{error\_free}
+		\& \textit{result\_ef};
+		\State \textit{calls\_deadlock\_free}
+		:= \textit{calls\_deadlock\_free}
+		\& \textit{result\_df}
+		\Else
+		\If{$\textit{err}(l(p))$}{ \textit{error\_free} := false};
+		\EndIf
+		\If{$\exists g' \in \mathcal{G}.\;
+			\textit{next}(\sigma,p) \in \textit{enabled}(l,g')$}
+		{\textit{no\_waiting\_threads} := false}
+		\EndIf
+		\EndIf
+		\EndFor
+		\Let{\textit{deadlock\_free}}{\textit{calls\_deadlock\_free} \&
+			(\textit{is\_enabled\_thread} | \textit{no\_waiting\_threads})}
+		\State \Return (\textit{error\_free}, \textit{deadlock\_free})
+		\EndProcedure
+	\end{algorithmic}
+	\caption{Simple model checking algorithm}
+	\label{fig:simple-imp-code}
+\end{figure}
+
+\subsubsection{Testing}
+
+Although more detail will be given in
+section~\ref{sec:pl-checker-tests}, it
+is worth mentioning here that before going
+on to implement anything else, I first
+tested the simple model checker to weed
+out any obvious bugs in either the
+implementation of PL or of the simple
+model checker itself; the bugs would need
+dealing with at some point anyway, so
+better to catch them as soon as possible,
+when it would be easiest to identify the
+causes.
+
+Each test ran the simple model checker
+on a PL program, and
+warned if the result was not as
+I expected. It wasn't difficult to
+provide high code coverage of this
+relatively simple algorithm. Along
+with the simplicity of the algorithm,
+these tests gave me confidence in
+the correctness of my implementation.
+
+\subsubsection{Correctness}
+
+The reason that I have fully explained
+the operation of this simple model checker,
+provided a mapping
+in appendix~\ref{app:simple-code} from the OCaml
+implementation to the high-level
+pseudocode, and described
+tests of its correctness is to give the reader
+as much confidence as possible
+that the implementation performs
+model checking as defined in
+section~\ref{sec:model-checking-dfn}; in
+chapter~\ref{cha:evaluation}, the
+correctness of the simple model checker will be used
+to provide evidence that the implementations of
+other model-checking algorithms are also correct.
+
+\subsection{Stateful Model Checking}
 When exploring a state space, the same state may be
 encountered twice. However, the part of the state
 space from that state onwards need only be explored
@@ -2258,7 +2370,7 @@ was interested to compare different techniques for
 addressing the state explosion problem---both the
 algorithms themselves, and their effectiveness.
 
-\subsection{Simple Model Checker}
+\subsubsection{Simple Model Checker}
 
 Applying this technique to the simple model
 checking algorithm is straightforward: whenever
@@ -2273,7 +2385,7 @@ for these operations for a hash table are both
 constant, so I used the OCaml library implementation
 of hash tables for this function.
 
-\subsection{Dynamic Partial-Order Reduction}
+\subsubsection{Dynamic Partial-Order Reduction}
 Unfortunately, na\"{\i}vely
 applying this technique to the DPOR
 algorithm results in an
@@ -2458,7 +2570,7 @@ a simple depth-first search.
 	\label{fig:sdpor-code}
 \end{figure}
 
-\section{Static Partial-Order Reduction}
+\subsection{Static Partial-Order Reduction}
 \label{sec:spor-imp}
 After reading this section, you should
 understand the static partial-order
@@ -2541,7 +2653,7 @@ every state was too high.
 	\label{fig:spor-code}
 \end{figure}
 
-\section{Sleep Sets}
+\subsection{Sleep Sets}
 After reading this section, you
 should understand how I implemented
 the sleep sets technique for both the
@@ -2609,115 +2721,6 @@ it might first seem \cite{flan05addm}.
 				$H(\sigma)$ refers to the set of states stored
 				in $H$ for $\sigma$.}
 	\label{fig:sleep-code}
-\end{figure}
-
-\section{Counter-Example Traces} \label{sec:traces}
-After reading this section, you should understand
-how I implemented a feature which produces a
-visual counter-example trace.
-
-One of the advantages of model checking
-is that, in the case that
-an error is found, it is trivial to give
-an example of an execution of the given
-program which leads to an error state---in
-our case, this is just the sequence of
-transitions executed at the point when
-an error state it found.
-To give more insight into the reason for the
-error state being entered, it would be preferable
-to instead present the user with a
-\emph{partial order} of the transitions which,
-whenever linearised in an execution,
-results in the error or deadlock state.
-Given a sequence of transitions which lead to
-some state of interest, the problem is
-then to give the most general partial order
-which, however linearised, results a sequence
-of transitions that leads to the same state.
-
-This partial order is simply the happens-before
-relation, as described in
-section~\ref{sec:happens-before}. As
-two transitions are dependent if and only
-if they belong to the same thread or if
-they access the same shared object, my
-algorithm simply executes the given transition
-sequence, using a function from processes
-to sequence indices to keep track
-of the last transition to access each
-process, and a function from shared
-objects to sequence indices to keep
-track of the last transition to
-access each shared object. For each
-transition executed, two edges are added
-to the graph representing the partial
-order: one from the last transition
-belonging to the same process, and one
-from the last transition accessing the
-same shared object.
-
-I thought that the most helpful way to
-present the resulting partial-order
-graph would be in the form of an
-image, so I wrote a procedure which
-automatically output the graph as
-a GraphViz graph, with the nodes
-labelled with the thread and the
-shared object accessed of each transition.
-GraphViz is an open-source program which
-draws graphs.
-Figure~\ref{fig:trace-example} gives a program
-and shows an example of such an
-automatically-generated GraphViz graph.
-
-\begin{figure}
-	\centering
-	\begin{subfigure}{0.5\textwidth}
-		\centering
-		\begin{tabular}{l}
-			Shared variables: \\
-			\qquad \texttt{n}, \texttt{w},
-			\texttt{x} and \texttt{y},
-			initially \texttt{0} \\
-			\qquad \texttt{t} and \texttt{z},
-			initially \texttt{false} \\
-			\\
-			Thread 0: \\
-			\qquad \texttt{t := z;} \\
-			\qquad \texttt{if t then x := y} \\
-			\\
-			Thread 1: \\
-			\qquad \texttt{n := 1;} \\
-			\qquad \texttt{z := true} \\
-			\\
-			Thread 2: \\
-			\qquad \texttt{y := 2;} \\
-			\qquad \texttt{if w = 1 \& x = 2 then \textbf{error}} \\
-			\\
-			Thread 3: \\
-			\qquad \texttt{w := n} \\
-			\\
-			Thread 4: \\
-			\qquad \texttt{t := false} \\
-		\end{tabular}
-	\end{subfigure}%
-	\begin{subfigure}{0.5\textwidth}
-		\centering
-		\includegraphics[height=15cm]{error_trace}
-	\end{subfigure}
-	\caption[An example partial-order
-		error trace.]{An example partial-order
-			error trace. The two nodes marked
-			``0 : t'' have two edges between them
-			as their happens-before relationship
-			is due to both possible reasons:
-			belonging to the
-			same process and accessing the same
-			shared object. The assignments in
-			the program are implemented in PL
-			using compare-and-swap operations.}
-	\label{fig:trace-example}
 \end{figure}
 
 \chapter{Evaluation}
