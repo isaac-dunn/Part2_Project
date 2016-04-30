@@ -981,6 +981,15 @@ ensures that the set of transitions
 explored from each state is a
 persistent set.
 
+A detailed explanation of the DPOR
+algorithm is given in
+Appendix~\ref{app:dpor-walkthrough}.
+It is worth emphasising again that
+going from having no knowledge of
+model checking to
+fully understanding this algorithm
+took me several weeks
+of research and reading.
 
 \newcommand{\dporpseudocode}{
 	\begin{algorithmic}[1]
@@ -1026,107 +1035,6 @@ persistent set.
 		\State Initially: \Call{Explore}{$\emptyset$}
 	\end{algorithmic}
 }
-\begin{figure}
-	\dporpseudocode
-	\caption{The dynamic partial-order reduction algorithm.}
-	\label{dpor-outline} 
-\end{figure}
-
-\subsubsection{Line-By-Line Explanation}
-\label{sec:dpor-prep-walkthrough}
-\begin{description}
-	\item[Lines 1--2] The \textsc{Explore} procedure implements
-	dynamic partial-order reduction. The transition sequence
-	$\pi$ which is passed as its argument implicitly specifies the state
-	from which the exploration is to take place, $\sigma$.
-
-	\item[Lines 3--4] First, any necessary backtracking points
-	which can be identified from this state are added to the
-	\textit{backtrack} sets of previous states. Backtracking
-	points can be identified using information from each possible
-	transition from this state, so the \textsc{UpdateBacktrackSets}
-	procedure is called with each possible next transition as an
-	argument.
-
-	\item[Line 5] Having updated the \textit{backtrack} sets
-	of previous states, the search continues its exploration,
-	but only if there are any enabled transitions to explore.
-
-	\item[Lines 6--8] The recursive exploration proceeds by
-	maintaining two sets of transitions: \textit{backtrack}
-	and \textit{done}. The \textit{backtrack} set contains
-	those transitions from $\sigma$ which should be explored,
-	and is initialised to contained any single enabled transition.
-	Recursive calls to
-	\textsc{Explore} may add more transitions to \textit{backtrack}.
-	The \textit{done} set contains those transitions
-	in \textit{backtrack} that have been explored.
-
-	\item[Line 9] The search from $\sigma$ halts when every
-	transition that needs to be explored (is in \textit{backtrack})
-	has been explored (is in \textit{done}).
-
-	\item[Lines 10--12] If there is some transition that needs
-	exploring, \textsc{Explore} is recursively called with that
-	transition extending the current transition sequence $\pi$,
-	and that transition is added to \textit{done}.
-
-	\item[Line 14] The \textsc{UpdateBacktrackSets} procedure
-	can use the information that a given transition, $t_{p,s}$ can be
-	executed in $\sigma$ to add necessary backtracking points.
-
-	\item[Line 15] The set $D$ contains the indices $i$ of the
-	transitions $\pi_i$ in the sequence such that $\pi_i$ and
-	$t$ are dependent, and $(i, p)\!\not \hookrightarrow_\pi$.
-	This second condition means that $t_{p,s}$ is \emph{not}
-	guaranteed to happen after $\pi_i$, so $D$ is the set
-	of transitions which may have a race condition with
-	$t_{p,s}$.
-
-	\item[Line 16] If there are no transitions which have
-	a race condition with $t_{p,s}$, then no backtracking
-	points need to be added: as far as we know from $t_{p,s}$,
-	if we had chosen any other
-	choices of transitions to explore previously, we would
-	have ended up with a transition sequence in the same
-	equivalence class as $\pi$.
-
-	\item[Line 17] If there are transitions in $\pi$
-	which have a race condition with $t_{p,s}$, then
-	it is sufficient to add a backtracking point at
-	the state immediately before
-	the most recent of these;
-	the necessary backtracking
-	points for the earlier states will be added
-	by later (or previous) calls of \textsc{Explore}.
-
-	\item[Line 18] We know there is a race condition
-	between $t_{p,s}$ and $\textit{next}(\sigma_d,p)$, so
-	we want to explore another transition sequence from
-	$\sigma_d$ in which $\textit{next}(\sigma_d,p)$
-	appears before $t_{p,s}$. If $\textit{next}(\sigma_d,p)$
-	is enabled in $\sigma_d$, then we certainly explore such
-	a transition sequence by immediately exploring
-	$\textit{next}(\sigma_d,p)$ from $\sigma_d$.
-
-	\item[Line 19] However, if we cannot immediately
-	explore $\textit{next}(\sigma_d,p)$
-	from $\sigma_d$ because it is not enabled, then it is
-	not obvious which transitions to explore from $\sigma_d$
-	 to achieve
-	a transition sequence in which $\textit{next}(\sigma_d,p)$
-	appears before $t_{p,s}$. The algorithm presented here
-	does not attempt to narrow down which transitions might
-	lead to such a transition sequence, and instead plays it
-	safe and explores them all.
-
-	\item[Lines 21] To perform model checking, the state space
-	is explored from the initial state, $\sigma_0$, which is
-	reached from $\sigma_0$ by executing no transitions, so
-	\textsc{Explore} is initially called on the empty
-	sequence of transitions, $\emptyset$.
-
-\end{description}
 
 \subsubsection{Example Execution}
 An example execution could be added here, on the same example as
@@ -3606,11 +3514,102 @@ recent developments.
 % the appendices
 \appendix
 
-\chapter{PL Definition}
-\label{app:pl-def}
- 
-\textbf{This will be the operational semantics
-	of PL.}
+\chapter{Explanation of the DPOR Algorithm}
+\label{app:dpor-walkthrough}
+\dporpseudocode
+\begin{description}
+	\item[Lines 1--2] The \textsc{Explore} procedure implements
+	dynamic partial-order reduction. The transition sequence
+	$\pi$ which is passed as its argument implicitly specifies the state
+	from which the exploration is to take place, $\sigma$.
+
+	\item[Lines 3--4] First, any necessary backtracking points
+	which can be identified from this state are added to the
+	\textit{backtrack} sets of previous states. Backtracking
+	points can be identified using information from each possible
+	transition from this state, so the \textsc{UpdateBacktrackSets}
+	procedure is called with each possible next transition as an
+	argument.
+
+	\item[Line 5] Having updated the \textit{backtrack} sets
+	of previous states, the search continues its exploration,
+	but only if there are any enabled transitions to explore.
+
+	\item[Lines 6--8] The recursive exploration proceeds by
+	maintaining two sets of transitions: \textit{backtrack}
+	and \textit{done}. The \textit{backtrack} set contains
+	those transitions from $\sigma$ which should be explored,
+	and is initialised to contained any single enabled transition.
+	Recursive calls to
+	\textsc{Explore} may add more transitions to \textit{backtrack}.
+	The \textit{done} set contains those transitions
+	in \textit{backtrack} that have been explored.
+
+	\item[Line 9] The search from $\sigma$ halts when every
+	transition that needs to be explored (is in \textit{backtrack})
+	has been explored (is in \textit{done}).
+
+	\item[Lines 10--12] If there is some transition that needs
+	exploring, \textsc{Explore} is recursively called with that
+	transition extending the current transition sequence $\pi$,
+	and that transition is added to \textit{done}.
+
+	\item[Line 14] The \textsc{UpdateBacktrackSets} procedure
+	can use the information that a given transition, $t_{p,s}$ can be
+	executed in $\sigma$ to add necessary backtracking points.
+
+	\item[Line 15] The set $D$ contains the indices $i$ of the
+	transitions $\pi_i$ in the sequence such that $\pi_i$ and
+	$t$ are dependent, and $(i, p)\!\not \hookrightarrow_\pi$.
+	This second condition means that $t_{p,s}$ is \emph{not}
+	guaranteed to happen after $\pi_i$, so $D$ is the set
+	of transitions which may have a race condition with
+	$t_{p,s}$.
+
+	\item[Line 16] If there are no transitions which have
+	a race condition with $t_{p,s}$, then no backtracking
+	points need to be added: as far as we know from $t_{p,s}$,
+	if we had chosen any other
+	choices of transitions to explore previously, we would
+	have ended up with a transition sequence in the same
+	equivalence class as $\pi$.
+
+	\item[Line 17] If there are transitions in $\pi$
+	which have a race condition with $t_{p,s}$, then
+	it is sufficient to add a backtracking point at
+	the state immediately before
+	the most recent of these;
+	the necessary backtracking
+	points for the earlier states will be added
+	by later (or previous) calls of \textsc{Explore}.
+
+	\item[Line 18] We know there is a race condition
+	between $t_{p,s}$ and $\textit{next}(\sigma_d,p)$, so
+	we want to explore another transition sequence from
+	$\sigma_d$ in which $\textit{next}(\sigma_d,p)$
+	appears before $t_{p,s}$. If $\textit{next}(\sigma_d,p)$
+	is enabled in $\sigma_d$, then we certainly explore such
+	a transition sequence by immediately exploring
+	$\textit{next}(\sigma_d,p)$ from $\sigma_d$.
+
+	\item[Line 19] However, if we cannot immediately
+	explore $\textit{next}(\sigma_d,p)$
+	from $\sigma_d$ because it is not enabled, then it is
+	not obvious which transitions to explore from $\sigma_d$
+	to achieve
+	a transition sequence in which $\textit{next}(\sigma_d,p)$
+	appears before $t_{p,s}$. The algorithm presented here
+	does not attempt to narrow down which transitions might
+	lead to such a transition sequence, and instead plays it
+	safe and explores them all.
+
+	\item[Lines 21] To perform model checking, the state space
+	is explored from the initial state, $\sigma_0$, which is
+	reached from $\sigma_0$ by executing no transitions, so
+	\textsc{Explore} is initially called on the empty
+	sequence of transitions, $\emptyset$.
+
+\end{description}
 
 \chapter{Simple Model Checker Implementation}
 \label{app:simple-code}
