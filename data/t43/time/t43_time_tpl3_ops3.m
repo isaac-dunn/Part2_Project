@@ -22,7 +22,7 @@ grid on
 ax = gca;
 set(ax, 'FontName', 'Palatino Linotype', 'FontSize', 14);
 xlabel('Number of Threads');
-ylabel('Number of Transitions');
+ylabel('Execution Time (seconds)');
 axis([0 20 .001 1000])
 ax.XTick = [0 5 10 15 20];
 ax.YTick = [0.01 0.1 1 10 100];
