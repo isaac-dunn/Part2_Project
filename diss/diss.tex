@@ -250,17 +250,11 @@ from all possibilities.
 How many possible different executions are there?
 That is, how many different interleavings of
 the instructions of the different threads are
-there? This problem is equivalent to deciding
-the number of different permutations of $kn$ letters,
-where there are $n$ groups of $k$ identical
-letters. For example, if $n = 3$ and $k = 2$,
-how many different permutations of the string
-\textsc{AABBCC} are there?
+there?
 
 The solution is that there are
 \[\frac{(kn)!}{(k!)^n}\]
-different permutations of the letters,
-or different interleavings of the instructions.
+different interleavings of the instructions.
 This expression increases exponentially with
 both $n$ and $k$, which is very bad news for
 model checking: if each different interleaving
@@ -268,11 +262,7 @@ of the instructions can end with a different
 result, then each of these must be checked,
 meaning that the running time of any model
 checker has the above expression as a lower
-bound for its running time. As most programs
-of interest are at \emph{least}
-one hundred instructions per thread long,
-this can severely limit
-the practical uses of model checking.
+bound for its running time.
 
 \section{Partial-Order Reduction}
 %After reading this section, you should
@@ -439,8 +429,6 @@ is the \emph{transition relation} defined by
 	\sigma' \in \Delta(\sigma) \iff
 	\exists t \in \mathcal{T}. \ \sigma \xrightarrow{t} \sigma'.
 \]
-Note that transition systems are also known as models,
-as in the phrase ``model checking''.
 
 \section{Model Checking}
 After reading this section, you should
