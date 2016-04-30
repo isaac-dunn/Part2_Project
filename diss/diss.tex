@@ -348,30 +348,6 @@ how I implemented them (chapter~\ref{cha:imp}),
 and how they perform relative to one another
 (chapter~\ref{cha:evaluation}).
 
-\section{Summary}
-Having read this chapter,
-you should now understand:
-\begin{understandinglist}
-	\item that model checking is a formal
-	technique used to minimise the number
-	of defects in software and hardware systems;
-	\item that the state explosion problem is the
-	exponentially increasing cost involved in
-	fully exploring the state space of
-	concurrent programs, as the number and
-	complexity of threads increases;
-	\item that partial-order reduction
-	techniques aim to address the state explosion
-	problem by exploring only a sufficient subset
-	of the state space of a given program;
-	\item that the main goal of my project was
-	the implementation of the dynamic partial-order
-	reduction algorithm; and
-	\item that I succeeded in meeting this goal
-	and also implemented several extensions to the
-	project.
-\end{understandinglist}
-
 \chapter{Preparation}
 \label{cha:prep}
 After reading this chapter,
@@ -1224,45 +1200,6 @@ are structured using the module system
 in OCaml. I achieved both of these
 by making use of online resources and
 experimenting with small test programs.
-
-\section{Summary}
-Having read this chapter,
-you should now understand:
-\begin{understandinglist}
-	\item what a process, state, transition
-	and transition system are;
-	\item that model checking in the
-	context of my project is the process
-	of deciding whether a given transition
-	system is both error-free and deadlock-free
-	by exploring possible executions of the
-	system;
-	\item that the simplest model checking algorithm
-	performs an exhaustive depth-first search
-	of the state space, checking for errors and
-	deadlocks at each state encountered;
-	\item that persistent sets use information
-	about the independence of transitions to
-	avoid exploring sections of the state space
-	which are equivalent to sections that \emph{are}
-	explored;
-	\item that sleep sets use information about
-	the independence of transitions and the history
-	of the search of the state space to avoid
-	exploring a section of the state space which
-	has already been explored;
-	\item that the dynamic partial-order
-	reduction algorithm executes one arbitrary
-	and full interleaving of the concurrent program,
-	then uses information about independence and
-	which transitions happen-before others to
-	add backtracking points, so that a
-	persistent set is explored from each state; and
-	\item that most of my work before implementing
-	the project was reading and understanding theory,
-	but I also decided on exactly what the project
-	should do, and familiarised myself with OCaml.
-\end{understandinglist}
 
 \chapter{Implementation}
 \label{cha:imp}
@@ -2807,26 +2744,6 @@ automatically-generated GraphViz graph.
 	\label{fig:trace-example}
 \end{figure}
 
-\section{Summary}
-Having read this chapter,
-you should now understand:
-\begin{understandinglist}
-	\item that I used OCaml modules to
-	structure my project, making
-	particular use of functors to generate
-	code that implements different model-checking
-	algorithms on a given language implementation;
-	\item that I used an incremental development
-	process to first implement the project
-	language (PL), then to implement the simple
-	model-checking algorithm, then
-	the DPOR algorithm, and then to extend the project
-	with extra algorithms and features; and
-	\item the details of my
-	implementations of PL and the
-	model-checking algorithms.
-	\end{understandinglist}
-
 \chapter{Evaluation}
 \label{cha:evaluation}
 
@@ -3679,21 +3596,6 @@ algorithm is deliberately little
 (see section~\ref{sec:spor-imp}), so
 execution times are more or less proportional
 to the number of transitions explored.
-
-\section{Summary}
-Having read this chapter,
-you should now understand:
-\begin{understandinglist}
-	\item that I believe my project to
-	be sound, but not entirely bug-free;
-	\item how model checking systems are
-	useful even without a cast-iron guarantee
-	of their correctness;
-	\item the relative merits of the model-checking
-	algorithms I have implemented; and
-	\item the efficiency of my implementations of
-	those algorithms.
-	\end{understandinglist}
 
 \chapter{Conclusions}
 
