@@ -2749,20 +2749,10 @@ you should understand:
 
 \section{Soundness}
 
-\begin{center}
-	\textit{But who will guard the guards themselves?} \\
-	\qquad\qquad\qquad --- Juvenal, \textit{Satire VI}
-\end{center}
-
 Even though the algorithms
 used in this project have all been proven sound,
-there is no guarantee that my project correctly
-implements the algorithms, and hence no
-guarantee of soundness. Using another
-system to verify
-my model-checking implementations would not
-solve this problem, because then that system
-would have to be verified, and so on.
+this is irrelevant if there are bugs in my
+implementations which render the algorithms incorrect.
 After reading this section, you should
 therefore understand the extent to which I believe
 my project consists of sound implementations
@@ -2779,7 +2769,7 @@ is about 1 to 25 errors per 1,000 lines
 of delivered code \cite{mccon04}, my project
 consists of at least 3,250 lines of
 code\footnote{Computed using
-	\texttt{\,find .\@ -name
+	\texttt{\,find src/ -name
 		\textquoteleft*.ml\textquoteright
 		| xargs wc -l}},
 and there is no reason to think that I would
@@ -2862,105 +2852,70 @@ the bug must be obscure.
 Even if I think it unlikely, it is
 certainly possible that there is a subtle
 bug in my project which results in its
-unsoundness; it may report a transition system
-to be error- and deadlock-free when it
-is not. In fact, since any verification
-system can only be verified (with considerable
-effort) with another
-automated verification system, it is
-more or less impossible to be \emph{certain}
-of the correctness of any model checker.
+unsoundness, since my project has not
+been verified (verification of such
+large programs takes
+considerable effort).
 Although it may initially seem
-that such a model checking system without
-rigorous, unshakeable proof of its
+that a model-checking system without
+a guarantee of its
 soundness is useless, this
 is not at all the case.
 
-\subsubsection{Proofs of Soundness are Unnecessary}
+Proof can be seen as a social process
+by which a consensus arises that
+a statement is true, and it has been
+argued that, compared to the informal
+proofs typically used in mathematics,
+formal proofs are a
+poor catalyst to this process, since
+they are so long and difficult to
+read \cite{demi79}. There are other
+ways that the confidence in a program's
+correctness can be increased, which
+are arguably better at convincing people, including
+running tests, gaining experience from
+long-term use, and especially performing
+cross-checking with other, ideally
+independently developed, implementations
+\cite{tau02}.
 
-What is a proof of soundness, anyway?
-A distinction can be made between two
-main notions of proof \cite[p.~2]{buss98}:
-\begin{enumerate}
-	\item a (social) proof is an argument
-	designed to convince human readers that some
-	result is true, and
-	\item a (formal) proof is a sequence of
-	symbols, which, according to a particular
-	set of formal rules, lead to some
-	theorem, another sequence of symbols.
-\end{enumerate}
-I would argue that the former is the far more
-relevant notion when considering the
-correctness of a model-checking implementation,
-since the end goal is a consensus that the
-system is correct.
-There are several reasons that obtaining a formal
-proof of the correctness of my project,
-produced by some other verification system,
-would not be as useful as you might at first think:
-\begin{itemize}
-	\item the proof would be impractically
-	long to read and verify by hand, and so
-	would do little to convince a human reader
-	of the project's soundness, which is the real
-	goal;
-	\item there are easier ways of increasing
-	confidence in the correctness of the system,
-	such as running tests, gaining 
-	experience from long-term use, and
-	especially performing cross-checking
-	with other,
-	ideally independently developed,
-	model-checking implementations \cite{tau02};
-	\item a verified project may still be
-	unsound in practice, due a bug
-	in the compiler, operating system or
-	hardware; and
-	\item other aspects of the project,
-	such as efficiency and usability, are
-	more important than soundness, since
-	a partially-correct system can still
-	be used to find bugs, whereas an
-	unusable system or a system that
-	cannot tackle realistic problems
-	cannot.
-\end{itemize}
+There are also more important factors
+which determine the practical use of
+verification systems, including their
+performance and usability. A system that
+catches 90\% of bugs can still be a
+useful tools, especially if it catches
+those which are difficult to expose
+using conventional testing, such as
+those caused by race conditions. On
+the other hand, if a system
+is guaranteed to be sound, but takes an
+impractically long time for any realistic
+program, or if it requires users to have
+weeks of training and a deep mathematical
+understanding, then it will not be used in
+practice.
+Similarly, a system that
+returns only a single Boolean result
+is much less useful than one such as my project,
+which can give information indicating where
+the problem lies in the event that the
+program does not meet its specification.
 
-The lack of need for formal verification of
-verification systems is evident in
-practice---Isabelle, for instance, is widely
-believed to be correct even thought its
-implementation is not verified, and
-as of 2006, there were only
+Perhaps the clearest indication of the
+practical value of unverified
+model-checking systems is in their widespread
+practical use and resulting successes.
+\cite{kur08, brat04, est12, kars96, cof10, mill08}
+It is also worth noting that, as of 2006,
+there were only
 two verified model checking
 systems, neither of which was widely
 used, despite model
 checking having been in use for
-over two decades \cite{beck06}. 
+over two decades \cite{beck06}.
 
-\subsubsection{Model Checking as Rigorous Testing}
-The value in an unverified model-checking system
-is clear when thought about in relation to testing.
-Model checking provides full coverage of the code,
-covering every possible behaviour case; in particular,
-bugs due to race conditions in concurrent software
-are notoriously difficult to expose using normal
-testing, but model checking is designed with such
-bugs in mind. Furthermore,
-it is fully automatic, whereas writing \textit{ad hoc}
-tests by hand, especially if aiming
-for full code coverage or trying to discover
-concurrency bugs, takes time.
-When a bug \emph{is} found, model checking
-provides information that is likely to lead the
-developer to immediately identify its cause.
-
-Perhaps the best argument for the practical
-benefits of model checking
-is its widespread practical use, with considerable
-success.
-\cite{kur08, brat04, est12, kars96, cof10, mill08}
 
 \section{Performance}
 After reading this section, you should
