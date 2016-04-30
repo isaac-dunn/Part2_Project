@@ -546,11 +546,11 @@ can never disable the other, and if their effects are commutative.
 
 More formally, suppose that $\mathcal{T}$ is the set of
 transitions for some transition system, and
-that $D \subseteq \mathcal{T} \times \mathcal{T}$
+that $I \subseteq \mathcal{T} \times \mathcal{T}$
 is a reflexive and symmetric relation. We say
-that $D$ is a valid \emph{dependency relation}
+that $I$ is a valid \emph{independence relation}
 whenever the following two conditions hold for
-all $(t_1, t_2) \not \in D$:
+all $(t_1, t_2) \in I$:
 \begin{enumerate}
 	\item for all states $\sigma \in \textit{State}$,
 		if $t_1$ is enabled in $\sigma$ and
@@ -590,9 +590,9 @@ all $(t_1, t_2) \not \in D$:
 	\caption{Illustrations of transition independence.}
 	\label{fig:independence}
 \end{figure}
-Two transitions $t_1$ and $t_2$ are said to be \emph{dependent}
-if there is a valid dependency relation $D$ such that $(t_1, t_2) \in D$.
-If $t_1$ and $t_2$ are not dependent, they are said to be \emph{independent}.
+Two transitions $t_1$ and $t_2$ are said to be \emph{independent}
+if there is a valid independence relation $I$ such that $(t_1, t_2) \in I$.
+If $t_1$ and $t_2$ are not independent, they are said to be \emph{dependent}.
 
 \subsection{Persistent Sets}
 \label{sec:persistent}
