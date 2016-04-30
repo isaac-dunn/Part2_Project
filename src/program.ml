@@ -67,6 +67,22 @@ module Program (Thr : Interfaces.Thread) = struct
         List.iter write_edge (get_hasse_trace t_seq);
         Printf.fprintf out_chan "%s\n" "}";
         close_out out_chan
+
+    (* For creating Hashtbl implementation *)
+    type t = state
+    (* For hashing *)
+    let equal (tds, g) (tds', g') =
+        let equal_threads = ref true in
+        for i = 0 to Array.length tds - 1 do
+            let (e, s) = tds.(i) in
+            let (e', s') = tds'.(i) in
+            equal_threads := !equal_threads && (e = e') && (ThrImp.StoreImp.eq s s')
+        done;
+        !equal_threads && ThrImp.StoreImp.eq g g'
+    (* For hashing *)
+    let hash (tds, g) = Array.fold_left
+        (fun h -> fun (e, s) -> h land Hashtbl.hash e land ThrImp.StoreImp.hash s)
+        (ThrImp.StoreImp.hash g) tds
 end
 
 module PLProgram : (Interfaces.Program

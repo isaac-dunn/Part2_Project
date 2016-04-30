@@ -66,6 +66,12 @@ module type Store = sig
 
     (** Given store, gives all global locations in all stored expressions *)
     val globals_stored : store -> ExprImp.loc list
+
+    (** Decides if two stores are equal *)
+    val eq : store -> store -> bool
+
+    (** Gives hash value for the store. Equal to those of equivalent stores *)
+    val hash : store -> int
 end
 
 (** Thread Interface *)
@@ -133,6 +139,13 @@ module type Program = sig
 
     (* Given filename, t_seq, index Hasse diagram, write graphviz file *)
     val output_hasse_image : string -> transition list -> unit
+
+    (* Type for making a Hashtbl implementation from *)
+    type t = state
+    (** Equality on program states *)
+    val equal : state -> state -> bool
+    (** Hashing function for states *)
+    val hash : state -> int
 end
 
 (** Checker Interface *)
