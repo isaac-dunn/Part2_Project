@@ -2071,43 +2071,6 @@ to \textsc{Check}, then, providing no recursive
 calls reported a deadlock, the algorithm returns
 that the state space is deadlock-free.
 
-\begin{figure}
-	\begin{algorithmic}[1]
-		\Procedure{Check}{$\sigma_0,\,\pi$}
-		\Let{$(l, g)$}
-		{$\textit{last}(\pi)$}
-		\Let{\textit{error\_free}}{true}
-		\Let{\textit{is\_enabled\_thread}}{false}
-		\Let{\textit{no\_waiting\_threads}}{true}
-		\Let{\textit{calls\_deadlock\_free}}{true}
-		\ForAll{$p \in \mathcal{P}$}
-		\If{$\textit{next}(\sigma, p) \in \textit{enabled}(\sigma)$}
-		\State \textit{is\_enabled\_thread} := true;
-		\Let{$(\textit{result\_ef}, \textit{result\_df})$}
-		{\Call{Check}{$\sigma_0, \pi.\textit{next}(\sigma, p)$}}
-		\State \textit{error\_free} := \textit{error\_free}
-		\& \textit{result\_ef};
-		\State \textit{calls\_deadlock\_free}
-		:= \textit{calls\_deadlock\_free}
-		\& \textit{result\_df}
-		\Else
-		\If{$\textit{err}(l(p))$}{ \textit{error\_free} := false};
-		\EndIf
-		\If{$\exists g' \in \mathcal{G}.\;
-			\textit{next}(\sigma,p) \in \textit{enabled}(l,g')$}
-		{\textit{no\_waiting\_threads} := false}
-		\EndIf
-		\EndIf
-		\EndFor
-		\Let{\textit{deadlock\_free}}{\textit{calls\_deadlock\_free} \&
-			(\textit{is\_enabled\_thread} | \textit{no\_waiting\_threads})}
-		\State \Return (\textit{error\_free}, \textit{deadlock\_free})
-		\EndProcedure
-	\end{algorithmic}
-	\caption{Simple model checking algorithm}
-	\label{fig:simple-imp-code}
-\end{figure}
-
 \subsubsection{Testing}
 
 Although more detail will be given in
@@ -2308,69 +2271,7 @@ Calling \textsc{UpdateBacktrackSets} on
 each reachable node in $G$ is implemented using
 a simple depth-first search.
 
-\begin{figure}
-	\begin{algorithmic}[1]
-		\Let{$H$}{an empty hash table of states}
-		\Let{$G$}{an empty graph on transitions}
-		\State
-		\Procedure{Explore}{$\pi$}
-		\Let{$\sigma$}{$\textit{last}(\pi)$}
-		\If{$\sigma \in H$}
-			\Let{$\mathcal{U}$}
-			{$\{u \mid \exists t \in \textit{enabled}(\sigma).\;
-				u \text{ is reachable from node }
-				t \text{ in } G\}$}
-			\ForAll{$t \in \mathcal{U}$}
-			\Call{UpdateBacktrackSets}
-				{$\pi,\, t$}
-			\EndFor
-		\Else{
-		\State add $\sigma$ into $H$;
-		\ForAll{$p \in \mathcal{P}$}
-		\Call{UpdateBacktrackSets}
-		{$\pi,\, \textit{next}(\sigma, p)$};
-		\EndFor
-		\If{$\textit{enabled}(\sigma) \neq \emptyset$}
-		\Let{$t$}{any $t \in \textit{enabled}(\sigma)$}
-		\Let{$\textit{backtrack}(\sigma)$}{$\{t\}$}
-		\Let{$\textit{done}(\sigma)$}{$\emptyset$}
-		\While{$\textit{done}(\sigma)
-			\neq \textit{backtrack}(\sigma)$}
-		\Let{$t$}{any $t \in (\textit{backtrack}(\sigma)
-			\setminus \textit{done}(\sigma))$}
-		\State add $t$ to $\textit{done}(\sigma)$;
-		\If{$|\pi| > 0$}
-			add edge $(\pi_{|\pi|-1}, t)$ to $G$;
-		\EndIf
-		\State \Call{Explore}{$\pi.t$}
-		\EndWhile
-		\EndIf
-		}\EndIf
-		\EndProcedure
-		\State
-		\Procedure{UpdateBacktrackSets}{$\pi,\, t_{p,s}$}
-		\Let{$D$}{$\{i \in \textit{dom}(\pi) \mid
-			\pi_i \text{ is dependent with } t_{p,s}
-			\text{ and } (i, p)\!\not \hookrightarrow_\pi \}$}
-		\If{$D \neq \emptyset$}
-		\Let{$\sigma_d$}
-		{$\textit{pre}(\pi,\text{max}(D))$}
-		\If{$\textit{next}(\sigma_d, p)
-			\in \textit{enabled}(\sigma_d)$}
-		add $\textit{next}(\sigma_d, p)$
-		to $\textit{backtrack}(\sigma_d)$
-		\Else {
-			add all of $\textit{enabled}(\sigma_d)$
-			to $\textit{backtrack}(\sigma_d)$
-		} \EndIf
-		\EndIf
-		\EndProcedure
-		\State
-		\State Initially: \Call{Explore}{$\emptyset$}
-	\end{algorithmic}
-	\caption{The Stateful DPOR algorithm.}
-	\label{fig:sdpor-code}
-\end{figure}
+
 
 \subsection{Static Partial-Order Reduction}
 \label{sec:spor-imp}
@@ -2424,36 +2325,6 @@ persistent sets as the threads progress, the cost
 of performing this expensive computation at
 every state was too high.
 
-\begin{figure}
-	\begin{algorithmic}[1]
-		\Procedure{PersistentSet}{$\sigma$}
-		\Let{$E$}{$\{p\}$,
-			for any $p$ such that
-			$\exists t_{p,s} \in \textit{enabled}(\sigma)$}
-		\Let{$O$}{$\{o \mid \textit{accesses}(p, o)\}$}
-		\While{$E$ changes}
-			\ForAll{$q \in (\mathcal{P} \setminus E)$}
-				\If{$\exists o \in O.\;
-					\textit{accesses}(q,o)$}
-				\State $E := E \cup \{p\}$;
-				\State $O := O \cup \{o \mid
-					\textit{accesses}(q, o)\}$
-				\EndIf
-			\EndFor
-		\EndWhile
-		\Let{$T$}{$\{t \mid \exists p \in E.\;
-					t = \textit{next}(\sigma,p)\}$}
-		\If{$(T \setminus \textit{enabled}(\sigma))
-				\neq \emptyset$}
-			\Return $\textit{enabled}(\sigma)$
-		\Else \ \Return $T$
-		\EndIf
-		\EndProcedure
-	\end{algorithmic}
-	\caption{An algorithm for statically constructing
-		persistent sets.}
-	\label{fig:spor-code}
-\end{figure}
 
 \subsection{Sleep Sets}
 After reading this section, you
@@ -2489,41 +2360,7 @@ of the relevant state. This is
 sound, although not as obviously as
 it might first seem \cite{flan05addm}.
 
-\begin{figure}
-	\begin{algorithmic}[1]
-		\Let{$H$}{an empty hash table mapping
-			states to sets of transitions}
-		\State
-		\Procedure{Check}{$\sigma,\, \textit{Sleep}$}
-			\If{$\sigma \not \in H$}
-				\State add $(\sigma, \textit{Sleep})$ to $H$;
-				\State$T := \textit{enabled}(\sigma)
-					\setminus \textit{Sleep}$
-			\Else
-				\State$T := H(\sigma) \setminus
-					\textit{Sleep}$;
-				\State $\textit{Sleep} := \textit{Sleep}
-					\cap H(\sigma)$;
-				\State $H(\sigma) := \textit{Sleep}$
-			\EndIf
-			\ForAll{$t \in T$}
-				\Let{$\sigma'$}{$\sigma'$ such that
-					$\sigma \xrightarrow{t} \sigma'$}
-				\Let{$\textit{Sleep}'$}{$\{t' \in \textit{Sleep}
-					\mid t' \text{ is independent with } t\}$}
-				\State\Call{Check}{$\sigma',\, \textit{Sleep}'$};
-				\State $\textit{Sleep} := \textit{Sleep} \cup \{t\}$
-			\EndFor
-		\EndProcedure
-		\State
-		\State Initially: \Call{Check}{$\sigma_0,\, \emptyset$}
-	\end{algorithmic}
-	\caption[The sleep sets algorithm.]
-			{The simple model-checking algorithm with sleep sets.
-				$H(\sigma)$ refers to the set of states stored
-				in $H$ for $\sigma$.}
-	\label{fig:sleep-code}
-\end{figure}
+
 
 \chapter{Evaluation}
 \label{cha:evaluation}
@@ -3505,13 +3342,159 @@ recent developments.
 
 \end{description}
 
-\chapter{Simple Model Checker Implementation}
-\label{app:simple-code}
+\chapter{Extension Model-Checking Algorithms}
+\section{Simple Model Checker}
+\begin{algorithmic}[1]
+	\Procedure{Check}{$\sigma_0,\,\pi$}
+	\Let{$(l, g)$}
+	{$\textit{last}(\pi)$}
+	\Let{\textit{error\_free}}{true}
+	\Let{\textit{is\_enabled\_thread}}{false}
+	\Let{\textit{no\_waiting\_threads}}{true}
+	\Let{\textit{calls\_deadlock\_free}}{true}
+	\ForAll{$p \in \mathcal{P}$}
+	\If{$\textit{next}(\sigma, p) \in \textit{enabled}(\sigma)$}
+	\State \textit{is\_enabled\_thread} := true;
+	\Let{$(\textit{result\_ef}, \textit{result\_df})$}
+	{\Call{Check}{$\sigma_0, \pi.\textit{next}(\sigma, p)$}}
+	\State \textit{error\_free} := \textit{error\_free}
+	\& \textit{result\_ef};
+	\State \textit{calls\_deadlock\_free}
+	:= \textit{calls\_deadlock\_free}
+	\& \textit{result\_df}
+	\Else
+	\If{$\textit{err}(l(p))$}{ \textit{error\_free} := false};
+	\EndIf
+	\If{$\exists g' \in \mathcal{G}.\;
+		\textit{next}(\sigma,p) \in \textit{enabled}(l,g')$}
+	{\textit{no\_waiting\_threads} := false}
+	\EndIf
+	\EndIf
+	\EndFor
+	\Let{\textit{deadlock\_free}}{\textit{calls\_deadlock\_free} \&
+		(\textit{is\_enabled\_thread} | \textit{no\_waiting\_threads})}
+	\State \Return (\textit{error\_free}, \textit{deadlock\_free})
+	\EndProcedure
+\end{algorithmic}
+\newpage
+\section{Stateful Dynamic Partial-Order Reduction}
+\begin{algorithmic}[1]
+	\Let{$H$}{an empty hash table of states}
+	\Let{$G$}{an empty graph on transitions}
+	\State
+	\Procedure{Explore}{$\pi$}
+	\Let{$\sigma$}{$\textit{last}(\pi)$}
+	\If{$\sigma \in H$}
+	\Let{$\mathcal{U}$}
+	{$\{u \mid \exists t \in \textit{enabled}(\sigma).\;
+		u \text{ is reachable from node }
+		t \text{ in } G\}$}
+	\ForAll{$t \in \mathcal{U}$}
+	\Call{UpdateBacktrackSets}
+	{$\pi,\, t$}
+	\EndFor
+	\Else{
+		\State add $\sigma$ into $H$;
+		\ForAll{$p \in \mathcal{P}$}
+		\Call{UpdateBacktrackSets}
+		{$\pi,\, \textit{next}(\sigma, p)$};
+		\EndFor
+		\If{$\textit{enabled}(\sigma) \neq \emptyset$}
+		\Let{$t$}{any $t \in \textit{enabled}(\sigma)$}
+		\Let{$\textit{backtrack}(\sigma)$}{$\{t\}$}
+		\Let{$\textit{done}(\sigma)$}{$\emptyset$}
+		\While{$\textit{done}(\sigma)
+			\neq \textit{backtrack}(\sigma)$}
+		\Let{$t$}{any $t \in (\textit{backtrack}(\sigma)
+			\setminus \textit{done}(\sigma))$}
+		\State add $t$ to $\textit{done}(\sigma)$;
+		\If{$|\pi| > 0$}
+		add edge $(\pi_{|\pi|-1}, t)$ to $G$;
+		\EndIf
+		\State \Call{Explore}{$\pi.t$}
+		\EndWhile
+		\EndIf
+	}\EndIf
+	\EndProcedure
+	\State
+	\Procedure{UpdateBacktrackSets}{$\pi,\, t_{p,s}$}
+	\Let{$D$}{$\{i \in \textit{dom}(\pi) \mid
+		\pi_i \text{ is dependent with } t_{p,s}
+		\text{ and } (i, p)\!\not \hookrightarrow_\pi \}$}
+	\If{$D \neq \emptyset$}
+	\Let{$\sigma_d$}
+	{$\textit{pre}(\pi,\text{max}(D))$}
+	\If{$\textit{next}(\sigma_d, p)
+		\in \textit{enabled}(\sigma_d)$}
+	add $\textit{next}(\sigma_d, p)$
+	to $\textit{backtrack}(\sigma_d)$
+	\Else {
+		add all of $\textit{enabled}(\sigma_d)$
+		to $\textit{backtrack}(\sigma_d)$
+	} \EndIf
+	\EndIf
+	\EndProcedure
+	\State
+	\State Initially: \Call{Explore}{$\emptyset$}
+\end{algorithmic}
+\newpage
+\section{Static Partial-Order Reduction}
+\begin{algorithmic}[1]
+	\Procedure{PersistentSet}{$\sigma$}
+	\Let{$E$}{$\{p\}$,
+		for any $p$ such that
+		$\exists t_{p,s} \in \textit{enabled}(\sigma)$}
+	\Let{$O$}{$\{o \mid \textit{accesses}(p, o)\}$}
+	\While{$E$ changes}
+	\ForAll{$q \in (\mathcal{P} \setminus E)$}
+	\If{$\exists o \in O.\;
+		\textit{accesses}(q,o)$}
+	\State $E := E \cup \{p\}$;
+	\State $O := O \cup \{o \mid
+	\textit{accesses}(q, o)\}$
+	\EndIf
+	\EndFor
+	\EndWhile
+	\Let{$T$}{$\{t \mid \exists p \in E.\;
+		t = \textit{next}(\sigma,p)\}$}
+	\If{$(T \setminus \textit{enabled}(\sigma))
+		\neq \emptyset$}
+	\Return $\textit{enabled}(\sigma)$
+	\Else \ \Return $T$
+	\EndIf
+	\EndProcedure
+\end{algorithmic}
+\vspace{1cm}
+\section{Sleep Sets}
+\begin{algorithmic}[1]
+	\Let{$H$}{an empty hash table mapping
+		states to sets of transitions}
+	\State
+	\Procedure{Check}{$\sigma,\, \textit{Sleep}$}
+	\If{$\sigma \not \in H$}
+	\State add $(\sigma, \textit{Sleep})$ to $H$;
+	\State$T := \textit{enabled}(\sigma)
+	\setminus \textit{Sleep}$
+	\Else
+	\State$T := H(\sigma) \setminus
+	\textit{Sleep}$;
+	\State $\textit{Sleep} := \textit{Sleep}
+	\cap H(\sigma)$;
+	\State $H(\sigma) := \textit{Sleep}$
+	\EndIf
+	\ForAll{$t \in T$}
+	\Let{$\sigma'$}{$\sigma'$ such that
+		$\sigma \xrightarrow{t} \sigma'$}
+	\Let{$\textit{Sleep}'$}{$\{t' \in \textit{Sleep}
+		\mid t' \text{ is independent with } t\}$}
+	\State\Call{Check}{$\sigma',\, \textit{Sleep}'$};
+	\State $\textit{Sleep} := \textit{Sleep} \cup \{t\}$
+	\EndFor
+	\EndProcedure
+	\State
+	\State Initially: \Call{Check}{$\sigma_0,\, \emptyset$}
+\end{algorithmic}
 
-\textbf{This will be a side-by-side comparison
-	of the simple model checker OCaml code and
-	the pseudocode it is supposed to implement.}
- 
 \chapter{Example PL Programs}
 
 \textbf{This will contain various
