@@ -1917,43 +1917,6 @@ clock vector as $c_p'$ allows for a
 more efficient implementation of
 the updates.
 
-\subsection{Difficulties with Locks}
-\label{sec:lock-difficulties}
-When initially implementing the project,
-I decided not to include locks in PL,
-so that transitions became total functions
-and could always execute, regardless
-of the shared state. While this meant
-that the DPOR algorithm was simpler when
-I first implemented it (for example,
-the checks on lines 5 and 19 of the
-pseudocode in figure~\ref{fig:dpor-imp-pscode}
-would be unnecessary), when I decided
-to add locks to PL in a later ``increment'',
-I ran into difficulties.
-
-In particular, the specification of the
-\texttt{next\_transition} function in the
-\textit{Thread} module either returned
-a transition, or it did not; there was
-no way of specifying whether or not
-the transition returned for the
-given state was enabled in the
-given shared state. To solve this,
-then, I changed the specification
-of the \texttt{next\_step} and
-\texttt{next\_transition} functions
-in the \textit{Thread} module to
-return a Boolean along with the
-main result, specifying whether
-the step or transition was enabled
-in the given state. To check whether
-the next transition of a process is
-enabled in a given state, the
-\texttt{next\_transition} function
-can be called and this Boolean flag
-checked.
-
 \subsection{Detecting Errors and Deadlocks}
 \label{sec:dpor-imp-detecting}
 
