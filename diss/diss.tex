@@ -527,7 +527,7 @@ through the cycle, with no end in sight.
 
 
 Although such na\"{\i}ve algorithms as those given
-in section~\ref{sec:simple-model-checking}
+in Section~\ref{sec:simple-model-checking}
 are correct, their performance suffers due to
 the state explosion problem.
 \emph{Partial-order reduction} is a category of
@@ -601,7 +601,7 @@ Partial-order reduction algorithms typically
 perform a depth-first
 search of the reachable state space
 (as the algorithms in
-section~\ref{sec:simple-model-checking} do), but at each
+Section~\ref{sec:simple-model-checking} do), but at each
 state $\sigma$ they explore only a subset
 $T \subseteq \textit{enabled}(\sigma)$
 of the possible transitions.
@@ -634,7 +634,7 @@ independent with every transition in $T$.
 
 \subsubsection{An Example}
 For illustration, in the state space shown in
-figure~\ref{fig:persistent}, $T = \{t_1\}$ is
+Figure~\ref{fig:persistent}, $T = \{t_1\}$ is
 a persistent set in the initial state, as every
 transition reachable following only transitions
 not in $T$ (in this case, every transition other
@@ -680,7 +680,7 @@ that by exploring only transitions in persistent sets, all reachable
 local states of each process are explored
 \cite[Theorem~6.14]{god96}. Therefore, if we are interested in
 the definition of model checking given in 
-section~\ref{sec:simple-model-checking}, then it is sufficient
+Section~\ref{sec:simple-model-checking}, then it is sufficient
 to explore transitions from the persistent sets of the states we
 encounter.
 
@@ -689,7 +689,7 @@ encounter.
 Another technique for addressing the state explosion
 problem is that of \emph{sleep sets}. Suppose that
 we are at state $\sigma_0$ when performing a search
-of the state space (see figure~\ref{fig:sleep}).
+of the state space (see Figure~\ref{fig:sleep}).
 Suppose that the first transition
 we explore from $\sigma_0$ is $t_1$, reaching $\sigma_1$,
 and the second is $t_2$, reaching $\sigma_2$.
@@ -704,7 +704,7 @@ is reachable from $\sigma_1$, as $\sigma'$
 is reachable from $\sigma_1$. By assumption,
 when the search is at $\sigma_2$, we have already
 explored all the stopped states reachable from
-$\sigma_1$ (the dotted area in figure~\ref{fig:sleep}),
+$\sigma_1$ (the dotted area in Figure~\ref{fig:sleep}),
 in particular those reachable from
 $\sigma'$. Therefore, there is no need to
 explore $t_1$ from $\sigma_2$.
@@ -753,7 +753,7 @@ partial-order reduction algorithm works.
 
 \subsubsection{Transition Sequences}
 Instead of keeping track of just the current state, as
-the algorithms in section~\ref{sec:simple-model-checking}
+the algorithms in Section~\ref{sec:simple-model-checking}
 did, the dynamic partial-order reduction (DPOR) algorithm
 keeps track of a \emph{transition
 sequence} $\pi \in \mathcal{T}^*$. This transition
@@ -804,7 +804,7 @@ can be executed, as it cannot be disabled by $\pi_{i+1}$.
 Because independent transitions commute, the state reached by
 executing $\pi_i$ followed by $\pi_{i+1}$ is the same
 as the state reached by executing $\pi_{i+1}$ followed
-by $\pi_i$ (see figure~\ref{fig:sequence-equivalence}).
+by $\pi_i$ (see Figure~\ref{fig:sequence-equivalence}).
 So $\textit{pre}(\pi, i+2) = \textit{pre}(\pi', i+2)$. Since
 for all $j \geq i + 2$, $\pi_j = \pi'_j$, it follows that
 $\textit{last}(\pi) = \textit{last}(\pi')$. So swapping
@@ -969,7 +969,7 @@ of research and reading.
 
 \subsubsection{Example Execution}
 An example execution could be added here, on the same example as
-figure~\ref{fig:sdpor-motivation}.
+Figure~\ref{fig:sdpor-motivation}.
 
 \section{Preparatory Work}
 After reading this section, you
@@ -1150,7 +1150,7 @@ In the project, there are five main signatures:
 \end{enumerate}
 
 While I did implement a simple programming language
-(see section~\ref{sec:language}), the model checking
+(see Section~\ref{sec:language}), the model checking
 algorithms that are the focus of this project are of
 course entirely independent of any particular language.
 I therefore ensured that, in order to use
@@ -1164,7 +1164,7 @@ functors to automatically generate implementations of
 \emph{Store}, \emph{Program} and \emph{Checker}, the
 last of which can then be used to immediately perform
 model checking. This process is shown explicitly in
-figure~\ref{fig:functors} for
+Figure~\ref{fig:functors} for
 a hypothetical language called NL.
 
 \section{Development of the Project Language}
@@ -1184,13 +1184,13 @@ ML-like language, PL (Project Language), to avoid
 the unnecessary complexity of implementing a full
 industrial language.
 The grammar for valid PL expressions is given in
-figure~\ref{fig:pl-expressions}.
+Figure~\ref{fig:pl-expressions}.
 
 As required by the \emph{Thread} interface, each
 PL thread has access to both its local store
 $s$\footnote{Note that
 	here, $s$ is not the full local state
-	as defined in chapter~\ref{cha:prep},
+	as defined in Chapter~\ref{cha:prep},
 	because it does not include the instructions
 	for the thread. An (expression, store) pair
 	gives the full local state.}
@@ -1207,9 +1207,9 @@ must be taken to ensure that each step really is
 atomic, else race conditions could exist that would
 not be found by a model checker.
 The semantics of PL expressions are as you would expect
-(see appendix~\ref{app:pl-def} for a full definition), but
+(see Appendix~\ref{app:pl-def} for a full definition), but
 the rules for the reduction of expressions that interact
-with the global store $g$ are given in figure~\ref{fig:pl-rules}.
+with the global store $g$ are given in Figure~\ref{fig:pl-rules}.
 
 There is no type system for PL. Although it would have been
 beneficial to design and implement a type system for PL
@@ -1246,7 +1246,7 @@ of characters into a sequence of tokens. When presented with a
 grammar and a set of precedence rules, Menhir produces a parser,
 which converts a sequence of tokens into an abstract syntax tree
 of the grammar. These were used in conjunction, as shown in
-figure~\ref{fig:parsing}, to produce a full PL parser.
+Figure~\ref{fig:parsing}, to produce a full PL parser.
 
 \begin{figure}
 	\centering
@@ -1319,14 +1319,14 @@ matching on PL expressions to determine what the next atomic
 operation, if any, to be executed in the reduction
 of an expression is. There is a close correspondence
 between the
-rules of the operational semantics (see appendix~\ref{app:pl-def})
+rules of the operational semantics (see Appendix~\ref{app:pl-def})
 and the different cases in the pattern matching. This is
 because each rule specifies that an expression of a
 particular form, perhaps with some conditions on the
 states of the local and shared stores, reduces in a
 particular way. For illustration, one rule and its
 corresponding pattern matching case is shown in 
-figure~\ref{fig:step-rule-correspondence}.
+Figure~\ref{fig:step-rule-correspondence}.
 
 \begin{figure}
 	\begin{subfigure}{\textwidth}
@@ -1389,7 +1389,7 @@ The \emph{Program} module is a small functor which,
 when given a \emph{Thread} implementation, provides 
 the few additional definitions and auxiliary
 functions necessary to fully represent
-transition systems (cf. section~\ref{sec:background-defs}.)
+transition systems (cf. Section~\ref{sec:background-defs}.)
 In particular, a state $\sigma \in \textit{State}$ is
 represented by an instance of the \texttt{state} type:
 \lstinputlisting[frame=none, firstline=115, lastline=115]
@@ -1416,10 +1416,10 @@ model checking algorithms.
 
 \section{Dynamic Partial-Order Reduction}
 The dynamic partial-order reduction (DPOR)
-algorithm was presented in section~\ref{sec:dpor-prep},
+algorithm was presented in Section~\ref{sec:dpor-prep},
 which gave an overview of its operation,
 including high-level pseudocode, which is reproduced
-in figure~\ref{fig:dpor-imp-pscode} for ease
+in Figure~\ref{fig:dpor-imp-pscode} for ease
 of reference. Several
 aspects of the algorithm mean that it
 is not obvious how it can be implemented
@@ -1477,7 +1477,7 @@ works, see Appendix~\ref{app:dpor-walkthrough}.
 	iteration through the threads,
 	that it is decided whether the current
 	state is an error or a deadlock
-	(see section~\ref{sec:dpor-imp-detecting}
+	(see Section~\ref{sec:dpor-imp-detecting}
 	below).
 
 	\item[Lines 15--17] In this project,
@@ -1511,14 +1511,14 @@ works, see Appendix~\ref{app:dpor-walkthrough}.
 	but does not happen-before $t$. To
 	decide the happens-before relation,
 	clock vectors are used, as described 
-	in section~\ref{sec:clock-vectors}.
+	in Section~\ref{sec:clock-vectors}.
 
 	The \texttt{pre} function mentioned above is used to
 	obtain $\sigma_d$ from the index of the
 	transition executed from it, $L(\alpha(t_{p,s}))$.
 
 	\item[Lines 18--19]	As explained in
-	section~\ref{sec:lock-difficulties}, it can
+	Section~\ref{sec:lock-difficulties}, it can
 	easily be decided whether the next transition of
 	a process is enabled in a given state. This also
 	means it is easy to compute the entire enabled
@@ -1577,7 +1577,7 @@ works, see Appendix~\ref{app:dpor-walkthrough}.
 	\item[Line 12] Once the new arguments have
 	been computed, a recursive call to
 	\texttt{check} is made. Other than
-	the clock vectors (see section~\ref{sec:clock-vectors}),
+	the clock vectors (see Section~\ref{sec:clock-vectors}),
 	the arguments that
 	have to be computed are the new transition
 	sequence, $\pi' = \pi.t$,
@@ -1767,7 +1767,7 @@ the updates.
 Error and deadlocks are detected in a
 very similar way to the simple model
 checker, as explained in
-section~\ref{sec:simple-imp}: the same
+Section~\ref{sec:simple-imp}: the same
 four Booleans are used to track whether
 any errors or deadlocks have been found,
 and they are combined to give the
@@ -1783,7 +1783,7 @@ threads are not explored. However,
 since the next transitions of
 each thread are examined on
 lines 3 and 4 of the pseudocode
-in figure~\ref{fig:dpor-imp-pscode},
+in Figure~\ref{fig:dpor-imp-pscode},
 it makes sense to check here
 whether any state is in an error,
 whether any transitions are enabled,
@@ -1817,7 +1817,7 @@ of transitions that leads to the same state.
 
 This partial order is simply the happens-before
 relation, as described in
-section~\ref{sec:happens-before}. As
+Section~\ref{sec:happens-before}. As
 two transitions are dependent if and only
 if they belong to the same thread or if
 they access the same shared object, my
@@ -1929,7 +1929,7 @@ function.
 Figure~\ref{fig:simple-imp-code} gives a high-level
 description of the model-checking algorithm I
 implemented. As outlined in
-section~\ref{sec:simple-model-checking}, it
+Section~\ref{sec:simple-model-checking}, it
 performs an exhaustive depth-first
 search of the state space,
 recursively deciding at each
@@ -1987,7 +1987,7 @@ that the state space is deadlock-free.
 \subsubsection{Testing}
 
 Although more detail will be given in
-section~\ref{sec:pl-checker-tests}, it
+Section~\ref{sec:pl-checker-tests}, it
 is worth mentioning here that before going
 on to implement anything else, I first
 tested the simple model checker to weed
@@ -2014,15 +2014,15 @@ the correctness of my implementation.
 The reason that I have fully explained
 the operation of this simple model checker,
 provided a mapping
-in appendix~\ref{app:simple-code} from the OCaml
+in Appendix~\ref{app:simple-code} from the OCaml
 implementation to the high-level
 pseudocode, and described
 tests of its correctness is to give the reader
 as much confidence as possible
 that the implementation performs
 model checking as defined in
-section~\ref{sec:model-checking-dfn}; in
-chapter~\ref{cha:evaluation}, the
+Section~\ref{sec:model-checking-dfn}; in
+Chapter~\ref{cha:evaluation}, the
 correctness of the simple model checker will be used
 to provide evidence that the implementations of
 other model-checking algorithms are also correct.
@@ -2077,7 +2077,7 @@ Suppose that we applied the approach
 given above to the DPOR algorithm,
 and executed the resulting algorithm
 on the example shown in
-figure~\ref{fig:sdpor-motivation}.
+Figure~\ref{fig:sdpor-motivation}.
 Consider the stage at which
 all the states in grey have been
 explored and so are present in the hash table,
@@ -2174,7 +2174,7 @@ the sets $\mathcal{U}$ of reachable transitions
 are generally reasonable in size.
 
 The pseudocode for the SDPOR algorithm is shown
-in figure~\ref{fig:sdpor-code}. The lines that
+in Figure~\ref{fig:sdpor-code}. The lines that
 differ from the plain DPOR algorithm are lines
 6--10 and line 19.
 To implement the visible operation dependency graph
@@ -2222,7 +2222,7 @@ not in $T$ never accesses any
 object that any process whose next
 transition is in $T$ accesses.
 The algorithm constructing a persistent set in a given state
-is shown in figure~\ref{fig:spor-code}.
+is shown in Figure~\ref{fig:spor-code}.
 
 This algorithm assumes that every thread only
 accesses shared objects mentioned in its own
@@ -2249,7 +2249,7 @@ algorithm.
 
 To implement sleep sets, I adapted my
 code for the simple model-checking
-algorithm as shown in figure~\ref{fig:sleep-code},
+algorithm as shown in Figure~\ref{fig:sleep-code},
 which is adapted from pseudocode
 given by Godefroid \cite{god96}, the main
 difference being that Godefroid uses
@@ -2535,7 +2535,7 @@ redundant data on the same example.
 This section presents the performance measurements.
 For each example program, the results for all eight
 algorithms are plotted on the same graph, in the
-style indicated in figure~\ref{fig:key}.
+style indicated in Figure~\ref{fig:key}.
 As the results are
 presented on logarithmic graphs, if the timing function
 returned 0s, I plotted a point at 0.02s
@@ -2707,7 +2707,7 @@ the test variable.
 \subsubsection{Example 3 -- Indexer}
 This example is taken from
 the paper that introduced DPOR,
-where the code can be seen \cite[figure~1]{flan05}.
+where the code can be seen \cite[Figure~1]{flan05}.
 Each thread ``receives'' a number of
 ``messages'' from a \texttt{getmsg}
 procedure, each of which is inserted
@@ -2734,7 +2734,7 @@ next free slot is used instead.
 \subsubsection{Example 4 -- File System}
 This example is taken from
 the paper that introduced DPOR,
-where the code can be seen \cite[figure~7]{flan05}.
+where the code can be seen \cite[Figure~7]{flan05}.
 Based an idiom found in the Frangipani file
 system \cite{thek97}, each thread searches for a free
 ``disk block'' for an ``inode'' to point
@@ -2762,14 +2762,14 @@ As expected, the simple model checker performs
 consistently poorly, with the size of the state
 spaces explored increasing exponentially as
 the number of threads increase (seen most
-clearly in figure~\ref{fig:repeated-access-trans})
+clearly in Figure~\ref{fig:repeated-access-trans})
 and as the amount of work done by each thread
 increases (seen most clearly in
-figure~\ref{fig:prod-cons-trans}).
+Figure~\ref{fig:prod-cons-trans}).
 This is the state explosion problem.
 
 \subsubsection{Stateful Simple Model Checking}
-By looking at figure~\ref{fig:repeated-access-trans},
+By looking at Figure~\ref{fig:repeated-access-trans},
 we can see that the stateful model checker does
 explore fewer transitions than the stateless
 algorithm. The benefit offered increases
@@ -2801,7 +2801,7 @@ revisited states being spotted.
 \subsubsection{Dynamic Partial-Order Reduction}
 When all threads are independent of one another,
 as in the first two cases of
-figure~\ref{fig:repeated-access-trans},
+Figure~\ref{fig:repeated-access-trans},
 the DPOR algorithm explores only one path
 through the state space, because no
 backtracking points are ever added as
@@ -2813,7 +2813,7 @@ than the exponentially increasing costs
 of the simple algorithm.
 
 In the other cases in
-figure~\ref{fig:repeated-access-trans},
+Figure~\ref{fig:repeated-access-trans},
 when a new thread is added, the increase
 in transitions explored
 is either additive (with negligible cost),
@@ -2838,7 +2838,7 @@ is no more than the number of threads
 per shared object).
 
 In the bounded-buffer example
-(figure~\ref{fig:prod-cons-trans}),
+(Figure~\ref{fig:prod-cons-trans}),
 the DPOR algorithm is able to exploit
 the independence between the two threads
 (they are only dependent when they
@@ -2918,15 +2918,15 @@ at this than the simple stateful algorithm).
 
 When applied to the DPOR algorithm, the results
 are more variable. No benefit whatsoever is seen
-in figure~\ref{fig:repeated-access-time} and little
-is seen in figure~\ref{fig:indexer-trans},
+in Figure~\ref{fig:repeated-access-time} and little
+is seen in Figure~\ref{fig:indexer-trans},
 presumably because the DPOR algorithm has already
 exploited the independence of the transitions
 as fully as is possible. However, in
-figure~\ref{fig:prod-cons-trans}, sleep sets
+Figure~\ref{fig:prod-cons-trans}, sleep sets
 work in conjunction with the DPOR to greatly
 slow the rate of the exponential increase,
-and in figure~\ref{fig:fs-trans} at fourteen and
+and in Figure~\ref{fig:fs-trans} at fourteen and
 more threads, sleep
 sets slow the rate of increase to a reasonable
 rate, whereas the loss of independence at the
@@ -2957,7 +2957,7 @@ then my SPOR algorithm returns persistent sets
 of size one, which leads to the minimal number
 of transitions being explored, as shown in the
 first two cases of
-figure~\ref{fig:repeated-access-trans}.
+Figure~\ref{fig:repeated-access-trans}.
 Otherwise, my SPOR algorithm offers only
 small reductions in the number of transitions
 explored, the benefits of which increase with
@@ -3000,7 +3000,7 @@ mean that the execution times end up being
 generally no shorter. Notably, the one
 case where stateful checking offers a noticeable
 improvement in execution time is that shown in
-figure~\ref{fig:repeated-access-time-h},
+Figure~\ref{fig:repeated-access-time-h},
 suggesting that perhaps in bigger, more
 industrial-scale cases, it gives more of
 an advantage. It is difficult to confirm
@@ -3069,7 +3069,7 @@ sleep sets do not reduce the number
 of explored transitions when applied
 to DPOR, so the overhead costs of
 implementing sleep sets can be clearly
-seen in figure~\ref{fig:repeated-access-time}.
+seen in Figure~\ref{fig:repeated-access-time}.
 However, in the other examples, these
 small costs are insignificant compared
 to the considerable benefits of using sleep
@@ -3079,7 +3079,7 @@ sets.
 The extra work done at per transition
 in implementing my SPOR
 algorithm is deliberately little
-(see section~\ref{sec:spor-imp}), so
+(see Section~\ref{sec:spor-imp}), so
 execution times are more or less proportional
 to the number of transitions explored.
 
