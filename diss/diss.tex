@@ -1180,68 +1180,11 @@ Although, as mentioned above, any concurrent
 thread-based programming language
 could be used to express transition systems for model
 checking, I chose to design and implement a simple
-ML-like language, PL (short for Project Language), to avoid
+ML-like language, PL (Project Language), to avoid
 the unnecessary complexity of implementing a full
 industrial language.
 The grammar for valid PL expressions is given in
 figure~\ref{fig:pl-expressions}.
-
-\begin{figure}
-	\centering
-	\setlength{\tabcolsep}{2pt}
-	\begin{tabular}{rl}
-		\textit{expr} $:=$ & \textit{int} $\vert$ \textit{bool} $\vert$ \textit{var} \\
-		$\vert$ & \textit{local} $\vert$ \textit{global}
-			$\vert$ \textit{spinlock} \\ 
-		$\vert$ & \textit{expr op expr} $\vert$ $\neg\,$\textit{expr} \\
-		$\vert$ & \textbf{skip} $\vert$ \textit{expr; expr}\\
-		$\vert$ & \textbf{if} \textit{expr}
-			\textbf{then} \textit{expr} \textbf{else} \textit{expr} \\
-		$\vert$ & \textbf{while} \textit{expr}
-			\textbf{do} \textit{expr} \\
-		$\vert$ & \textit{expr} $:=$ \textit{expr} $\vert$ !\textit{expr} 
-			$\vert$ \textbf{ref} \textit{expr} \\
-		$\vert$ & \textbf{fn} \textit{var}
-			$\Rightarrow$ \textit{expr} $\vert$ \textit{expr expr} \\
-		$\vert$ & \textbf{let} \textit{var} $=$
-			\textit{expr} \textbf{in} \textit{expr} \\
-		$\vert$ & \textbf{let rec} \textit{var} $=$
-			\textbf{fn} \textit{var} $\Rightarrow$
-			\textit{expr} \textbf{in} \textit{expr} \\
-		$\vert$ & \textbf{lock} \textit{expr} $\vert$
-			\textbf{unlock} \textit{expr} \\
-		$\vert$ & \textbf{cas}(\textit{expr}, \textit{expr}, \textit{expr}) \\
-		$\vert$ & \textbf{error}(\textit{message}) \\
-		& \\
-		\textit{int} $\in$ & $\{\ldots, -1, 0, 1, \ldots\}$ \\
-		\textit{bool} $\in$ & $\{\textbf{true}, \textbf{false}\}$ \\
-
-	\end{tabular}
-	\qquad\quad
-	\begin{tabular}{rcl}
-		\textit{op} $:=$ & $+$ &\\
-		$\vert$ & $-$ &\\
-		$\vert$ & $\ast$ &\\
-		$\vert$ & $/$ &\\
-		$\vert$ & $\%$ &\\
-		$\vert$ & $>$ &\\
-		$\vert$ & $<$ &\\
-		$\vert$ & $=$ &\\
-		$\vert$ & $\&$ &\\
-		$\vert$ & $\mid$ &\\
-		& &\\
-		\textit{local} & $\in$ &
-			$\{\textit{loc}_0, \textit{loc}_1, \textit{loc}_2, \ldots\}$ \\
-		\textit{global} & $\in$ &
-			$\{\textit{glo}_0, \textit{glo}_1, \textit{glo}_2, \ldots\}$ \\
-		\textit{lock} & $\in$ &
-			$\{\textit{lock}_0, \textit{lock}_1, \textit{lock}_2, \ldots\}$ \\
-		\textit{var} & $\in$ & $\{x, y, z, \ldots\}$ \\
-		& & \\
-	\end{tabular}
-	\caption{The grammar for PL expressions.}
-	\label{fig:pl-expressions}
-\end{figure}
 
 As required by the \emph{Thread} interface, each
 PL thread has access to both its local store
@@ -1267,36 +1210,6 @@ The semantics of PL expressions are as you would expect
 (see appendix~\ref{app:pl-def} for a full definition), but
 the rules for the reduction of expressions that interact
 with the global store $g$ are given in figure~\ref{fig:pl-rules}.
-
-\begin{figure}
-	\begin{gather*}
-		\frac{g(\textit{glo}_i) = e}
-		{(!\textit{glo}_i,\ s,\ g) \longrightarrow (e,\ s,\ g)} \\
-		\\
-		\frac{g(\textit{glo}_i) = e_\textit{curr}}
-			 {(\textbf{cas}(\textit{glo}_i,\, e_\textit{curr},\, e_\textit{new})
-			 	,\ s,\ g) \longrightarrow (\textbf{true},\ s,
-			 	\ g[\textit{glo}_i \mapsto e_\textit{new}])} \\
-		\\
-		\frac{g(\textit{glo}_i) \neq e_\textit{curr}}
-			{(\textbf{cas}(\textit{glo}_i,\, e_\textit{curr},\, e_\textit{new})
-				,\ s,\ g) \longrightarrow
-				(\textbf{false},\ s,\ g)} \\
-		\\
-		\frac{g(\textit{lock}_i) = \textbf{false}}
-		{(\textbf{lock}\ \textit{lock}_i,\ s,\ g)
-			\longrightarrow (\textbf{skip},\ s,\
-			g[\textit{lock}_i \mapsto \textbf{true}])} \\
-		\\
-		\frac{g(\textit{lock}_i) = \textbf{true}}
-		{(\textbf{unlock}\ \textit{lock}_i,\ s,\ g)
-			\longrightarrow (\textbf{skip},\ s,\
-			g[\textit{lock}_i \mapsto \textbf{false}])} \\
-	\end{gather*}
-	\caption{Rules for the atomic reduction of PL
-		expressions that interact with the shared store.}
-	\label{fig:pl-rules}
-\end{figure}
 
 There is no type system for PL. Although it would have been
 beneficial to design and implement a type system for PL
@@ -3464,7 +3377,7 @@ recent developments.
 	\EndIf
 	\EndProcedure
 \end{algorithmic}
-\vspace{1cm}
+\vspace{1.5cm}
 \section{Sleep Sets}
 \begin{algorithmic}[1]
 	\Let{$H$}{an empty hash table mapping
@@ -3494,6 +3407,86 @@ recent developments.
 	\State
 	\State Initially: \Call{Check}{$\sigma_0,\, \emptyset$}
 \end{algorithmic}
+
+\chapter{Project Language Definitions}
+\section{Syntax}
+\begin{tabular}{rl}
+	\textit{expr} $:=$ & \textit{int} $\vert$ \textit{bool} $\vert$ \textit{var} \\
+	$\vert$ & \textit{local} $\vert$ \textit{global}
+	$\vert$ \textit{spinlock} \\
+	$\vert$ & \textit{expr op expr} $\vert$ $\neg\,$\textit{expr} \\
+	$\vert$ & \textbf{skip} $\vert$ \textit{expr; expr}\\
+	$\vert$ & \textbf{if} \textit{expr}
+	\textbf{then} \textit{expr} \textbf{else} \textit{expr} \\
+	$\vert$ & \textbf{while} \textit{expr}
+	\textbf{do} \textit{expr} \\
+	$\vert$ & \textit{expr} $:=$ \textit{expr} $\vert$ !\textit{expr}
+	$\vert$ \textbf{ref} \textit{expr} \\
+	$\vert$ & \textbf{fn} \textit{var}
+	$\Rightarrow$ \textit{expr} $\vert$ \textit{expr expr} \\
+	$\vert$ & \textbf{let} \textit{var} $=$
+	\textit{expr} \textbf{in} \textit{expr} \\
+	$\vert$ & \textbf{let rec} \textit{var} $=$
+	\textbf{fn} \textit{var} $\Rightarrow$
+	\textit{expr} \textbf{in} \textit{expr} \\
+	$\vert$ & \textbf{lock} \textit{expr} $\vert$
+	\textbf{unlock} \textit{expr} \\
+	$\vert$ & \textbf{cas}(\textit{expr}, \textit{expr}, \textit{expr}) \\
+	$\vert$ & \textbf{error}(\textit{message}) \\
+	& \\
+	\textit{int} $\in$ & $\{\ldots, -1, 0, 1, \ldots\}$ \\
+	\textit{bool} $\in$ & $\{\textbf{true}, \textbf{false}\}$ \\
+
+\end{tabular}
+\qquad\quad
+\begin{tabular}{rcl}
+	\textit{op} $:=$ & $+$ &\\
+	$\vert$ & $-$ &\\
+	$\vert$ & $\ast$ &\\
+	$\vert$ & $/$ &\\
+	$\vert$ & $\%$ &\\
+	$\vert$ & $>$ &\\
+	$\vert$ & $<$ &\\
+	$\vert$ & $=$ &\\
+	$\vert$ & $\&$ &\\
+	$\vert$ & $\mid$ &\\
+	& &\\
+	\textit{local} & $\in$ &
+	$\{\textit{loc}_0, \textit{loc}_1, \textit{loc}_2, \ldots\}$ \\
+	\textit{global} & $\in$ &
+	$\{\textit{glo}_0, \textit{glo}_1, \textit{glo}_2, \ldots\}$ \\
+	\textit{lock} & $\in$ &
+	$\{\textit{lock}_0, \textit{lock}_1, \textit{lock}_2, \ldots\}$ \\
+	\textit{var} & $\in$ & $\{x, y, z, \ldots\}$ \\
+	& & \\
+\end{tabular}
+
+\section{Semantics}
+
+\begin{gather*}
+\frac{g(\textit{glo}_i) = e}
+{(!\textit{glo}_i,\ s,\ g) \longrightarrow (e,\ s,\ g)} \\
+\\
+\frac{g(\textit{glo}_i) = e_\textit{curr}}
+{(\textbf{cas}(\textit{glo}_i,\, e_\textit{curr},\, e_\textit{new})
+	,\ s,\ g) \longrightarrow (\textbf{true},\ s,
+	\ g[\textit{glo}_i \mapsto e_\textit{new}])} \\
+\\
+\frac{g(\textit{glo}_i) \neq e_\textit{curr}}
+{(\textbf{cas}(\textit{glo}_i,\, e_\textit{curr},\, e_\textit{new})
+	,\ s,\ g) \longrightarrow
+	(\textbf{false},\ s,\ g)} \\
+\\
+\frac{g(\textit{lock}_i) = \textbf{false}}
+{(\textbf{lock}\ \textit{lock}_i,\ s,\ g)
+	\longrightarrow (\textbf{skip},\ s,\
+	g[\textit{lock}_i \mapsto \textbf{true}])} \\
+\\
+\frac{g(\textit{lock}_i) = \textbf{true}}
+{(\textbf{unlock}\ \textit{lock}_i,\ s,\ g)
+	\longrightarrow (\textbf{skip},\ s,\
+	g[\textit{lock}_i \mapsto \textbf{false}])} \\
+\end{gather*}
 
 \chapter{Example PL Programs}
 
