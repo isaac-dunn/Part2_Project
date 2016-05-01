@@ -685,7 +685,7 @@ to explore transitions from the persistent sets of the states we
 encounter.
 
 \subsection{Sleep Sets}
-
+\label{sec:sleep-prep}
 Another technique for addressing the state explosion
 problem is that of \emph{sleep sets}. Suppose that
 we are at state $\sigma_0$ when performing a search
@@ -1898,7 +1898,6 @@ sanity-check my PL implementation
 and to later verify
 that my DPOR implementation
 gave correct results.
-
 As outlined in
 Section~\ref{sec:simple-model-checking}, it
 performs an exhaustive depth-first
@@ -1912,53 +1911,31 @@ and shows how it is decided whether
 an error or deadlock state has been reached.
 
 \subsection{Stateful Model Checking}
-When exploring a state space, the same state may be
-encountered twice. However, the part of the state
-space from that state onwards need only be explored
-once. An obvious technique for improving the
-time complexity of a model checking algorithm---at
-the cost of using extra space---is to notice
-when we visit a state twice, by making a note
-of which states we have explored. After reading
-this chapter, you should understand how I
-implemented this technique for both the simple
-model-checking algorithm and for the
-DPOR algorithm.
-
-Note that these algorithms,
-and the other remaining sections of this chapter,
-are beyond the original aims of the project. I
-was interested to compare different techniques for
-addressing the state explosion problem---both the
-algorithms themselves, and their effectiveness.
+If we keep track of which states we have
+already explored on a search, then when
+we re-encounter a state, we can cut short
+the search in the knowledge that we have
+already explored from that state, improving
+time efficiency at the cost of extra space.
 
 \subsubsection{Simple Model Checker}
 
 Applying this technique to the simple model
 checking algorithm is straightforward: whenever
 a state is visited, add it to some data structure,
-then explore those states which are not
-present in that data structure. As the operations
-of checking if a state is in the data structure
-and of adding a state to the data structure will
-be used at every state visited, we would like them
-to be as efficient as possible. The typical costs
-for these operations for a hash table are both
+then explore only those states which are not
+present in that data structure. As querying
+this structure and inserting a state to it
+happens at almost every state, we would like these
+operations to be efficient. The typical amortised costs
+of these operations for a hash table are both
 constant, so I used the OCaml library implementation
-of hash tables for this function.
+of hash tables for this purpose.
 
 \subsubsection{Dynamic Partial-Order Reduction}
-Unfortunately, na\"{\i}vely
-applying this technique to the DPOR
-algorithm results in an
-unsound model-checking algorithm. Instead,
-a different algorithm, stateful dynamic
-partial-order reduction (SDPOR), is used.
 
-\subsubsection{Na\"{\i}ve Approach}
-
-Suppose that we applied the approach
-given above to the DPOR algorithm,
+Suppose that we applied this approach
+to the DPOR algorithm,
 and executed the resulting algorithm
 on the example shown in
 Figure~\ref{fig:sdpor-motivation}.
@@ -1972,17 +1949,27 @@ labelled 2200 is encountered, which is already
 present in the hash table, so no exploration is
 made, and as no backtracking points have been added
 at either of the previous stages, the algorithm
-terminates. However, this leaves part of the state
+terminates.
+
+However, this leaves part of the state
 space entirely unexplored (the dotted section in
 the diagram), meaning that the algorithm is unsound;
 any error or deadlock in a dotted state would go
 undetected.
-
 The reason for the unsoundness is the failure to
 introduce backtracking points when necessary. If the
 search had not been cut short, then a backtracking point
 would have been added in the second state (1200), causing the
 dotted section to be explored.
+
+Solving this by simply adding
+all possible backtracking points
+whenever the search is cut short turns out to
+give worse performance than plain DPOR.
+To use this technique,
+we need a method of conservatively deciding which
+backtracking points must be added for soundness, but not
+so conservatively that all practical benefits are lost.
 
 \begin{figure}
 	\begin{subfigure}{\textwidth}
@@ -2009,20 +1996,9 @@ dotted section to be explored.
 \end{figure}
 
 \subsubsection{Stateful Dynamic Partial-Order Reduction}
-The most obvious solution to this problem is to simply
-add all possible backtracking points whenever we cut
-short a search. Although this does guarantee that all
-necessary backtracking points are added (and therefore
-that the algorithm is sound), in practice, the cost
-of exploring \emph{all} possible previous backtracking points
-dominates the benefit of cutting short searches when we
-encounter an already-visited state. To make use of this
-technique, we need a method of conservatively deciding which
-backtracking points must be added for soundness, but not
-so conservatively that all practical benefits are lost.
 
 One such method is to use a \emph{visible operation dependency
-graph}, thw use of which was proposed by Yang et al.\@ in an
+graph}, proposed by Yang et al.\@ in an
 algorithm known as stateful dynamic
 partial-order reduction (SDPOR) \cite{yang08}.
 The idea is that, when we first explore
@@ -2049,18 +2025,14 @@ search, sufficient backtracking points for soundness
 can be added by calling the
 \textsc{UpdateBacktrackSets} procedure
 on each transition in the set
-$\mathcal{U} = \{u \mid \exists t \in \textit{enabled}(\sigma).\;
-   u \text{ is reachable from node } t \text{ in graph } G\}$.
-The assumption that the stateful DPOR algorithm 
-relies on for its efficiency is that
-although state spaces are generally very large,
+\[\mathcal{U} = \{u \mid \exists t \in \textit{enabled}(\sigma).\;
+   u \text{ is reachable from node } t \text{ in graph } G\}.\]
+For its efficiency, SDPOR relies on the assumption that
 the sets $\mathcal{U}$ of reachable transitions
-are generally reasonable in size.
+are generally small in size.
 
 The pseudocode for the SDPOR algorithm is shown
-in Figure~\ref{fig:sdpor-code}. The lines that
-differ from the plain DPOR algorithm are lines
-6--10 and line 19.
+in Appendix~\ref{sapp:sdpor-code}.
 To implement the visible operation dependency graph
 $G$, I chose to use another hash table,
 mapping from transitions to lists of transitions.
@@ -2068,29 +2040,21 @@ Calling \textsc{UpdateBacktrackSets} on
 each reachable node in $G$ is implemented using
 a simple depth-first search.
 
-
-
 \subsection{Static Partial-Order Reduction}
 \label{sec:spor-imp}
-After reading this section, you should
-understand the static partial-order
-reduction algorithm that I implemented,
-and also why I did not implement a
-published static partial-order reduction
-algorithm.
 
 In order to evaluate the improvement in performance
 allowed by building persistent sets dynamically
 instead of statically, I decided to research and
 implement a static partial-order reduction
 algorithm. However, I struggled to find one
-in the literature that was straightforward enough
-to understand and implement in the short amount
+in the literature that I could
+understand and implement in the short amount
 of time I had. I therefore designed my own
 rudimentary static partial-order reduction algorithm,
 which I will refer to as the static partial-order reduction
 (SPOR, not to be confused with SDPOR) algorithm.
-While it is simple to understand and implement,
+While it is easy to understand and implement,
 the trade-off is that it returns large persistent sets.
 
 The algorithm explores the state space using a
@@ -2099,14 +2063,14 @@ transitions in a persistent set from each
 state, as outlined in section \ref{sec:persistent}.
 Before the algorithm begins its search, it compiles a table
 listing all the shared objects that each process may
-access, then, during the search, persistent sets $T$ are built
-using a fixed-point computation such that
+access, then, during the search, persistent sets $T$ are
+constructed such that
 every process whose next transition is
 not in $T$ never accesses any
 object that any process whose next
 transition is in $T$ accesses.
-The algorithm constructing a persistent set in a given state
-is shown in Figure~\ref{fig:spor-code}.
+The pseudocode for this algorithm is
+given in Appendix~\ref{sapp:spor-code}.
 
 This algorithm assumes that every thread only
 accesses shared objects mentioned in its own
@@ -2120,25 +2084,18 @@ each thread could access at every state encountered.
 While this would result in marginally smaller
 persistent sets as the threads progress, the cost
 of performing this expensive computation at
-every state was too high.
+every state was prohibitively high.
 
 
 \subsection{Sleep Sets}
-After reading this section, you
-should understand how I implemented
-the sleep sets technique for both the
-simple model checking algorithm and
-the dynamic partial-order reduction
-algorithm.
 
-To implement sleep sets, I adapted my
+To implement sleep sets, as
+explained in Section~\ref{sec:sleep-prep},
+I adapted my
 code for the simple model-checking
-algorithm as shown in Figure~\ref{fig:sleep-code},
-which is adapted from pseudocode
-given by Godefroid \cite{god96}, the main
-difference being that Godefroid uses
-iteration and an explicit stack, rather
-than recursion. As usual, I used a
+algorithm to match the pseudocode
+given in Appendix~\ref{sapp:sleep-code}.
+As usual, I used a
 library hash table implementation,
 and used lists of process identifiers
 to represent sleep sets, since one
@@ -2156,8 +2113,6 @@ processes that are in the sleep set
 of the relevant state. This is
 sound, although not as obviously as
 it might first seem \cite{flan05addm}.
-
-
 
 \chapter{Evaluation}
 \label{cha:evaluation}
@@ -3295,6 +3250,13 @@ These results are combined in line 17.
 \vspace{1.5cm}
 \section{Sleep Sets}
 \label{sapp:sleep-code}
+
+This pseudocode is adapted from pseudocode
+given by Godefroid \cite{god96}, the main
+difference being that Godefroid uses
+iteration and an explicit stack, rather
+than recursion.
+\smallskip
 \begin{algorithmic}[1]
 	\Let{$H$}{an empty hash table mapping
 		states to sets of transitions}
