@@ -1595,10 +1595,18 @@ works, see Appendix~\ref{app:dpor-walkthrough}.
 
 	\item[Line 13] Once all backtracking points have been
 	explored, the result is returned.
-	Section~\ref{sec:dpor-imp-detecting} explains how the
-	result is computed amongst the steps explained in this
-	section, which all relates solely to how it is
-	decided which transitions to explore.
+	Appendix~\ref{sapp:simple-code} explains
+	exactly how errors and deadlocks are
+	detected in the simple model checker,
+	and the computation is very similar
+	for the DPOR algorithm. The iteration
+	through all threads on line 3 is used
+	to also check whether any thread has
+	encountered an error, is enabled,
+	or is blocked.
+	These results are combined with the
+	results from the recursive calls to
+	return the correct result.
 
 \end{description}
 
@@ -1761,35 +1769,6 @@ clock vector as $c_p'$ allows for a
 more efficient implementation of
 the updates.
 
-\subsection{Detecting Errors and Deadlocks}
-\label{sec:dpor-imp-detecting}
-
-Error and deadlocks are detected in a
-very similar way to the simple model
-checker, as explained in
-Section~\ref{sec:simple-imp}: the same
-four Booleans are used to track whether
-any errors or deadlocks have been found,
-and they are combined to give the
-result in the same way. The only
-difference is that, in the DPOR
-algorithm, whether the current
-state is an error or a deadlock
-is not checked at the same time
-that the recursive calls are
-checked, because it is likely that
-the next transitions of some
-threads are not explored. However,
-since the next transitions of
-each thread are examined on
-lines 3 and 4 of the pseudocode
-in Figure~\ref{fig:dpor-imp-pscode},
-it makes sense to check here
-whether any state is in an error,
-whether any transitions are enabled,
-and whether any threads are blocked
-because of the current shared state.
-
 \section{Counter-Example Traces} \label{sec:traces}
 After reading this section, you should understand
 how I implemented a feature which produces a
@@ -1900,132 +1879,37 @@ automatically-generated GraphViz graph.
 \end{figure}
 
 \section{Extensions For Evaluation}
+Having reached my goal of implementing
+the DPOR algorithm, I decided to
+implement some additional model-checking
+algorithms as extensions, to allow a
+comparative evaluation of their
+performances. After reading this
+section, you should understand how
+I implemented these other model-checking
+algorithms.
 
 \subsection{Simple Model Checker}
-After reading this section, you
-should understand how I implemented
-the simple model-checking algorithm,
-particularly how the results (whether
-a given state is error-free and
-deadlock-free) are computed,
-and also how this implementation
-was tested.
+I actually implemented and tested
+the simple
+model checker before the DPOR
+algorithm, to allow me to
+sanity-check my PL implementation
+and to later verify
+that my DPOR implementation
+gave correct results.
 
-
-\subsubsection{Implementation}
-\label{sec:simple-imp}
-
-Writing the simple model checker first allowed
-me to be more prepared when implementing the DPOR
-algorithm, and later provided a useful way of checking
-its correctness. As with all model-checking
-algorithms, I implemented the simple algorithm
-as a functor which takes an implementation of
-\textit{Program} as its input, and outputs
-a structure that matches \textit{Checker}---in
-other words, one that provides a model-checking
-function.
-
-Figure~\ref{fig:simple-imp-code} gives a high-level
-description of the model-checking algorithm I
-implemented. As outlined in
+As outlined in
 Section~\ref{sec:simple-model-checking}, it
 performs an exhaustive depth-first
 search of the state space,
-recursively deciding at each
-state whether the state space
-from the current state onwards is error-free
+recursively deciding whether each
+state is error-free
 and deadlock-free.
-Appendix~\ref{app:simple-code} shows the
-correspondence between this pseudocode
-and my actual OCaml function.
-
-\subsubsection{Detecting Errors}
-
-The algorithm assumes that if a thread
-encounters an error, then the execution
-of that thread will not proceed, meaning
-that only threads which do not have an
-enabled next transition need to be checked
-for errors. The Boolean \textit{error\_free}
-tracks whether any threads in the current state
-have encountered an error (line 14) and whether any
-recursive calls report an error (line 11), and is
-returned as one of the two Boolean results
-of the call (line 17).
-
-\subsubsection{Detecting Deadlocks}
-
-Deciding whether the state space from the current
-state onwards is deadlock-free is more complicated.
-The \textit{calls\_deadlock\_free} keeps track of
-whether any recursive call reports a deadlock. If
-any do, then it is set to false (line 12), causing the
-algorithm to report that the state space herein
-is not deadlock-free (line 17).
-
-Assuming that no
-recursive calls report a deadlock, then the state
-space is deadlock-free if and only if the current
-state is not a deadlock state, which is the case
-if and only if either there is some thread with an
-enabled transition,
-or every thread had terminated its computation and
-is not waiting for some change in the global state.
-Two Booleans keep track of these two possibilities:
-if any transition is enabled, then
-\textit{is\_enabled\_thread} is set to true (line 9),
-and if any thread without an enabled transition is
-waiting for some change in the shared state (for
-instance a lock to become available), then
-\textit{no\_waiting\_threads} is set to false.
-If either Boolean is true at the end of the call
-to \textsc{Check}, then, providing no recursive
-calls reported a deadlock, the algorithm returns
-that the state space is deadlock-free.
-
-\subsubsection{Testing}
-
-Although more detail will be given in
-Section~\ref{sec:pl-checker-tests}, it
-is worth mentioning here that before going
-on to implement anything else, I first
-tested the simple model checker to weed
-out any obvious bugs in either the
-implementation of PL or of the simple
-model checker itself; the bugs would need
-dealing with at some point anyway, so
-better to catch them as soon as possible,
-when it would be easiest to identify the
-causes.
-
-Each test ran the simple model checker
-on a PL program, and
-warned if the result was not as
-I expected. It wasn't difficult to
-provide high code coverage of this
-relatively simple algorithm. Along
-with the simplicity of the algorithm,
-these tests gave me confidence in
-the correctness of my implementation.
-
-\subsubsection{Correctness}
-
-The reason that I have fully explained
-the operation of this simple model checker,
-provided a mapping
-in Appendix~\ref{app:simple-code} from the OCaml
-implementation to the high-level
-pseudocode, and described
-tests of its correctness is to give the reader
-as much confidence as possible
-that the implementation performs
-model checking as defined in
-Section~\ref{sec:model-checking-dfn}; in
-Chapter~\ref{cha:evaluation}, the
-correctness of the simple model checker will be used
-to provide evidence that the implementations of
-other model-checking algorithms are also correct.
+Appendix~\ref{app:pseudocode} gives
+the pseudocode for this algorithm,
+and shows how it is decided whether
+an error or deadlock state has been reached.
 
 \subsection{Stateful Model Checking}
 When exploring a state space, the same state may be
@@ -3256,7 +3140,9 @@ recent developments.
 \end{description}
 
 \chapter{Extension Model-Checking Algorithms}
+\label{app:pseudocode}
 \section{Simple Model Checker}
+\label{sapp:simple-code}
 \begin{algorithmic}[1]
 	\Procedure{Check}{$\sigma_0,\,\pi$}
 	\Let{$(l, g)$}
@@ -3289,8 +3175,36 @@ recent developments.
 	\State \Return (\textit{error\_free}, \textit{deadlock\_free})
 	\EndProcedure
 \end{algorithmic}
-\newpage
+
+The algorithm assumes that if a thread
+encounters an error, then the execution
+of that thread will not proceed, meaning
+that only threads which do not have any
+enabled transitions need to be checked
+for errors. The Boolean \textit{error\_free}
+is set to false if an error is encountered
+either in this state (line 14) or in a
+recursive call (line 11).
+
+Deciding whether the state space from the current
+state onwards is deadlock-free is more complicated.
+The \textit{calls\_deadlock\_free} keeps track of
+whether any recursive call reports a deadlock (line 12).
+The current state is not a deadlock state
+if either there is some thread with an
+enabled transition,
+or every thread had terminated its computation and
+is not waiting for some change in the shared state.
+If any transition is enabled, then
+\textit{is\_enabled\_thread} is set to true (line 9).
+If any thread without an enabled transition is
+waiting for some change in the shared state (for
+instance a lock to become available), then
+\textit{no\_waiting\_threads} is set to false.
+These results are combined in line 17.
+
 \section{Stateful Dynamic Partial-Order Reduction}
+\label{sapp:sdpor-code}
 \begin{algorithmic}[1]
 	\Let{$H$}{an empty hash table of states}
 	\Let{$G$}{an empty graph on transitions}
@@ -3352,6 +3266,7 @@ recent developments.
 \end{algorithmic}
 \newpage
 \section{Static Partial-Order Reduction}
+\label{sapp:spor-code}
 \begin{algorithmic}[1]
 	\Procedure{PersistentSet}{$\sigma$}
 	\Let{$E$}{$\{p\}$,
@@ -3379,6 +3294,7 @@ recent developments.
 \end{algorithmic}
 \vspace{1.5cm}
 \section{Sleep Sets}
+\label{sapp:sleep-code}
 \begin{algorithmic}[1]
 	\Let{$H$}{an empty hash table mapping
 		states to sets of transitions}
