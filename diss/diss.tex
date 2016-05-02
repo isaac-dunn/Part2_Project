@@ -376,6 +376,7 @@ accesses $g$, it is said to be \emph{visible}, else it is said to be
 visible, but writing to a thread-local variable is invisible.
 
 \subsection{Transitions}
+\label{sec:trans-prep}
 A \emph{transition} moves the system from one state to another,
 by performing a finite sequence of invisible operations of some
 process $p$, followed by a visible operation of the same process.
@@ -1261,157 +1262,78 @@ Figure~\ref{fig:parsing}, to produce a full PL parser.
 
 \subsubsection{The Expression Module}
 There are actually two datatypes which are used to
-represent PL expressions in the
-PL implementation of the \emph{Expression} module.
-The first of these is the ``raw'' expression, which
+represent PL expressions: the ``raw'' expression, which
 uses strings to represent variables (this is the
-datatype that the parser produces). However,
-manipulation of expressions is much easier when
-variables are represented using De Bruijn indices \cite{debr72},
-which is the purpose of the second expression datatype.
-This is the only one required by the \emph{Expression}
-signature. A function exists to recursively convert
-from the ``raw'' datatype to this second datatype.
+datatype that the parser produces), and a datatype
+which uses De Bruijn indices \cite{debr72} to
+represent variables, allowing
+easier manipulation of expressions.
 
 The remainder of the \emph{Expression} module
-consists of auxiliary functions, which are
+consists mainly of auxiliary functions which are
 necessary for the implementation of later
 modules, and either return a simple piece
 of information or perform a simple manipulation.
 
 \subsubsection{The Store Module}
 As mentioned above, I implemented a functor
-called ListStore, which, given a structure
-matching the \emph{Expression} signature,
-gives a structure matching the \emph{Store}
-signature. The \emph{Store} implementation produced
-represents stores using a simple list of
-(location,~expression) pairs. If a location
-appears twice in the list, the occurrence
-nearest the head of the list is taken to be
-the correct value. A function is provided
-which walks through from head to tail and
-removes any stale pairs---although this
-takes time linear in the length of the list,
-it reduces the space it takes up.
+called ListStore, which takes an
+\emph{Expression} implementation and
+gives a \emph{Store} implementation, which
+represents stores using lists of
+(location,~expression) pairs. Mappings
+are introduced by adding a new pair to
+the front of the list, causing any old
+mapping for that location to become stale.
+A function is provided that walks through
+the list removing stale pairs, used to
+prevent the list from growing too long,
+or in situations when there must be
+no stale values in the list.
 
 More efficient store implementations are of
 course possible (for example, one based on
 a hash table rather than a list), but
 I decided on the simplest reasonable
 implementation I could think of, to
-ensure correctness.
+be confident of its correctness.
 
-The only other function of note is
-\texttt{get\_fresh\_loc},
-which queries the \emph{Expression} \texttt{random\_loc}
-function until it returns a result which is
-unbound in the store. This is used in PL
-to generate a location
-whenever a new local reference is created using the
-\textbf{ref} keyword.
+There are again various auxiliary functions
+used in implementing later modules.
 
 \subsubsection{The Thread Module}
-The \emph{Thread} module consists mostly of
+The \emph{Thread} module consists primarily of
 the \texttt{next\_step} and \texttt{next\_transition}
-functions. The \texttt{next\_step} function uses pattern
-matching on PL expressions to determine what the next atomic
-operation, if any, to be executed in the reduction
-of an expression is. There is a close correspondence
-between the
-rules of the operational semantics (see Appendix~\ref{app:pl-def})
-and the different cases in the pattern matching. This is
-because each rule specifies that an expression of a
-particular form, perhaps with some conditions on the
-states of the local and shared stores, reduces in a
-particular way. For illustration, one rule and its
-corresponding pattern matching case is shown in 
-Figure~\ref{fig:step-rule-correspondence}.
-
-\begin{figure}
-	\begin{subfigure}{\textwidth}
-		\begin{gather*}
-		\frac{}
-		{(\textbf{if true then } e_2 \textbf{ else }
-				e_3,\,s,\,g) \rightarrow (e_2,\,s,\,g)}
-		\qquad
-		\frac{}
-		{(\textbf{if false then } e_2 \textbf{ else }
-			e_3,\,s,\,g) \rightarrow (e_3,\,s,\,g)} \\
-		\\
-		\frac{(e_1,\,s,\,g) \rightarrow
-			(e_1^{\prime},\,s^{\prime},\,g^{\prime})}
-		{(\textbf{if } e_1 \textbf{ then }
-			e_2 \textbf{ else } e_3,\,s,\,g)
-			\rightarrow (\textbf{if } e_1^{\prime}
-			 \textbf{ then }
-			e_2 \textbf{ else } e_3,\,
-			s^{\prime},\,g^{\prime})}
-		\end{gather*}
-		\caption{Rules relating to
-			the reduction of if-then-else expressions.}
-	\end{subfigure}
-	\\ \\ \\
-	\begin{subfigure}{\textwidth}
-		\lstinputlisting[frame=none, firstline=59, lastline=63]
-			{../src/pl_thread.ml}
-		\caption{Pattern matching case for if-then-else expressions.
-			If \texttt{e1} is a Boolean, then reduce to \texttt{e2} or
-			\texttt{e3},
-			otherwise use a recursive call to try to reduce \texttt{e1}.}
-	\end{subfigure}
-	\caption{A concrete illustration of the correspondence
-		between the rules of the operational semantics
-		and the pattern matching statements of the
-		\texttt{next\_step} function.}
-	\label{fig:step-rule-correspondence}
-\end{figure}
-
-As a transition for a thread is defined as a
-finite sequence of \emph{invisible} local
-operations, followed by one \emph{visible} operation
-which accesses the shared store, the \texttt{next\_transition}
-function simply repeatedly calls the \texttt{next\_step}
-function, reducing the initial expression and modifying
-the local store, until either the resulting step accesses the shared
-store, or no further reduction is possible. Noting that this
-process is independent of the object language (PL, in this case),
-the most general implementation of this project would require
-only the  \texttt{next\_step} function to be provided by
-the user, with a functor being used to automatically
-produce the \texttt{next\_transition} function. However,
-in this case, I decided that the additional design complexity
-cost was not worth the slight improvement to the generality
-of the project.
+functions, which define the semantics of PL.
+Given an expression, \texttt{next\_step} uses pattern
+matching to determine what the next atomic
+operation (if any) is for the reduction
+of that expression. Given the definition
+of a transition (cf.\@ Section~\ref{sec:trans-prep}),
+the \texttt{next\_transition}
+function repeatedly calls the \texttt{next\_step}
+function until some step accesses the shared
+store, at which point the resulting expression
+and updates to the stores are returned.
 
 \subsubsection{The Program Module}
 The \emph{Program} module is a small functor which,
 when given a \emph{Thread} implementation, provides 
 the few additional definitions and auxiliary
-functions necessary to fully represent
-transition systems (cf. Section~\ref{sec:background-defs}.)
+functions necessary to fully represent the state of
+transition systems (cf.\@ Section~\ref{sec:background-defs}).
 In particular, a state $\sigma \in \textit{State}$ is
 represented by an instance of the \texttt{state} type:
-\lstinputlisting[frame=none, firstline=115, lastline=115]
+\lstinputlisting[frame=none, firstline=121, lastline=121]
 	{../src/interfaces.ml}
 
 \subsubsection{Testing}
 To ensure that the implementation of the PL
 language was correct, I wrote around twenty unit tests for
 the \texttt{next\_transition} and
-\texttt{next\_step} functions. These tests
-consisted of a series of inputs and expected outputs
-to these functions. My aim in writing these tests
-was to ensure that most of the code was covered,
-so that any obvious bugs could be corrected
-immediately. However, I did not invest time
-in writing exhaustive test cases for two reasons:
-any bugs found later would be relatively straightforward
-to correct since they must be quite localised to avoid
-being caught by my tests, and getting the PL implementation
-fully correct was not the aim of the project, but
-just a necessary step before the main work on the
-model checking algorithms.
+\texttt{next\_step} functions. These had quite good
+code coverage, and seemed to catch most of the bugs
+in the implementation of PL.
 
 
 \section{Dynamic Partial-Order Reduction}
@@ -1427,18 +1349,18 @@ as an executable program; after reading
 this section, you should understand
 how this was achieved.
 
-\begin{figure}
-	\dporpseudocode
-	\caption{The DPOR pseudocode}
-	\label{fig:dpor-imp-pscode}
-\end{figure}
-
 \subsection{Implementation}
 This section gives a
 line-by-line explanation of how the algorithm
 was implemented.
 For a line-by-line explanation of how the algorithm
 works, see Appendix~\ref{app:dpor-walkthrough}.
+
+\begin{figure}
+	\dporpseudocode
+	\caption{The DPOR pseudocode}
+	\label{fig:dpor-imp-pscode}
+\end{figure}
 
 \begin{description}
 	\item[Line 1] The \textsc{Explore} procedure
@@ -1517,11 +1439,12 @@ works, see Appendix~\ref{app:dpor-walkthrough}.
 	obtain $\sigma_d$ from the index of the
 	transition executed from it, $L(\alpha(t_{p,s}))$.
 
-	\item[Lines 18--19]	As explained in
-	Section~\ref{sec:lock-difficulties}, it can
-	easily be decided whether the next transition of
-	a process is enabled in a given state. This also
-	means it is easy to compute the entire enabled
+	\item[Lines 18--19]	The \texttt{next\_transition} function
+	returns a Boolean with each transition, indicating whether
+	it is enabled in the given state, so that deciding if
+	$\textit{next}(\sigma_d,p)$ is enabled is trivial.
+	This also
+	means it is easy to compute the enabled
 	set of a state, by iterating through the processes
 	and looking at whether the next transition of each
 	is enabled.
