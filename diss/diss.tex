@@ -1331,7 +1331,7 @@ represented by an instance of the \texttt{state} type:
 To ensure that the implementation of the PL
 language was correct, I wrote around twenty unit tests for
 the \texttt{next\_transition} and
-\texttt{next\_step} functions. These had quite good
+\texttt{next\_step} functions. These had good
 code coverage, and seemed to catch most of the bugs
 in the implementation of PL.
 
@@ -1693,29 +1693,19 @@ more efficient implementation of
 the updates.
 
 \section{Counter-Example Traces} \label{sec:traces}
-After reading this section, you should understand
-how I implemented a feature which produces a
-visual counter-example trace.
-
 One of the advantages of model checking
-is that, in the case that
-an error is found, it is trivial to give
-an example of an execution of the given
-program which leads to an error state---in
+is that, if
+an error is found, it is easy to
+give an example execution leading
+to that error---in
 our case, this is just the sequence of
-transitions executed at the point when
-an error state it found.
+transitions leading to the error state.
 To give more insight into the reason for the
-error state being entered, it would be preferable
-to instead present the user with a
+error state being entered, the user could
+instead be given a
 \emph{partial order} of the transitions which,
-whenever linearised in an execution,
-results in the error or deadlock state.
-Given a sequence of transitions which lead to
-some state of interest, the problem is
-then to give the most general partial order
-which, however linearised, results a sequence
-of transitions that leads to the same state.
+whenever linearised into an execution,
+results in the error (or deadlock) state.
 
 This partial order is simply the happens-before
 relation, as described in
@@ -1724,28 +1714,27 @@ two transitions are dependent if and only
 if they belong to the same thread or if
 they access the same shared object, my
 algorithm simply executes the given transition
-sequence, using a function from processes
-to sequence indices to keep track
-of the last transition to access each
-process, and a function from shared
-objects to sequence indices to keep
-track of the last transition to
-access each shared object. For each
-transition executed, two edges are added
+sequence, using functions from processes
+and shared objects to positions in
+the sequence to track the last
+transition to each process and
+to access each shared object respectively.
+For each
+transition executed, two ``happens-before''
+edges are added
 to the graph representing the partial
 order: one from the last transition
 belonging to the same process, and one
 from the last transition accessing the
 same shared object.
 
-I thought that the most helpful way to
-present the resulting partial-order
-graph would be in the form of an
-image, so I wrote a procedure which
-automatically output the graph as
-a GraphViz graph, with the nodes
-labelled with the thread and the
-shared object accessed of each transition.
+I thought that displaying the partial
+order visually would be easiest to
+understand, so I wrote a procedure which
+automatically outputs the graph as
+a GraphViz file, with each node
+labelled with its process and the
+shared object it accesses.
 GraphViz is an open-source program which
 draws graphs.
 Figure~\ref{fig:trace-example} gives a program
@@ -1789,13 +1778,7 @@ automatically-generated GraphViz graph.
 	\end{subfigure}
 	\caption[An example partial-order
 	error trace.]{An example partial-order
-		error trace. The two nodes marked
-		``0 : t'' have two edges between them
-		as their happens-before relationship
-		is due to both possible reasons:
-		belonging to the
-		same process and accessing the same
-		shared object. The assignments in
+		error trace. The assignments in
 		the program are implemented in PL
 		using compare-and-swap operations.}
 	\label{fig:trace-example}
