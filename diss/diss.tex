@@ -2476,15 +2476,19 @@ locks.
 \subsection{Performance of the Algorithms}
 
 \subsubsection{Simple Model Checker}
-As expected, the simple model checker performs
-consistently poorly, with the size of the state
-spaces explored increasing exponentially as
-the number of threads increase (cf.
-Figure~\ref{fig:repeated-access-trans})
-and as the amount of work done by each thread
-increases (cf.
-Figure~\ref{fig:prod-cons-trans}).
-This is the state explosion problem.
+The simple model checker provides a
+baseline, exploring every path from
+the initial state to a stopped state
+exactly once. Due to the state explosion
+problem, this number increases
+exponentially with the complexity
+of the program being verified.
+
+As constant work is done per thread per transition
+explored, the execution times of the simple
+algorithm are
+proportional to the number of transitions it
+explores.
 
 \subsubsection{Stateful Simple Model Checking}
 In Figure~\ref{fig:repeated-access-trans},
@@ -2640,13 +2644,6 @@ of the complexities involved in trying to
 statically compute small persistent sets.
 
 \subsection{Efficiency of the Implementations}
-\subsubsection{Simple Model Checker}
-The simple model-checking algorithm takes
-constant time (per thread) per transition
-explored, so its execution times are
-proportional to the number of transitions it
-explores. Due to the state explosion problem,
-this dominates the time complexity.
 
 \subsubsection{Stateful Simple Model Checking}
 The cost of the hash-table operations
