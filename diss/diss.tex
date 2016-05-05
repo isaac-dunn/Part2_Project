@@ -2415,12 +2415,12 @@ the test variable.
 	\input{figs/prod_cons_trans_fig.pdf_tex}
 	\caption{Numbers of transitions explored
 		for the bounded-buffer example.}
-	\label{fig:prod-cons-time}
+	\label{fig:prod-cons-trans}
 	\def\svgwidth{\textwidth}
 	\input{figs/prod_cons_time_fig.pdf_tex}
 	\caption{Execution times for the
 		bounded-buffer example.}
-	\label{fig:prod-cons-trans}
+	\label{fig:prod-cons-time}
 \end{figure}
 
 \subsubsection{Example 3 -- Indexer}
@@ -2518,73 +2518,75 @@ This would result in more
 revisited states being spotted.
 
 \subsubsection{Dynamic Partial-Order Reduction}
-When all threads are independent of one another,
+When all threads are mutually independent,
 as in the first two cases of
 Figure~\ref{fig:repeated-access-trans},
 the DPOR algorithm explores only one path
 through the state space, because no
-backtracking points are ever added as
-no race conditions can exist. The total
+backtracking points are ever added.
+The number of
 transitions explored in this case is linear in both
-number of threads and number of operations
-per thread, which is considerably better
+the number of threads and the number of operations
+per thread---considerably better
 than the exponentially increasing costs
 of the simple algorithm.
 
 In the other cases in
 Figure~\ref{fig:repeated-access-trans},
-when a new thread is added, the increase
+whenever the number of threads increases
+by one, the increase
 in transitions explored
 is either additive (with negligible cost),
 or multiplicative (with considerable cost).
 The increase is additive if the new thread
 is assigned to access a new shared object,
 in which case no new race conditions are
-added, so no new backtracking points are
-necessary. The increase is multiplicative
-if the new thread accesses the same shared
-object as a number of existing threads
-(and the increase is more severe the greater
-this number is), since at many states, there
-now could be a new race condition, since
-two threads access the same shared object,
-so more backtracking points are needed.
-The increase is not as severe as in the
+added, else it is multiplicative since
+it introduces potential race conditions
+with the other threads accessing the same
+shared object.
+The multiplicative increases are
+not as severe as in the
 simple algorithm, though, because the new
 thread is independent of at least some of
-the threads (unless the number of threads
-is no more than the number of threads
-per shared object).
+the threads.
 
 In the bounded-buffer example
 (Figure~\ref{fig:prod-cons-trans}),
 the DPOR algorithm is able to exploit
 the independence between the two threads
-(they are only dependent when they
-access the same item out of eight) to
-reduce the exponent in the
+(they are dependent only when they
+access the same item in the buffer) to
+slow the
 exponential cost caused by the
 state explosion problem.
 
-The remaining two examples were created
-by their authors specifically to show
-off the benefits of the DPOR algorithm.
-As such, it performs very well up to
-a certain number of threads in both cases,
-being able to exploit independence that can
-only be known with dynamic runtime information,
-before the number of threads becomes high enough
-that they are no longer independent, and the
-exponential increase begins, albeit at a lesser
-rate than that of the simple algorithm.
+The remaining two examples are more
+realistic in scale, and exemplify the
+benefits that DPOR offers, especially
+when using threads to perform independent tasks.
+Figure~\ref{fig:indexer-trans} shows that
+DPOR explores very few transitions until
+the twelfth thread is introduced.
+This is because dependence between
+threads is caused only by collisions
+in the hash table, which for the simple
+hash function used happens at twelve threads,
+but for realistic hash functions would
+happen much later. Since there are no
+race conditions until this point,
+no backtracking points whatsoever are added
+before it, leading to only one execution path
+being explored. Similar behaviour is seen in
+Figure~\ref{fig:fs-trans}, in which performance
+is excellent until similar ``collisions''
+between threads accessing a table occur.
+
 Incidentally, the similarity of these performance
 graphs and those shown in the paper introducing
 dynamic partial-order reduction \cite{flan05}
 is further evidence that the algorithm has
-been correctly implemented -- the shapes
-are identical, and the numerical
-differences can be explained by the
-translation of the example into PL.
+been correctly implemented.
 
 \subsubsection{Stateful Dynamic Partial-Order Reduction}
 In the cases given above, the SDPOR algorithm
