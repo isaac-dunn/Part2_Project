@@ -2617,15 +2617,16 @@ technique, the average cost of the hash-table
 operations would have decreased, although
 the large numbers of transitions explored
 would not be affected.
+
 \subsubsection{Sleep Sets}
-Sleep sets are consistently effective.
 In every example,
 sleep sets significantly reduce the
 rate of exponential increase in
 the number of transitions explored by the
 simple algorithm, by preventing the
 unnecessary re-exploration of sections
-of the state space.
+of the state space (more effectively
+than the simple stateful algorithm).
 
 When applied to the DPOR algorithm, the results
 are more variable. While little benefit is seen
@@ -2633,16 +2634,29 @@ from applying sleep sets to DPOR in
 Figures~\ref{fig:repeated-access-time}
 and \ref{fig:indexer-trans}
 (presumably because the DPOR algorithm has already
-fully exploited the available independence),
+fully exploited the independence between the threads),
 better results are seen in 
 Figures~\ref{fig:prod-cons-trans} and \ref{fig:fs-trans},
 in which sleep sets work
 in conjunction with DPOR to greatly
-slow the rate of the exponential increase.
+slow the rate of the exponential increase in the
+number of transitions explored.
 Although the effectiveness of the technique
 depends on the particular program being
 verified, it seems that on more realistic
 examples, it is highly effective.
+
+There is a small time and space cost in
+applying the sleep-set technique.
+In the repeated-accesses example,
+using sleep sets does not reduce the number
+of explored transitions when applied
+to DPOR, so this time cost can be clearly
+seen in Figure~\ref{fig:repeated-access-time}.
+However, in the other examples, and all
+realistic programs, these
+small costs are insignificant compared
+to the considerable benefits available.
 
 \subsubsection{Static Partial-Order Reduction}
 When every thread accesses separate objects,
@@ -2672,19 +2686,6 @@ of the complexities involved in trying to
 statically compute small persistent sets.
 
 \subsection{Efficiency of the Implementations}
-
-\subsubsection{Sleep Sets}
-There is a small cost involved in
-applying the sleep-set technique.
-In the repeated-accesses example,
-using sleep sets does not reduce the number
-of explored transitions when applied
-to DPOR, so these costs can be clearly
-seen in Figure~\ref{fig:repeated-access-time}.
-However, in the other examples, and all
-realistic programs, these
-small costs are insignificant compared
-to the considerable benefits available.
 
 \subsubsection{Static Partial-Order Reduction}
 The extra work done at per transition
