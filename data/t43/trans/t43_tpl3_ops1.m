@@ -1,5 +1,7 @@
 %% importing data
 transitions = dlmread('t43_tpl3_ops1.csv', ',', 0, 0);
+ss = dlmread('ss11_trans.csv', ',', 0, 0);
+ssthreads = [1:13];
 % convert 0 values to NaNs, as these don't plot
 transitions(transitions==0)=nan;
 threads = [1:20];
@@ -8,7 +10,7 @@ threads = [1:20];
 
 semilogy(threads, transitions(:, 1), 'ko-')
 hold on
-semilogy(threads, transitions(:, 2), 'kx-')
+semilogy(ssthreads, ss, 'kx-')
 semilogy(threads, transitions(:, 3), 'ks-')
 semilogy(threads, transitions(:, 4), 'bo-')
 semilogy(threads, transitions(:, 5), 'bx-')
