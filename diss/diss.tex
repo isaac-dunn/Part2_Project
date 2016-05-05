@@ -2487,34 +2487,18 @@ Figure~\ref{fig:prod-cons-trans}).
 This is the state explosion problem.
 
 \subsubsection{Stateful Simple Model Checking}
-By looking at Figure~\ref{fig:repeated-access-trans},
-we can see that the stateful model checker does
-explore fewer transitions than the stateless
-algorithm. The benefit offered increases
-when there are more operation per threads,
-which is because each time a state is
-revisited and therefore not re-explored,
-a bigger saving is made.
-
-The benefit also increases when there are more
-threads sharing each shared object, which I
-believe is due to a quirk in my implementation
-of stores: because I implemented stores as
-(\textit{object}, \textit{value}) lists,
-and updates simply
-add a new pair to the start of the list,
-if two updates are made to a store, the
-results stores will only be equal in
-the eyes of OCaml if the updates are
-identical, regardless of whether the
-stores are logically equivalent or not.
-
-To resolve this quirk, I should use
-my own equality function on states,
-rather than using the inbuilt
-OCaml structural quality operator.
-This would result in more
-revisited states being spotted.
+In Figure~\ref{fig:repeated-access-trans},
+the stateful simple model-checker can be
+seen to perform consistently well. Since
+each access to a shared object is only a read,
+performing any two reads in either order results
+in the same state, resulting in many repeated
+states being identified, explaining the good
+performance.
+In the other, more realistic examples, particularly
+Figure~\ref{fig:prod-cons-trans},
+the performance is again considerably
+better than the simple algorithm.
 
 \subsubsection{Dynamic Partial-Order Reduction}
 When all threads are mutually independent,
@@ -2665,22 +2649,23 @@ explores. Due to the state explosion problem,
 this dominates the time complexity.
 
 \subsubsection{Stateful Simple Model Checking}
-Although, as noted above, using stateful model
-checking offers a small reduction in the number
-of transitions explored compared with the simple
-algorithm, in practice the overhead of
-performing hash-table operations at every state
-means that the execution times are
-generally no better. The one
-case where there a noticeable
-improvement is
-Figure~\ref{fig:repeated-access-time-h},
-suggesting perhaps that in bigger, more
-realistic cases, its benefits are greater.
-It is difficult to confirm
-or reject this hypothesis from the other examples,
-because the exponentially-increasing execution times
-quickly make data collection impractical.
+The cost of the hash-table operations
+necessary for stateful checking means that
+the performance of the simple stateful
+algorithm is not quite as good as the
+reductions in explored transitions might
+suggest---for example, in Figure~\ref{fig:indexer-time},
+the stateful algorithm takes longer to
+complete than the simple algorithm,
+despite exploring fewer transitions.
+
+However, looking at Figure~\ref{fig:repeated-access-time}
+suggests that this is only a short-term
+problem, and as the size of the state
+space increases, the benefits of
+performing model checking statefully
+dominate the costs of the hash-table
+operations.
 
 \subsubsection{Dynamic Partial-Order Reduction}
 Theoretically, the DPOR does a fixed amount of
