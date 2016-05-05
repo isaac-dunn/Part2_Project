@@ -2506,10 +2506,10 @@ locks.
 As expected, the simple model checker performs
 consistently poorly, with the size of the state
 spaces explored increasing exponentially as
-the number of threads increase (seen most
-clearly in Figure~\ref{fig:repeated-access-trans})
+the number of threads increase (cf.
+Figure~\ref{fig:repeated-access-trans})
 and as the amount of work done by each thread
-increases (seen most clearly in
+increases (cf.
 Figure~\ref{fig:prod-cons-trans}).
 This is the state explosion problem.
 
@@ -2613,88 +2613,45 @@ differences can be explained by the
 translation of the example into PL.
 
 \subsubsection{Stateful Dynamic Partial-Order Reduction}
-In every case presented above, the SDPOR algorithm
-explores at least as many transitions as the DPOR
-algorithm, and in some cases many more. I can think
-of four possible explanations for this behaviour:
-\begin{enumerate}
-	\item the `quirk' that worsened the performance
-	of the simple stateful model checker causes
-	much more serious problems for SDPOR; or
-	\item I have misunderstood SDPOR, and
-	accidentally implemented an algorithm similar
-	to SDPOR which is sound but inefficient; or
-	\item the SDPOR algorithm generally does \emph{not}
-	give better performance than the DPOR algorithm; or
-	\item the SDPOR generally \emph{does} give better
-	performance than the DPOR algorithm, but by
-	coincidence does worse on the examples I chose.
-\end{enumerate}
-The paper introducing SDPOR compared its performance
-with that of DPOR against five benchmarks \cite{yang08},
-which suggests that the third reason is less likely.
-The fact that one of these benchmarks is an instance
-of the bounded-buffer problem (albeit one that
-has multiple producers and consumers rather than
-just one of each) suggests that the fourth reason
-is also less likely. The first reason is certainly
-possible: it could be that by failing to notice
-when some states are revisited, the algorithm's
-advantages are lost, leaving only its substantial
-costs.
-The second reason is also possible:
-while I can not see where any
-misunderstanding is, I can accept that it is
-a reasonable explanation for the very poor
-performance of SDPOR in my project.
+In the cases given above, the SDPOR algorithm
+consistently performs poorly, exploring at
+least as many transitions as the plain
+DPOR algorithm. However, in the examples
+given by Yang et al.\@ \cite{yang08},
+SDPOR consistently performs better.
+The explanation seems to be that
+these examples are much larger, meaning
+that when a state is re-encountered,
+a larger saving is typically made,
+while the number of backtracking
+points introduced grows more slowly.
 
 \subsubsection{Sleep Sets}
-Sleep sets can be seen to be a consistently
-effective technique for reducing the number
-of transitions explored. In every example,
-sleeps sets significantly reduce the
-severity of the exponential increase in
+Sleep sets are consistently effective.
+In every example,
+sleep sets significantly reduce the
+rate of exponential increase in
 the number of transitions explored by the
 simple algorithm, by preventing the
 unnecessary re-exploration of sections
-of the state space that have already been
-covered (and is considerably more effective
-at this than the simple stateful algorithm).
+of the state space.
 
 When applied to the DPOR algorithm, the results
-are more variable. No benefit whatsoever is seen
-in Figure~\ref{fig:repeated-access-time} and little
-is seen in Figure~\ref{fig:indexer-trans},
-presumably because the DPOR algorithm has already
-exploited the independence of the transitions
-as fully as is possible. However, in
-Figure~\ref{fig:prod-cons-trans}, sleep sets
-work in conjunction with the DPOR to greatly
-slow the rate of the exponential increase,
-and in Figure~\ref{fig:fs-trans} at fourteen and
-more threads, sleep
-sets slow the rate of increase to a reasonable
-rate, whereas the loss of independence at the
-fourteenth thread meant that DPOR alone took too long
-to terminate.
-
-As well as combination with DPOR allowing
-sleep sets to reduce the number of states
-(as opposed to just transitions) explored,
-Flanagan and Godefroid note that
-\begin{quote}
-	There is a nice complementarity between sleep sets and our
-	dynamic partial-order reduction algorithm: when a process
-	$q$ is introduced in $\textit{backtrack}(\textit{pre}(\pi, i))$
-	\textellipsis \ because
-	of a potential conflict between $i$ and
-	$\textit{next}(\sigma, p)$, there
-	is no point in executing $\pi_i$ following
-	$\textit{next}(\textit{pre}(\pi, i), q)$ before
-	$\textit{next}(\sigma, p)$ is executed;
-	this optimization is captured exactly
-	by sleep sets. \cite{flan05}
-\end{quote}
+are more variable. While little benefit is seen
+from applying sleep sets to DPOR in
+Figures~\ref{fig:repeated-access-time}
+and \ref{fig:indexer-trans}
+(presumably because the DPOR algorithm has already
+fully exploited the available independence),
+better results are seen in 
+Figures~\ref{fig:prod-cons-trans} and \ref{fig:fs-trans},
+in which sleep sets work
+in conjunction with DPOR to greatly
+slow the rate of the exponential increase.
+Although the effectiveness of the technique
+depends on the particular program being
+verified, it seems that on more realistic
+examples, it is highly effective.
 
 \subsubsection{Static Partial-Order Reduction}
 When every thread accesses separate objects,
