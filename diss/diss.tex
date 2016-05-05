@@ -2664,36 +2664,34 @@ then my SPOR algorithm returns persistent sets
 of size one, which is optimal, as shown in the
 first two cases of
 Figure~\ref{fig:repeated-access-trans}.
-Otherwise, my SPOR algorithm offers only
+However, this is very much a corner case,
+and my SPOR algorithm usually offers only
 modest reductions in the number of transitions
-explored, the benefits of which increase with
-the number of operations per thread.
-
-However, as the number of threads sharing
+explored---as the number of threads sharing
 each object increase, the benefits of the
-algorithm decrease. In particular, if the threads of
+algorithm decrease.
+
+In particular, if the threads of
 a program cannot be partitioned
 such that the objects accessed by different
 partitions are disjoint, my SDPOR algorithm
 offers no benefits. Unfortunately, this
-is the case for most ``real'' programs,
+is the case for most concurrent programs,
 including my other examples, from which
-the SDPOR results have been omitted.
+the SDPOR results have therefore been omitted.
 
-The main benefit of attempting to implement
-an SPOR algorithm was a greater understanding
-of the complexities involved in trying to
-statically compute small persistent sets.
-
-\subsection{Efficiency of the Implementations}
-
-\subsubsection{Static Partial-Order Reduction}
-The extra work done at per transition
+The extra work done per transition
 in implementing my SPOR
-algorithm is deliberately little
+algorithm is by design little
 (cf. Section~\ref{sec:spor-imp}), so
 execution times are roughly proportional
 to the number of transitions explored.
+
+Once again, attempting to implement
+an SPOR algorithm mostly served to give
+me a greater understanding
+of the complexities involved in trying to
+statically compute reasonably small persistent sets.
 
 \chapter{Conclusions}
 
