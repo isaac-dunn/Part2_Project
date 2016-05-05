@@ -62,7 +62,7 @@
     \put(0.18148148,0.37566138){\makebox(0,0)[rb]{\smash{$10^{0}$}}}%
     \put(0.18148148,0.46119921){\makebox(0,0)[rb]{\smash{$10^{1}$}}}%
     \put(0.18148148,0.5467373){\makebox(0,0)[rb]{\smash{$10^{2}$}}}%
-    \put(0.05079365,0.39153466){\rotatebox{90}{\makebox(0,0)[b]{\smash{Number of Transitions}}}}%
+    \put(0.05079365,0.39153466){\rotatebox{90}{\makebox(0,0)[b]{\smash{Execution Time (seconds)}}}}%
     \put(0,0){\includegraphics[width=\unitlength,page=3]{t43_time_tpl2_ops1.pdf}}%
   \end{picture}%
 \endgroup%
