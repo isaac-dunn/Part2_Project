@@ -2491,18 +2491,30 @@ proportional to the number of transitions it
 explores.
 
 \subsubsection{Stateful Simple Model Checking}
-In Figure~\ref{fig:repeated-access-trans},
-the stateful simple model-checker can be
-seen to perform consistently well. Since
-each access to a shared object is only a read,
-performing any two reads in either order results
-in the same state, resulting in many repeated
-states being identified, explaining the good
-performance.
-In the other, more realistic examples, particularly
-Figure~\ref{fig:prod-cons-trans},
-the performance is again considerably
-better than the simple algorithm.
+The stateful simple model-checker can be
+seen to perform consistently well, in terms
+of reduction of the explored state space.
+If two transitions are ``actually'' independent,
+meaning that executing them in either order
+results in the same state, then the stateful
+algorithm should explore from only one of these;
+the prevalence of such pairs of transitions
+explains the success of this approach.
+
+Despite the reductions in the numbers
+of transitions explored, the cost of
+the hash-table operations
+necessary for stateful checking means that
+the execution times
+are sometimes worse than for the
+simple algorithm---for example,
+in Figure~\ref{fig:indexer-time}.
+However, looking at Figure~\ref{fig:repeated-access-time}
+suggests that this is only a short-term
+problem, and as the size of the state
+space increases, the benefits of
+stateful model checking
+dominate its costs.
 
 \subsubsection{Dynamic Partial-Order Reduction}
 When all threads are mutually independent,
@@ -2644,25 +2656,6 @@ of the complexities involved in trying to
 statically compute small persistent sets.
 
 \subsection{Efficiency of the Implementations}
-
-\subsubsection{Stateful Simple Model Checking}
-The cost of the hash-table operations
-necessary for stateful checking means that
-the performance of the simple stateful
-algorithm is not quite as good as the
-reductions in explored transitions might
-suggest---for example, in Figure~\ref{fig:indexer-time},
-the stateful algorithm takes longer to
-complete than the simple algorithm,
-despite exploring fewer transitions.
-
-However, looking at Figure~\ref{fig:repeated-access-time}
-suggests that this is only a short-term
-problem, and as the size of the state
-space increases, the benefits of
-performing model checking statefully
-dominate the costs of the hash-table
-operations.
 
 \subsubsection{Dynamic Partial-Order Reduction}
 Theoretically, the DPOR does a fixed amount of
