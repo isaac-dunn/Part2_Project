@@ -2656,32 +2656,29 @@ examples, it is highly effective.
 \subsubsection{Static Partial-Order Reduction}
 When every thread accesses separate objects,
 then my SPOR algorithm returns persistent sets
-of size one, which leads to the minimal number
-of transitions being explored, as shown in the
+of size one, which is optimal, as shown in the
 first two cases of
 Figure~\ref{fig:repeated-access-trans}.
 Otherwise, my SPOR algorithm offers only
-small reductions in the number of transitions
+modest reductions in the number of transitions
 explored, the benefits of which increase with
 the number of operations per thread.
 
-However, the benefits decrease as
-the number of threads sharing each object
-increase, because the persistent sets
-computed are bigger. In most practical
-programs, threads are unlikely to be
-able to be partitioned such that
-partitions access disjoint sets of objects,
-so in most practical situations, my SPOR
-algorithm will offer no benefits. This is
-the case for the bounded-buffer, indexer
-and file-system examples, so I have omitted
-the SPOR results from those graphs.
+However, as the number of threads sharing
+each object increase, the benefits of the
+algorithm decrease. In particular, if the threads of
+a program cannot be partitioned
+such that the objects accessed by different
+partitions are disjoint, my SDPOR algorithm
+offers no benefits. Unfortunately, this
+is the case for most ``real'' programs,
+including my other examples, from which
+the SDPOR results have been omitted.
+
 The main benefit of attempting to implement
 an SPOR algorithm was a greater understanding
 of the complexities involved in trying to
-compute a reasonably small persistent set
-using only static information.
+statically compute small persistent sets.
 
 \subsection{Efficiency of the Implementations}
 \subsubsection{Simple Model Checker}
@@ -2690,25 +2687,25 @@ constant time (per thread) per transition
 explored, so its execution times are
 proportional to the number of transitions it
 explores. Due to the state explosion problem,
-this by far dominates the time complexity.
+this dominates the time complexity.
 
 \subsubsection{Stateful Simple Model Checking}
-Although, as notes above, using stateful model
+Although, as noted above, using stateful model
 checking offers a small reduction in the number
 of transitions explored compared with the simple
-algorithm, in practice the overhead of having
-to perform hash table operations at every state
-mean that the execution times end up being
-generally no shorter. Notably, the one
-case where stateful checking offers a noticeable
-improvement in execution time is that shown in
+algorithm, in practice the overhead of
+performing hash-table operations at every state
+means that the execution times are
+generally no better. The one
+case where there a noticeable
+improvement is
 Figure~\ref{fig:repeated-access-time-h},
-suggesting that perhaps in bigger, more
-industrial-scale cases, it gives more of
-an advantage. It is difficult to confirm
-or reject this hypothesis from the other three examples,
-because the executions very quickly take too
-long to measure.
+suggesting perhaps that in bigger, more
+realistic cases, its benefits are greater.
+It is difficult to confirm
+or reject this hypothesis from the other examples,
+because the exponentially-increasing execution times
+quickly make data collection impractical.
 
 \subsubsection{Dynamic Partial-Order Reduction}
 Theoretically, the DPOR does a fixed amount of
@@ -2718,71 +2715,57 @@ sets. As the number of transitions explored
 varies with
 the number of threads much more than the amount
 of work per transition explored does, I would
-expect the execution times to be more or less
+expect the execution times to be roughly
 proportional to the numbers of transitions
-explored. The fact that this is what can be
-seen in all four examples suggests that my
-implementation correctly implements the
-algorithm in the sense that it is not more
-complex than it needs to be.
+explored. The fact that this is consistently
+the case suggests that my
+implementation is correct
+in the sense that it is not more
+complex than necessary.
 
 \subsubsection{Stateful Dynamic Partial-Order Reduction}
-The execution times for the SDPOR algorithm
-are both much worse than the DPOR execution
-times and much worse than what might be
-expected from looking at the number of
-transitions explored. This can be
-seen particularly clearly in figures
+As seen in Figures
 \ref{fig:indexer-time} and \ref{fig:fs-time},
-in which the execution times of the SDPOR
-algorithm get exponentially worse, despite
-the linearly-increasing numbers of
-transitions explored. This again
-suggests that I might not have
-correctly implemented the algorithm.
+the execution times for the SDPOR algorithm
+are much worse than both the DPOR execution
+times and what might be
+expected from the number of
+transitions SDPOR explores.
+This can be explained by the increasing
+costs of storing and checking membership
+of states in the hash table, since a lot
+of information is used to specify a state.
 
 As well as introducing SDPOR, Yang et al.\@
 also introduced a light-weight
 scheme for capturing the local states of
-threads (based on storing only changes
-to the stores, rather than the full stores
-every time), to be used in conjunction with
-SDPOR. Although I decided not to
-implement this for time reasons,
-it should not affect the correctness
-of SDPOR, nor the numbers of transitions
-is explores, and I would be surprised
-to learn that not using this technique
-was the main reason that the SDPOR
-execution times are so long. 
+threads, which they used in conjunction with
+SDPOR to improve its implementation efficiency.
+Had I implemented this additional
+technique, the average cost of the hash-table
+operations would have decreased, although
+the large numbers of transitions explored
+would not be affected.
 
 \subsubsection{Sleep Sets}
-The overhead costs associated with implementing
-sleep sets for the simple model checker
-mean that the multiplicative
-increases in execution times are slightly
-higher than the multiplicative increases
-in number of explored transitions. The
-benefits of using sleep sets are still
-profound, though.
-
+There is a small cost involved in
+applying the sleep-set technique.
 In the repeated-accesses example,
-sleep sets do not reduce the number
+using sleep sets does not reduce the number
 of explored transitions when applied
-to DPOR, so the overhead costs of
-implementing sleep sets can be clearly
+to DPOR, so these costs can be clearly
 seen in Figure~\ref{fig:repeated-access-time}.
-However, in the other examples, these
+However, in the other examples, and all
+realistic programs, these
 small costs are insignificant compared
-to the considerable benefits of using sleep
-sets.
+to the considerable benefits available.
 
 \subsubsection{Static Partial-Order Reduction}
 The extra work done at per transition
 in implementing my SPOR
 algorithm is deliberately little
-(see Section~\ref{sec:spor-imp}), so
-execution times are more or less proportional
+(cf. Section~\ref{sec:spor-imp}), so
+execution times are roughly proportional
 to the number of transitions explored.
 
 \chapter{Conclusions}
