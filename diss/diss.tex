@@ -2589,12 +2589,34 @@ DPOR algorithm. However, in the examples
 given by Yang et al.\@ \cite{yang08},
 SDPOR consistently performs better.
 The explanation seems to be that
-these examples are much larger, meaning
+their examples are much larger, meaning
 that when a state is re-encountered,
 a larger saving is typically made,
 while the number of backtracking
-points introduced grows more slowly.
+points introduced does not increase
+in the same way.
 
+However, as seen in Figures
+\ref{fig:indexer-time} and \ref{fig:fs-time},
+the execution times for the SDPOR algorithm
+are much worse than what might be
+expected given the number of
+transitions it explores.
+This can be explained by the increasing
+costs of the hash-table operations
+performed at each state, since each
+state occupies quite a lot of memory.
+
+As well as introducing SDPOR, Yang et al.\@
+also introduced a light-weight
+scheme for capturing the local states of
+threads, which they used in conjunction with
+SDPOR to improve its implementation efficiency.
+Had I implemented this additional
+technique, the average cost of the hash-table
+operations would have decreased, although
+the large numbers of transitions explored
+would not be affected.
 \subsubsection{Sleep Sets}
 Sleep sets are consistently effective.
 In every example,
@@ -2650,30 +2672,6 @@ of the complexities involved in trying to
 statically compute small persistent sets.
 
 \subsection{Efficiency of the Implementations}
-
-\subsubsection{Stateful Dynamic Partial-Order Reduction}
-As seen in Figures
-\ref{fig:indexer-time} and \ref{fig:fs-time},
-the execution times for the SDPOR algorithm
-are much worse than both the DPOR execution
-times and what might be
-expected from the number of
-transitions SDPOR explores.
-This can be explained by the increasing
-costs of storing and checking membership
-of states in the hash table, since a lot
-of information is used to specify a state.
-
-As well as introducing SDPOR, Yang et al.\@
-also introduced a light-weight
-scheme for capturing the local states of
-threads, which they used in conjunction with
-SDPOR to improve its implementation efficiency.
-Had I implemented this additional
-technique, the average cost of the hash-table
-operations would have decreased, although
-the large numbers of transitions explored
-would not be affected.
 
 \subsubsection{Sleep Sets}
 There is a small cost involved in
