@@ -2517,38 +2517,23 @@ stateful model checking
 dominate its costs.
 
 \subsubsection{Dynamic Partial-Order Reduction}
-When all threads are mutually independent,
+When all transitions are independent,
 as in the first two cases of
 Figure~\ref{fig:repeated-access-trans},
-the DPOR algorithm explores only one path
-through the state space, because no
-backtracking points are ever added.
-The number of
-transitions explored in this case is linear in both
-the number of threads and the number of operations
-per thread---considerably better
-than the exponentially increasing costs
-of the simple algorithm.
-
+the DPOR algorithm only explores
+one execution path, with negligible cost.
 In the other cases in
 Figure~\ref{fig:repeated-access-trans},
-whenever the number of threads increases
-by one, the increase
-in transitions explored
-is either additive (with negligible cost),
-or multiplicative (with considerable cost).
-The increase is additive if the new thread
-is assigned to access a new shared object,
-in which case no new race conditions are
-added, else it is multiplicative since
-it introduces potential race conditions
-with the other threads accessing the same
-shared object.
-The multiplicative increases are
+adding an extra thread is either of
+negligible cost (if the new thread
+is independent of the others), or
+contributes a multiplicative
+increase to the cost of the search.
+These multiplicative increases are
 not as severe as in the
 simple algorithm, though, because the new
 thread is independent of at least some of
-the threads.
+the existing threads.
 
 In the bounded-buffer example
 (Figure~\ref{fig:prod-cons-trans}),
@@ -2562,30 +2547,39 @@ state explosion problem.
 
 The remaining two examples are more
 realistic in scale, and exemplify the
-benefits that DPOR offers, especially
-when using threads to perform independent tasks.
-Figure~\ref{fig:indexer-trans} shows that
-DPOR explores very few transitions until
-the twelfth thread is introduced.
-This is because dependence between
+benefits that DPOR offers.
+In the indexer example
+(Figure~\ref{fig:indexer-trans}),
+dependence between
 threads is caused only by collisions
-in the hash table, which for the simple
-hash function used happens at twelve threads,
+in the hash table---for the simple
+hash function used, this happens at twelve threads,
 but for realistic hash functions would
 happen much later. Since there are no
-race conditions until this point,
-no backtracking points whatsoever are added
-before it, leading to only one execution path
-being explored. Similar behaviour is seen in
-Figure~\ref{fig:fs-trans}, in which performance
-is excellent until similar ``collisions''
-between threads accessing a table occur.
+race conditions if there are no collisions,
+only one execution path
+is explored for fewer than twelve threads.
+Similar behaviour is seen in
+Figure~\ref{fig:fs-trans}, in which only
+one path is explored until similar ``collisions''
+when accessing a table occur.
 
-Incidentally, the similarity of these performance
-graphs and those shown in the paper introducing
-dynamic partial-order reduction \cite{flan05}
-is further evidence that the algorithm has
-been correctly implemented.
+Theoretically, DPOR does a fixed amount of
+work per thread per transition, including some
+memory operations to keep track of the backtrack
+sets. As the number of transitions explored
+varies with
+the number of threads much more than the amount
+of work per transition explored does, I would
+expect the execution times to be roughly
+proportional to the numbers of transitions
+explored. Incidentally, the fact that this is consistently
+the case, and that the graphs of transitions
+explored match their published counterparts
+\cite{flan05},
+is further evidence that my
+implementation is correct and not
+unnecessarily complex.
 
 \subsubsection{Stateful Dynamic Partial-Order Reduction}
 In the cases given above, the SDPOR algorithm
@@ -2656,22 +2650,6 @@ of the complexities involved in trying to
 statically compute small persistent sets.
 
 \subsection{Efficiency of the Implementations}
-
-\subsubsection{Dynamic Partial-Order Reduction}
-Theoretically, the DPOR does a fixed amount of
-work per thread per transition, including some
-memory operations to keep track of the backtrack
-sets. As the number of transitions explored
-varies with
-the number of threads much more than the amount
-of work per transition explored does, I would
-expect the execution times to be roughly
-proportional to the numbers of transitions
-explored. The fact that this is consistently
-the case suggests that my
-implementation is correct
-in the sense that it is not more
-complex than necessary.
 
 \subsubsection{Stateful Dynamic Partial-Order Reduction}
 As seen in Figures
