@@ -2205,7 +2205,7 @@ practical value of unverified
 model-checking systems is in their widespread
 practical use and resulting successes.
 \cite{kur08, brat04, est12, kars96, cof10, mill08}
-It is also worth noting that, as of 2006,
+It is also noteworthy that, as of 2006,
 there were only
 two verified model checking
 systems, neither of which was widely
@@ -2216,61 +2216,38 @@ over two decades \cite{beck06}.
 
 \section{Performance}
 After reading this section, you should
-understand how the different
-model-checking algorithms compare to
-one another in terms of reduction in
-state space explored,
-how efficient my implementations of
-them are, and how these two aspect
-combine to result in the observed execution
-times.
+understand how good the different
+model-checking algorithms are at
+reducing the size of the state
+space explored, and how efficient
+my implementations of them are.
 
 \subsection{Methodology}
 Unfortunately, there is no concurrent program
 that is ``typical'' for verification by model
 checking. I have therefore had to pick some
 example programs for which to analyse the performance
-of my project. For each of these programs, I varied
+of the algorithms. For each of these programs, I varied
 some test parameter---normally the number of threads
 used---and recorded for each algorithm
 both the number of (not necessarily unique) transitions
 explored, which is a measure of how successful
 the algorithm is in addressing the state
 explosion problem for the given case, and also
-the execution time, which is really the bottom
-line.
-
-The four programs I picked were:
-\begin{enumerate}
-	\item the simplest example program I could think of, where
-	each thread repeatedly accesses the same location
-	for no reason,
-	to see how the algorithms behaved in this special
-	case;
-	\item a solution to the bounded-buffer problem,
-	with one producer and one consumer, to see how
-	the algorithms performed in this well-known
-	and useful example;
-	\item the ``Indexer'' example used in the paper
-	that introduced dynamic partial-order reduction \cite{flan05},
-	to allow comparison with the published results, and
-	to see how DPOR behaves when the conditions are
-	favourable; and
-	\item the ``File System'' example from the same paper,
-	for the same reasons.
-\end{enumerate}
+the execution time, which is what ultimately
+matters in practice.
 
 The number of transitions for each algorithm was easily
 obtained by counting the number of recursive calls made.
 The execution times were measured using the \texttt{time}
 function in the Sys module packaged with OCaml. It returns
 measurements of time only in quanta of 0.004 seconds,
-so the accuracy of the time measurements is not good for
-executions of under around 0.04 seconds.
+so the accuracy of the time measurements is poor for
+executions shorter than around 0.04 seconds.
 The precision of measurements
 is good, though, with very similar results being returned
 for multiple executions of the same program.
-having established this,
+Having established this,
 I therefore took only one measurement
 of each execution time, preferring
 to collect more data on different examples than to collect
@@ -2294,10 +2271,7 @@ for some algorithms in some cases.
 
 \begin{figure}
 	\includegraphics[width=\textwidth]{key}
-	\caption[Key for algorithm performance graphs.]
-	{Key for algorithm performance graphs.
-		Rather than reproduce the key on each graph,
-		it is given just once, here.}
+	\caption{Key for model-checking algorithm performance graphs.}
 	\label{fig:key}
 \end{figure}
 
