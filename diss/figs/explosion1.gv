@@ -1,0 +1,4 @@
+digraph Explosion {
+  node [shape=circle, fixedsize=true, label=""];
+  root -> root0[label="0"];
+}

@@ -1,0 +1,18 @@
+digraph Explosion {
+  node [shape=circle, fixedsize=true, label=""];
+  root -> root0[label="0"];
+  root0 -> root01[label="1"];
+  root01 -> root012[label="2"];
+  root0 -> root02[label="2"];
+  root02 -> root021[label="1"];
+  root -> root1[label="1"];
+  root1 -> root10[label="0"];
+  root10 -> root102[label="2"];
+  root1 -> root12[label="2"];
+  root12 -> root120[label="0"];
+  root -> root2[label="2"];
+  root2 -> root20[label="0"];
+  root20 -> root201[label="1"];
+  root2 -> root21[label="1"];
+  root21 -> root210[label="0"];
+}
