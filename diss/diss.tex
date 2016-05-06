@@ -331,33 +331,77 @@ executable programs.
 After reading this chapter,
 you should understand:
 \begin{understandinglist}
-	\item the definitions of the
-	mathematical objects on which model
-	checking is performed, in the context
-	of my project;
-	\item exactly what I mean by model checking
-	in the context of my project, and therefore
-	exactly what the aim of my project was;
-	\item how a simple model checking algorithm
-	works;
+	\item the work I undertook before beginning
+	the implementation of my project;
+	\item the background theory of model checking
+	relevant to my project;
 	\item how the techniques of persistent sets
 	and sleep sets address the state explosion
-	problem;
+	problem; and
 	\item how the dynamic partial-order
-	reduction algorithm works; and
-	\item the work I undertook before beginning
-	the implementation of my project.
+	reduction algorithm works.
 \end{understandinglist}
+
+\section{Preparatory Work}
+After reading this section,
+you should understand the work I
+did before beginning to implement
+my project.
+
+\subsection{Research and Understanding}
+
+In order to fully implement the
+Principles of Programming Languages
+paper introducing dynamic partial-order
+reduction \cite{flan05}, I first needed
+to fully understand it, which required
+researching, reading and understanding
+a collection of advanced papers,
+allowing me to understand the relevant
+background theory
+and techniques. This exploration
+of an area of computer science that
+was entirely new to me was the
+main preparation that was necessary
+before I could begin implementing
+my project.
+
+\subsection{Requirements Analysis}
+Although my original proposal was
+quite specific, I refined the goals
+of the project once I understood the
+background theory so that I knew
+exactly what I was aiming for and
+could recognise when I had achieved this.
+As well as implementing dynamic partial-order
+reduction (DPOR), I realised I needed to implement
+a simple language which I could use
+to express concurrent programs to model
+check. As a preliminary step, I decided
+to also implement a simple model-checking
+algorithm that could be used to ensure
+that DPOR was giving the right results.
+
+\subsection{Using OCaml}
+I implemented the project in OCaml.
+However, I had only written very small
+programs in SML previously, so I needed to
+understand both the differences between
+SML and OCaml, and how large programs
+should be structured
+using the OCaml module system.
+I achieved these
+by making use of online resources and
+experimenting with small test programs.
 
 \section{Background Definitions} \label{sec:background-defs}
 After reading this section, you should understand the
-formal definitions of the mathematical objects
-which are manipulated by the algorithms used in
-this project, and also have an idea of
-what each mathematical object means intuitively.
+definitions of the mathematical objects and structures
+manipulated by the algorithms in my project. Almost all
+of these definitions are given in the POPL paper \cite{flan05}.
 
 \subsection{Processes and States}
-We consider a system consisting of a finite set, $\mathcal{P}$,
+We consider programs consisting of a finite set, $\mathcal{P}$,
 of concurrent threads or processes\footnote{I use ``thread'' and
 ``process'' interchangeably throughout.}.
 Each thread has its own local state, $s \in \mathcal{S}$, and there
@@ -378,8 +422,13 @@ visible, but writing to a thread-local variable is invisible.
 \subsection{Transitions}
 \label{sec:trans-prep}
 A \emph{transition} moves the system from one state to another,
-by performing a finite sequence of invisible operations of some
-process $p$, followed by a visible operation of the same process.
+by performing a finite sequence of invisible operations of one
+process $p$, followed by a visible operation of the same
+process---this definition ignores the irrelevant
+interleavings of invisible operations, so that
+non-determinism in our model of concurrency
+arises only from the asynchronous interleavings of
+atomic visible operations.
 If process $p$ has local state $s$, then the transition $t_{p,s}$
 that $p$ can make is defined to be a partial function taking the current
 global state $g$ and giving $(s', g')$, the next local state for $p$
@@ -422,7 +471,7 @@ denote the unique process executing that transition.
 \subsection{Systems}
 The behaviour of an entire concurrent program is represented by a
 \emph{transition system},
-specified by a tuple $A = (\textit{State}, \Delta, \sigma_0)$,
+specified by a tuple $(\textit{State}, \Delta, \sigma_0)$,
 where $\sigma_0 \in \textit{State}$ is the initial state of the system and
 $\Delta \in State \to \mathbb{P}(State)$
 is the \emph{transition relation} defined by
@@ -972,50 +1021,6 @@ of research and reading.
 An example execution could be added here, on the same example as
 Figure~\ref{fig:sdpor-motivation}.
 
-\section{Preparatory Work}
-After reading this section, you
-should understand exactly what work I
-did before beginning the implementation
-of the project.
-
-\subsection{Reading}
-
-The main work that was necessary before
-I began implementing the project was the
-development of a firm understanding of an
-area of computer science that was new to me,
-and particularly an understanding the DPOR algorithm.
-I achieved this by reading the paper that
-introduced dynamic partial-order reduction \cite{flan05}
-and following
-its references to read the literature that
-first introduced the various ideas.
-
-\subsection{Requirements Analysis}
-Having
-understood precisely what properties the
-DPOR algorithm can check, I was in a
-position to decide exactly what the
-finished project should do.
-I set out to implement two algorithms:
-first, the simple model-checking
-algorithm to ensure I was comfortable
-with the basics, and then the DPOR
-algorithm. I would also need to
-implement a simple language which
-could be used to express concurrent
-programs to model check.
-
-\subsection{Using OCaml}
-I implemented the project in OCaml.
-However, I had only written very small
-programs in SML previously, so I needed to
-understand both the differences between
-SML and OCaml, and how large programs
-are structured using the module system
-in OCaml. I achieved both of these
-by making use of online resources and
-experimenting with small test programs.
 
 \chapter{Implementation}
 \label{cha:imp}
