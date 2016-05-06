@@ -263,6 +263,36 @@ result, then each of these must be checked,
 meaning that the running time of any model
 checker has the above expression as a lower
 bound for its running time.
+Figure~\ref{fig:state-explosion} shows
+how this number of interleavings grows
+for the first few values of $n$, when
+$k = 1$.
+
+\begin{figure}
+	\centering
+	\begin{subfigure}{0.15\textwidth}
+		\centering
+		\includegraphics*[height=3cm]{explosion1}
+	\end{subfigure}
+	\quad
+	\begin{subfigure}{0.25\textwidth}
+		\centering
+		\includegraphics*[height=5cm]{explosion2}
+	\end{subfigure}
+	\quad
+	\begin{subfigure}{0.5\textwidth}
+		\centering
+		\includegraphics*[height=5cm]{explosion3}
+	\end{subfigure}
+	\begin{subfigure}{\textwidth}
+		\centering
+		\includegraphics*[width=\textwidth]{explosion4}
+	\end{subfigure}
+	\caption[Illustration of the state explosion problem.]
+		{Diagrams showing the possible interleavings of
+			one, two, three and four events.}
+	\label{fig:state-explosion}
+\end{figure}
 
 \section{Partial-Order Reduction}
 %After reading this section, you should
@@ -279,7 +309,9 @@ desired property. Partial-order reduction
 is a category of such techniques which
 exploit the fact that, in some cases, it
 does not matter which instruction executes
-first. For example, if the next instruction
+first.
+
+For example, if the next instruction
 of thread 0 is to write a value to shared
 variable \texttt{x}, and the next instruction
 of thread 1 is to read
@@ -292,6 +324,16 @@ either way, then it is sufficient to check
 only one of the two options. Fully exploiting
 this idea can very effectively mitigate the
 state explosion problem.
+
+\begin{figure}
+	\centering
+	\includegraphics*[height=10.5cm]{por}
+	\caption[Illustration of partial-order reduction.]
+	{If the order of execution of four instructions or
+		events makes no difference to the end result, it
+		suffices to only look at one interleaving.}
+	\label{fig:por}
+\end{figure}
 
 \section{My Project}
 %After reading this section, you should
