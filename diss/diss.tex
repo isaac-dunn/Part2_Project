@@ -778,7 +778,7 @@ no extra difficulty \cite{god96}.
 \label{sec:dpor-prep}
 Before implementing the dynamic partial-order
 reduction algorithm, I first had to
-understand how it works.
+understand it.
 After reading this section, you should
 also understand how the dynamic
 partial-order reduction algorithm works.
@@ -786,9 +786,8 @@ partial-order reduction algorithm works.
 \subsection{Background Definitions}
 
 \subsubsection{Transition Sequences}
-Instead of keeping track of just the current state, as
-the algorithms in Section~\ref{sec:simple-model-checking}
-did, the dynamic partial-order reduction (DPOR) algorithm
+Instead of keeping track of just the current state,
+the dynamic partial-order reduction (DPOR) algorithm
 keeps track of a \emph{transition
 sequence} $\pi \in \mathcal{T}^*$. This transition
 sequence is implicitly executed from the initial state of
@@ -824,26 +823,24 @@ we use the following notation:
 
 Suppose that two adjacent transitions, $\pi_i$ and $\pi_{i+1}$,
 are swapped in a
-transition sequence, $\pi$, to give a new
-transition sequence, $\pi'$. Suppose further
-that $\pi_i$ and $\pi_{i+1}$ are independent.
-Since $\pi_{i+1}$ is enabled in $\textit{pre}(\pi, i+1)$,
-$\pi_{i+1}$ must also be enabled in $\textit{pre}(\pi, i)$,
-as independent transitions cannot disable one another.
-If $\pi_{i+1}$
-is executed in $\textit{pre}(\pi, i)$,
-it results in a state in which $\pi_i$
-can be executed, as it cannot be disabled by $\pi_{i+1}$.
-
-Because independent transitions commute, the state reached by
-executing $\pi_i$ followed by $\pi_{i+1}$ is the same
-as the state reached by executing $\pi_{i+1}$ followed
-by $\pi_i$ (see Figure~\ref{fig:sequence-equivalence}).
-So $\textit{pre}(\pi, i+2) = \textit{pre}(\pi', i+2)$. Since
-for all $j \geq i + 2$, $\pi_j = \pi'_j$, it follows that
-$\textit{last}(\pi) = \textit{last}(\pi')$. So swapping
-a pair of adjacent transitions results in the same
-final state if the swapped transitions are independent.
+transition sequence $\pi$ to give a new
+transition sequence, and that
+$\pi_i$ and $\pi_{i+1}$ are independent.
+Because the order of execution of a
+pair of independent transition is
+irrelevant in the sense that it
+results in the same state, the result
+of executing the two transition
+sequences must be the same
+(see Figure~\ref{fig:sequence-equivalence}).
+It follows that any transition sequence obtained
+by making a finite number of swaps of adjacent
+independent transitions is equivalent in the same
+sense. Such equivalence classes are known as
+Mazurkiewicz traces \cite{maz87}, and are
+precisely what we are interested in---it is
+sufficient to explore only one member of
+a given equivalence class.
 
 \begin{figure}
 	\centering
@@ -852,18 +849,11 @@ final state if the swapped transitions are independent.
 	\label{fig:sequence-equivalence}
 \end{figure}
 
-Such equivalent interleavings
-of transitions are precisely what we are interested in.
-We can think of a transition sequence as representing
-the equivalence class of transition sequences obtained
-by swapping adjacent pairs of independent transitions;
-if we can identify that two transition sequences are
-members of the same equivalence class, we need only
-explore one.
-
-To help us to reason about such equivalence classes,
-we will use a ``happens-before'' relation to identify
-when one transition cannot be swapped with another.
+It is useful to consider a
+``happens-before'' relation that identifies
+pairs of transitions which
+cannot be swapped with one another
+to form an equivalent sequence.
 In particular, we define the \emph{happens-before}
 relation $\longrightarrow_\pi$ for a transition
 sequence $\pi$ to be the smallest relation on
@@ -873,29 +863,24 @@ $\textit{dom}(\pi)$ such that
 		$\pi_j$ then $i \longrightarrow_\pi j$, and
 	\item $\longrightarrow_\pi$ is transitively closed.
 \end{enumerate}
-
 By construction, the happens-before relation is a
 partial-order relation on the transitions in $\pi$,
-and $\pi$ is one of the linearisations of this
-partial order. The other linearisations of the
-partial order are the equivalent sequences of
-transitions which can be obtained by swapping
-adjacent pairs of independent transitions in $\pi$.
+and the linearisations of $\longrightarrow_\pi$
+are precisely the transition sequences equivalent
+to $pi$.
 
 The DPOR algorithm makes use of a variant of the
-happens-before relation.
-Informally, if $(i, p)\!\hookrightarrow_\pi$ then
-in every linearisation $\hat{\pi}$ of the
-happens-before relation (that is, every sequence
-obtained by swapping pairs of adjacent,
-independent transitions in $\pi$), the next
-transition for process $p$ in
-state $\textit{pre}(\pi, i)$ is executed
-at some point before $\textit{last}(\hat{\pi})$.
+happens-before relation, which guarantees that a
+process must execute its next transition by the
+end of the current transition sequence.
+Informally, if $i \hookrightarrow_\pi p$ then
+the process of some transition $\pi_j$ with $i \leq j$
+is $p$, both in $\pi$ and any
+equivalence transition sequence.
 Formally, 
 if $i \in \textit{dom}(\pi)$ and $p \in
 \mathcal{P}$ then we
-say that $(i, p)\!\hookrightarrow_\pi$ if
+say that $i \hookrightarrow_\pi p$ if
 either
 \begin{enumerate}
 	\item $\textit{proc}(\pi_i) = p$, or
