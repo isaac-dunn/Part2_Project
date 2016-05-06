@@ -439,6 +439,9 @@ set of all transitions, so that
 
 A transition $t_{p,s}$ is said to be \emph{enabled} in a state
 $(l, g)$ if $l(p) = s$ and $t_{p,s}(g)$ is defined.
+If $t_{p,s}$ is enabled in $(l, g)$ but not $(l, g')$,
+then thread $p$ is said to be \emph{blocked} in
+state $(l, g')$.
 If $t_{p,s}$ is enabled in $\sigma = (l, g)$ and 
 $t_{p,s}(g) = (s', g')$, then we say that the
 execution of $t_{p,s}$ from $\sigma$ results in the unique successor
@@ -482,12 +485,10 @@ is the \emph{transition relation} defined by
 
 \section{Model Checking}
 After reading this section, you should
-understand exactly what I mean by a
+understand exactly I mean by a
 model-checking algorithm in the context
-of this project, how this relates to
-requirements analysis and the aims
-of the project, and how a simple
-model-checking algorithm works.
+of this project and how a simple
+such algorithm works.
 
 \subsection{Definition of Model Checking}
 \label{sec:model-checking-dfn}
@@ -495,7 +496,9 @@ In the context of this project,
 model checking is the process of deciding
 whether a
 given transition system is \emph{error-free} and
-\emph{deadlock-free}.
+\emph{deadlock-free}. The approach given here
+is not explicitly set out in any paper that I
+could find, so I developed it myself.
 
 To specify exactly what it means for a system to
 be error-free, we extend each transition system
@@ -505,12 +508,11 @@ whether, in some given state, a particular
 thread has encountered an error---for example,
 an assertion failing to hold.
 We then say that a transition system
-$A = (\textit{State},\, \Delta,\, \sigma_0,\, \textit{err})$
+$(\textit{State},\, \Delta,\, \sigma_0,\, \textit{err})$
 is
-\emph{error-free} if, for all
-states $\sigma$ reachable from
-the initial state $\sigma_0$, no thread
-has encountered an error.
+\emph{error-free} if
+$\textit{err}(p)$ holds for no
+thread $p$ in any reachable state.
 Formally,
 \[
 	\forall\, (l, g) \in \textit{State}.\; \ \sigma_0 \longrightarrow^* (l, g)
@@ -518,12 +520,10 @@ Formally,
 \]
 
 We say that a transition system
-$A = (\textit{State},\, \Delta,\, \sigma_0,\, \textit{err})$
-is \textit{deadlock-free} if, for all stopped states
-$\sigma$ reachable from
-the initial state $\sigma_0$, $\sigma$ would still be a stopped
-state even if its shared store was changed to any other
-$g' \in \mathcal{G}$.
+is \textit{deadlock-free} if
+there are no
+blocked threads in any reachable
+stopped state.
 Formally,
 \[
 	\forall\, (l, g) \in \textit{State}. \;\, (\sigma_0
@@ -533,18 +533,18 @@ Formally,
 		\textit{enabled}(l, g') = \emptyset.
 \]
 
-For our purposes, a model checking algorithm is an
-algorithm that takes a transition system and returns
+For our purposes, a model-checking algorithm
+takes a transition system and returns
 two Boolean results, indicating whether that system
 is error-free and deadlock-free. The properties
-that the model-checking algorithms decide are
-therefore fixed in advance. More
+that the model-checking algorithms for my project
+decide are therefore fixed in advance. More
 powerful concepts of model checking do exist,
-but the algorithms used in this project check
-only these less rich properties of transition
-systems in return for better performance.
+but the algorithms we consider check
+only these less-rich properties
+in return for better performance.
 
-\subsection{Simple Model Checking} \label{sec:simple-model-checking}
+\subsection{Simple Model Checking}
 As the definitions of both error-free and deadlock-free
 can be expressed in the form
 \[
@@ -558,42 +558,31 @@ checking whether $\Phi_\text{error}(\sigma) \wedge
 holds at each state $\sigma$ encountered,
 where $\Phi_\text{error}$ is that
 no thread has encountered an error, and $\Phi_\text{deadlock}$ is
-that if the state is a stopped state, then it would be no matter
-what the shared store was.
-In practice, it is easy to decide whether or not
-$\Phi_\text{deadlock}$ holds, by looking at whether
-any thread is waiting for a lock, for instance,
-or whether all threads have simply terminated
-their computations.
+that if the state is a stopped state then no
+thread is blocked.
 
 The exhaustive search is usually
 implemented as a stateless depth-first search,
 and therefore can only be applied to acyclic state spaces; if
-a cycle was encountered, the search would not notice and would
-continue getting ``deeper'' as it looped
-through the cycle, with no end in sight.
+a cycle was encountered, the algorithm
+would not notice and would loop indefinitely
+around the cycle, under the impression it
+was heading towards the branches of a tree.
 
 \section{Partial-Order Reduction}
 
-
-Although such na\"{\i}ve algorithms as those given
-in Section~\ref{sec:simple-model-checking}
-are correct, their performance suffers due to
+Although a na\"{\i}ve exhaustive search
+is correct, its performance suffers due to
 the state explosion problem.
 \emph{Partial-order reduction} is a category of
 techniques which aim to address this problem.
 After reading this section, you should
-understand some concepts
-relating to partial-order reduction, namely
-what it means for transitions to be independent,
-and the persistent-set and sleep-set techniques.
-You should also have an intuition for
-what each concept means in practice.
+understand the persistent-set and sleep-set
+partial-order reduction techniques.
 
 \subsection{Independence} \label{sec:independence}
 In plain English, two transitions are independent if executing one
 can never disable the other, and if their effects are commutative.
-
 More formally, suppose that $\mathcal{T}$ is the set of
 transitions for some transition system, and
 that $I \subseteq \mathcal{T} \times \mathcal{T}$
@@ -641,37 +630,34 @@ all $(t_1, t_2) \in I$:
 	\label{fig:independence}
 \end{figure}
 Two transitions $t_1$ and $t_2$ are said to be \emph{independent}
-if there is a valid independence relation $I$ such that $(t_1, t_2) \in I$.
-If $t_1$ and $t_2$ are not independent, they are said to be \emph{dependent}.
+if there is a valid independence relation $I$ such that $(t_1, t_2) \in I$,
+else they are said to be \emph{dependent}.
 
 \subsection{Persistent Sets}
 \label{sec:persistent}
 
 Partial-order reduction algorithms typically 
 perform a depth-first
-search of the reachable state space
-(as the algorithms in
-Section~\ref{sec:simple-model-checking} do), but at each
+search of the reachable state space, but at each
 state $\sigma$ they explore only a subset
 $T \subseteq \textit{enabled}(\sigma)$
 of the possible transitions.
 Of course, the subsets
 $T$ must be computed in a way such that the search
-is still sound---it must always
+is still sound; it must always
 produce the correct result.
 
 \subsubsection{Definition}
 One partial-order reduction technique for
-computing such sound subsets is known
-as the \emph{persistent-set} technique. Informally,
+computing such subsets is known
+as the \emph{persistent-set} technique, introduced
+by Godefroid and Pirottin \cite{god93}. Informally,
 a subset of transitions $T$ from a state $\sigma$
 is called \emph{persistent} in $\sigma$ if every
 possible transition $t \not \in T$ that is reachable
 from $\sigma$ by exploring only transitions not in
 $T$ does not interact with the transitions
-in $T$.
-
-Formally, a subset of transitions $T \subseteq \mathcal{T}$
+in $T$. Formally, a subset of transitions $T \subseteq \mathcal{T}$
 from a state $\sigma_1$
 is called \emph{persistent} in $\sigma_1$ if
 for all sequences of transitions
@@ -687,8 +673,7 @@ For illustration, in the state space shown in
 Figure~\ref{fig:persistent}, $T = \{t_1\}$ is
 a persistent set in the initial state, as every
 transition reachable following only transitions
-not in $T$ (in this case, every transition other
-than $t_1$) is independent with $t_1$.
+not in $T$ is independent with $t_1$.
 Likewise, $T = \{t_2, t_3\}$ is
 a persistent set in the initial state, as the
 only transition reachable from the initial state
@@ -730,27 +715,26 @@ that by exploring only transitions in persistent sets, all reachable
 local states of each process are explored
 \cite[Theorem~6.14]{god96}. Therefore, if we are interested in
 the definition of model checking given in 
-Section~\ref{sec:simple-model-checking}, then it is sufficient
-to explore transitions from the persistent sets of the states we
+Section~\ref{sec:model-checking-dfn}, then it is sufficient
+to explore transitions from only persistent sets of the states we
 encounter.
 
 \subsection{Sleep Sets}
 \label{sec:sleep-prep}
 Another technique for addressing the state explosion
-problem is that of \emph{sleep sets}. Suppose that
-we are at state $\sigma_0$ when performing a search
+problem is that of \emph{sleep sets}, again introduced
+by Godefroid \cite{god91}. Suppose that
+we are at state $\sigma$ when performing a search
 of the state space (see Figure~\ref{fig:sleep}).
-Suppose that the first transition
-we explore from $\sigma_0$ is $t_1$, reaching $\sigma_1$,
-and the second is $t_2$, reaching $\sigma_2$.
+Suppose we first explore $t_1$, reaching $\sigma_1$,
+and then $t_2$, reaching $\sigma_2$.
 If $t_1$ and $t_2$ are independent, then there
 is a state $\sigma'$ reachable by both
 $\sigma \xrightarrow{t_1} \sigma_1
 \xrightarrow{t_2} \sigma'$ and
 $\sigma \xrightarrow{t_2} \sigma_2
 \xrightarrow{t_1} \sigma'$.
-Any stopped state reachable from $\sigma'$
-is reachable from $\sigma_1$, as $\sigma'$
+Clearly, any stopped state reachable from $\sigma'$
 is reachable from $\sigma_1$. By assumption,
 when the search is at $\sigma_2$, we have already
 explored all the stopped states reachable from
@@ -780,7 +764,7 @@ sleep sets is orthogonal to the technique
 of persistent sets---there is no interaction
 between the two, so implementing
 both simultaneously can be achieved with
-no extra difficulty.
+no extra difficulty \cite{god96}.
 
 \begin{figure}
 	\centering
