@@ -204,17 +204,50 @@ mathematical analysis to increase
 the confidence that a system meets its
 specification, or shows that it does not.
 
-Model checking is a category of formal
-verification techniques
-that explore all possible system states in a
-brute-force manner \cite{bai08}. In particular,
-given a formal model of a system, and a
-formal specification of a property, a model
-checking algorithm automatically checks whether the
-system satisfies that property by an
-exhaustive search of the state space.
+Model checking is a verification method
+that arose in the early 1980s,
+motivated by the desire to automatically
+verify concurrent programs \cite{cla08}.
+The idea of applying Tarski
+fixed-point techniques \cite{tar55}
+to automatically check that a
+program, expressed as a finite-state
+concurrent system, meets a specification
+expressed in a propositional branching-time
+temporal logic was independently introduced
+by Clarke and Emerson \cite{cla82} and
+Queille and Sifakis \cite{que82}. Vardi and
+Wolper later devised an algorithm that
+performs model checking efficiently
+for the other main type of temporal
+logic, which treats time in terms
+of continuous paths rather than branching
+trees \cite{var96}.
+
+Other important
+milestones in the history of model
+checking include McMillan's
+symbolic model checking \cite{mcm93},
+which allowed much larger
+systems to be verified;
+bounded model checking, introduced by
+Biere et al.\@ \cite{bie99},
+which allowed model checking
+to find bugs in systems too large for full
+verification; automatic counterexample-guided
+abstraction refinement by Clarke et al.\@
+\cite{cla00}, which allowed simpler but
+in some sense equivalent models
+(abstractions) to be easily used; and
+various partial-order techniques, discussed
+below.
+
 Model checking has been used with considerable
-success in practice, for instance in verifying
+success in practice, for instance in finding
+a long-standing flaw in the Needham-Schroeder
+security protocol \cite{low96},
+integration into the IBM design process \cite{sch97},
+and verification of
 software controlling a flood barrier near
 Rotterdam \cite{kars96},
 a NASA Mars Rover \cite{brat04},
@@ -323,7 +356,18 @@ it is known that the same result will be reached
 either way, then it is sufficient to check
 only one of the two options. Fully exploiting
 this idea can very effectively mitigate the
-state explosion problem.
+state explosion problem, as shown in
+Figure~\ref{fig:por}.
+
+Valmari's stubborn sets \cite{val90},
+Peled's ample sets \cite{pel94},
+and Godefroid's persistent and sleep sets
+\cite{god91} are
+instances of partial-order reduction; the
+latter two were explored as extensions to
+my project.
+
+
 
 \begin{figure}
 	\centering
@@ -2214,7 +2258,7 @@ Perhaps the clearest indication of the
 practical value of unverified
 model-checking systems is in their widespread
 practical use and resulting successes.
-\cite{kur08, brat04, est12, kars96, cof10, mill08}
+\cite{kur08, brat04, low96, kars96, cof10, mill08}
 It is also noteworthy that, as of 2006,
 there were only
 two verified model checking
