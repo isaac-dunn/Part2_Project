@@ -338,8 +338,8 @@ you should understand:
 	\item how the techniques of persistent sets
 	and sleep sets address the state explosion
 	problem; and
-	\item how the dynamic partial-order
-	reduction algorithm works.
+	\item the basic operation of the dynamic partial-order
+	reduction algorithm.
 \end{understandinglist}
 
 \section{Preparatory Work}
@@ -578,7 +578,10 @@ the state explosion problem.
 techniques which aim to address this problem.
 After reading this section, you should
 understand the persistent-set and sleep-set
-partial-order reduction techniques.
+partial-order reduction techniques, which
+is necessary to understand the DPOR
+algorithm and other algorithms that I
+implemented.
 
 \subsection{Independence} \label{sec:independence}
 In plain English, two transitions are independent if executing one
@@ -892,8 +895,6 @@ either
 
 \subsection{The Dynamic Partial-Order Reduction Algorithm}
 
-\subsubsection{Overview}
-
 The dynamic partial-order reduction algorithm
 uses information dynamically gathered during its
 exploration of a state space to explore only
@@ -909,14 +910,14 @@ computing its persistent sets statically.
 In particular, at each state $\sigma$, the
 next transition
 to execute, $t$, is chosen arbitrarily, and it is
-initially assumed that that transition will
+initially assumed that $t$ will
 be the only transition to be explored from
 that state. However, this is a persistent
 set only if $t$ is
 independent of every transition reachable
 by exploring any transitions
 from $\sigma$ other than $t$. Clearly,
-this is not true in general, so, at each
+this is not true in general, so at each
 state $\sigma'$ encountered beyond
 $\sigma$, if there is a transition
 $t' \in \textit{enabled}(\sigma')$
@@ -931,15 +932,13 @@ ensures that the set of transitions
 explored from each state is a
 persistent set.
 
-A detailed explanation of the DPOR
-algorithm is given in
+The pseudocode for and a more
+detailed explanation of the DPOR
+algorithm are provided in
 Appendix~\ref{app:dpor-walkthrough}.
-It is worth emphasising again that
-going from having no knowledge of
-model checking to
-fully understanding this algorithm
-took me several weeks
-of research and reading.
+Space constraints prevent me from
+giving the level of detail
+necessary for an implementation.
 
 \newcommand{\dporpseudocode}{
 	\begin{algorithmic}[1]
@@ -985,11 +984,6 @@ of research and reading.
 		\State Initially: \Call{Explore}{$\emptyset$}
 	\end{algorithmic}
 }
-
-\subsubsection{Example Execution}
-An example execution could be added here, on the same example as
-Figure~\ref{fig:sdpor-motivation}.
-
 
 \chapter{Implementation}
 \label{cha:imp}
