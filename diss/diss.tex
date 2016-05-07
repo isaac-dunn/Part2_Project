@@ -624,6 +624,7 @@ Formally,
 \]
 
 \subsection{Simple Model Checking}
+\label{sec:simple-prep}
 As the definitions of both error-free and deadlock-free
 can be expressed in the form
 \[
@@ -1825,15 +1826,15 @@ and to later verify
 that my DPOR implementation
 gave correct results.
 As outlined in
-Section~\ref{sec:simple-model-checking}, it
+Section~\ref{sec:simple-prep}, it
 performs an exhaustive depth-first
 search of the state space,
 recursively deciding whether each
 state is error-free
 and deadlock-free.
-Appendix~\ref{app:pseudocode} gives
+Appendix~\ref{sapp:simple-code} gives
 the pseudocode for this algorithm,
-and shows how it is decided whether
+and explains how it is decided whether
 an error or deadlock state has been reached.
 
 \subsection{Stateful Model Checking}
