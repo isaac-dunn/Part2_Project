@@ -1061,7 +1061,7 @@ necessary for an implementation.
 		\Procedure{UpdateBacktrackSets}{$\pi,\, t_{p,s}$}
 		\Let{$D$}{$\{i \in \textit{dom}(\pi) \mid
 			\pi_i \text{ is dependent with } t_{p,s}
-			\text{ and } (i, p)\!\not \hookrightarrow_\pi \}$}
+			\text{ and } i \not \hookrightarrow_\pi p\}$}
 		\If{$D \neq \emptyset$}
 		\Let{$\sigma_d$}
 		{$\textit{pre}(\pi,\text{max}(D))$}
@@ -1415,24 +1415,20 @@ in the implementation of PL.
 
 
 \section{Dynamic Partial-Order Reduction}
-The dynamic partial-order reduction (DPOR)
+An overview of the dynamic partial-order reduction (DPOR)
 algorithm was presented in Section~\ref{sec:dpor-prep},
-which gave an overview of its operation,
-including high-level pseudocode, which is reproduced
-in Figure~\ref{fig:dpor-imp-pscode} for ease
-of reference. Several
-aspects of the algorithm mean that it
+with a full explanation
+given in Appendix~\ref{app:dpor-walkthrough}.
+Several aspects of the algorithm mean that it
 is not obvious how it can be implemented
 as an executable program; after reading
 this section, you should understand
 how this was achieved.
 
 \subsection{Implementation}
-This section gives a
-line-by-line explanation of how the algorithm
-was implemented.
-For a line-by-line explanation of how the algorithm
-works, see Appendix~\ref{app:dpor-walkthrough}.
+This section explains how I translated
+the pseudocode in Figure~\ref{fig:dpor-imp-pscode}
+into an executable OCaml function, \texttt{check}.
 
 \begin{figure}
 	\dporpseudocode
@@ -1441,17 +1437,9 @@ works, see Appendix~\ref{app:dpor-walkthrough}.
 \end{figure}
 
 \begin{description}
-	\item[Line 1] The \textsc{Explore} procedure
-	is implemented as a recursive OCaml function,
-	\texttt{check}.
-	One of the advantages of OCaml is its provision
-	of practical procedural features, as well the
-	functional ML features, which usefully allowed
-	me to combine these styles as I saw fit when
-	implementing this algorithm.
-
 	\item[Line 2] When implementing the simple
-	model checker, I used the \texttt{fold\_left}
+	model checker (cf.\@ Section~\ref{sec:simple-imp}),
+	I used the \texttt{fold\_left}
 	function from the provided List module to
 	repeatedly use the \texttt{apply\_transition}
 	from the \textit{Program} module to apply
@@ -1473,53 +1461,46 @@ works, see Appendix~\ref{app:dpor-walkthrough}.
 	computation), so the call to 
 	\textsc{UpdateBacktrackSets} is only made if
 	\texttt{next\_transition} does return a
-	transition. It is also here, in the
-	iteration through the threads,
-	that it is decided whether the current
-	state is an error or a deadlock
-	(see Section~\ref{sec:dpor-imp-detecting}
-	below).
+	transition.
 
-	\item[Lines 15--17] In this project,
-	the assumptions are made that
+	\item[Lines 15--17] In my project,
 	each transition $t$ accesses only one shared
 	object, denoted $\alpha(t)$,
-	and that two transitions are
+	and it is assumed that two transitions are
 	dependent if and only if they access
 	the same shared object (or belong to the
-	same process). Therefore, the most
-	recent transition $\pi_i$, if any, such that
+	same process). It follows that the most
+	recent transition $\pi_i$ such that
 	$\pi_i$ is dependent with $t_{p,s}$
-	and $(i,p)\!\not\hookrightarrow_\pi$,
+	and $i \not\hookrightarrow_\pi p$,
+	if any,
 	is precisely the last transition
-	to access the shared object that
-	$t_{p,s}$ accesses.
+	to access $\alpha(t_{p,s})$.
 
 	Therefore, as well as the transition
 	sequence, $\pi$, \texttt{check} takes
 	as an argument 
-	a function $L$ from shared objects to
-	the index of the last transition that
-	accessed them, so that the index of the
+	a function $L$, such that $L(o)$ is the
+	index of the last transition that accessed
+	shared object $o$, so that the index of the
 	necessary backtracking point, if any, is
-	$L(\alpha(t_{p,s}))$. However, this
-	is not a necessary backtracking point if
-	$\pi_{L(\alpha(t_{p,s}))}$ happens-before
-	$t$, in which case no backtracking point
-	is necessary, as there cannot be another
+	$L(\alpha(t_{p,s}))$. However, if
+	this transition happens-before
+	$t$ then no backtracking point at all
+	is necessary, since there cannot be another
 	transition that is dependent with $t$
 	but does not happen-before $t$. To
 	decide the happens-before relation,
 	clock vectors are used, as described 
 	in Section~\ref{sec:clock-vectors}.
 
-	The \texttt{pre} function mentioned above is used to
-	obtain $\sigma_d$ from the index of the
-	transition executed from it, $L(\alpha(t_{p,s}))$.
+	Because	$\sigma_d = pre(\pi, L(\alpha(t_{p,s})))$,
+	the \texttt{pre} function mentioned above can be
+	used to obtain $\sigma_d$.
 
 	\item[Lines 18--19]	The \texttt{next\_transition} function
 	returns a Boolean with each transition, indicating whether
-	it is enabled in the given state, so that deciding if
+	it is enabled in the given state, so that deciding whether
 	$\textit{next}(\sigma_d,p)$ is enabled is trivial.
 	This also
 	means it is easy to compute the enabled
@@ -1558,21 +1539,21 @@ works, see Appendix~\ref{app:dpor-walkthrough}.
 	procedural while-loop,
 	I implemented the iteration through
 	the backtracking points
-	by using a functional tail-recursive
-	function, whose argument
-	was a list of processes, representing
-	the \textit{done} set. An auxiliary
+	by using a tail-recursive
+	function, taking a list of processes
+	representing the \textit{done} set as
+	its argument. An auxiliary
 	function returned a member $p$ of the
 	\textit{backtrack} set not present in the
 	\textit{done} set, from which the
 	transition $t$ to explore is simply
 	$\textit{next}(\sigma, p)$. The
-	recursive call to the while-function
+	recursive call to the tail-recursive function
 	then has the old \textit{done} set
 	extended with $p$ as its argument. If
 	the auxiliary function can
 	find no such $p$, then the
-	while-function (and therefore the
+	tail-recursive function (and therefore the
 	call to \texttt{check}) returns.
 
 	\item[Line 12] Once the new arguments have
@@ -1590,9 +1571,6 @@ works, see Appendix~\ref{app:dpor-walkthrough}.
 		\hfill |\pi| \hfill & \text{ if } o = \alpha(t); \\
 		\hfill L(o) \hfill & \text{ otherwise}.
 	\end{cases}\]
-	As the transition sequence is implemented as an
-	OCaml list, and the function $L$ as an OCaml function,
-	these computations are straightforward.
 
 	\item[Line 13] Once all backtracking points have been
 	explored, the result is returned.
@@ -1605,9 +1583,11 @@ works, see Appendix~\ref{app:dpor-walkthrough}.
 	to also check whether any thread has
 	encountered an error, is enabled,
 	or is blocked.
-	These results are combined with the
+	This information is combined with the
 	results from the recursive calls to
-	return the correct result.
+	compute whether the state space from
+	the current state onwards is error-free
+	and deadlock-free.
 
 \end{description}
 
@@ -1874,6 +1854,7 @@ I implemented these other model-checking
 algorithms.
 
 \subsection{Simple Model Checker}
+\label{sec:simple-imp}
 I actually implemented and tested
 the simple
 model checker before the DPOR
@@ -3051,7 +3032,7 @@ These results are combined in line 17.
 	\Procedure{UpdateBacktrackSets}{$\pi,\, t_{p,s}$}
 	\Let{$D$}{$\{i \in \textit{dom}(\pi) \mid
 		\pi_i \text{ is dependent with } t_{p,s}
-		\text{ and } (i, p)\!\not \hookrightarrow_\pi \}$}
+		\text{ and } i \not \hookrightarrow_\pi p\}$}
 	\If{$D \neq \emptyset$}
 	\Let{$\sigma_d$}
 	{$\textit{pre}(\pi,\text{max}(D))$}
