@@ -413,14 +413,6 @@ achieved, and several other model-checking
 algorithms and techniques were also
 implemented and evaluated as extensions.
 
-I chose this
-project because I was interested to see
-how theoretical developments in computer
-science have significant practical implications,
-and also to see how high-level mathematical
-algorithms can be translated into
-executable programs.
-
 \chapter{Preparation}
 \label{cha:prep}
 After reading this chapter,
@@ -492,8 +484,8 @@ experimenting with small test programs.
 \section{Background Definitions} \label{sec:background-defs}
 After reading this section, you should understand the
 definitions of the mathematical objects and structures
-manipulated by the algorithms in my project. Almost all
-of these definitions are given in the POPL paper \cite{flan05}.
+manipulated by the algorithms in my project. Most
+of these are given in the POPL paper \cite{flan05}.
 
 \subsection{Processes and States}
 We consider programs consisting of a finite set, $\mathcal{P}$,
@@ -580,7 +572,7 @@ is the \emph{transition relation} defined by
 
 \section{Model Checking}
 After reading this section, you should
-understand exactly I mean by a
+understand exactly what I mean by a
 model-checking algorithm in the context
 of this project and how a simple
 such algorithm works.
@@ -591,9 +583,12 @@ In the context of this project,
 model checking is the process of deciding
 whether a
 given transition system is \emph{error-free} and
-\emph{deadlock-free}. The approach given here
-is not explicitly set out in any paper that I
-could find, so I developed it myself.
+\emph{deadlock-free}. In other words, instead of
+being specified as a temporal logic formula,
+the specification of each program is fixed
+to these two properties, because the algorithms we
+consider sacrifice richness of specification
+for efficiency of verification.
 
 To specify exactly what it means for a system to
 be error-free, we extend each transition system
@@ -628,17 +623,6 @@ Formally,
 		\textit{enabled}(l, g') = \emptyset.
 \]
 
-For our purposes, a model-checking algorithm
-takes a transition system and returns
-two Boolean results, indicating whether that system
-is error-free and deadlock-free. The properties
-that the model-checking algorithms for my project
-decide are therefore fixed in advance. More
-powerful concepts of model checking do exist,
-but the algorithms we consider check
-only these less-rich properties
-in return for better performance.
-
 \subsection{Simple Model Checking}
 As the definitions of both error-free and deadlock-free
 can be expressed in the form
@@ -669,12 +653,11 @@ was heading towards the branches of a tree.
 Although a na\"{\i}ve exhaustive search
 is correct, its performance suffers due to
 the state explosion problem.
-\emph{Partial-order reduction} is a category of
-techniques which aim to address this problem.
 After reading this section, you should
 understand the persistent-set and sleep-set
 partial-order reduction techniques, which
-is necessary to understand the DPOR
+aim to address this problem, and which
+are necessary to understand the DPOR
 algorithm and other algorithms that I
 implemented.
 
@@ -785,12 +768,6 @@ $T = \textit{enabled}(\sigma)$, is always a
 persistent set since there are no transitions
 that are reachable without executing one in $T$.
 
-As we might hope, if we choose only transitions
-in a persistent set
-from the initial state to begin
-an otherwise exhaustive search of the state space, then
-both stopped states are reachable.
-
 \begin{figure}
 	\centering
 	\includegraphics[height=9cm]{persistent1}
@@ -804,18 +781,21 @@ both stopped states are reachable.
 \end{figure}
 
 \subsubsection{Soundness}
-Indeed, it can be shown that if a stopped state is reachable by an exhaustive
-search of the state space, then by computing a persistent set $T$ at
-each state $\sigma$ and exploring only those transitions from
-$\sigma$ that are in $T$, that stopped state is still reachable
-\cite[Theorem~4.3]{god96}. It can also be shown
-that by exploring only transitions in persistent sets, all reachable
-local states of each process are explored
-\cite[Theorem~6.14]{god96}. Therefore, if we are interested in
-the definition of model checking given in 
-Section~\ref{sec:model-checking-dfn}, then it is sufficient
-to explore transitions from only persistent sets of the states we
-encounter.
+It can be shown that if a stopped
+state is reachable by an exhaustive
+search of the state space, then
+it is reachable by a search exploring
+only the transitions in a persistent set
+at each state \cite[Theorem~4.3]{god96}.
+Likewise, all reachable
+local states of each process are reachable
+in a persistent-set search
+\cite[Theorem~6.14]{god96}.
+Therefore, because of our
+definition of model checking
+(cf.\@ Section~\ref{sec:model-checking-dfn}),
+a persistent-set search is sufficient for
+model checking.
 
 \subsection{Sleep Sets}
 \label{sec:sleep-prep}
@@ -848,21 +828,9 @@ until we execute some transition $t'$ which is
 the execution of such a $t'$, exploring $t_1$ may
 then lead to an unexplored area of the state space.
 
-A \emph{sleep set} for a particular state
-is then the set of transitions which, when
-explored, is guaranteed by the above
-argument to lead to an already-explored
-section of the state space\footnotemark.
-\footnotetext{In the literature, sleep
-	sets seem to be defined as the sets used
-	in the sleep set algorithm, so a
-	better definition cannot be given here.}
-The technique of
-sleep sets is orthogonal to the technique
-of persistent sets---there is no interaction
-between the two, so implementing
-both simultaneously can be achieved with
-no extra difficulty \cite{god96}.
+A sleep-set algorithm is one that maintains a
+set of transitions which, by the above argument,
+need not be explored from the current state.
 
 \begin{figure}
 	\centering
@@ -874,11 +842,8 @@ no extra difficulty \cite{god96}.
 
 \section{Dynamic Partial-Order Reduction}
 \label{sec:dpor-prep}
-Before implementing the dynamic partial-order
-reduction algorithm, I first had to
-understand it.
 After reading this section, you should
-also understand how the dynamic
+also understand roughly how the dynamic
 partial-order reduction algorithm works.
 
 \subsection{Background Definitions}
@@ -905,14 +870,13 @@ we use the following notation:
 		--- the transition $t_i$;}
 	\item{\makebox[\defsindent]{\hfill$\pi.t$}
 		--- the transition sequence $\pi$ extended with
-		an additional transition, $t$;}
+		transition, $t$;}
 	\item{\makebox[\defsindent]{\hfill$\textit{dom}(\pi)$}
 		--- the set $\{i \in \mathbb{N} \mid 0 \leq i < n \}$;}
 	\item{\makebox[\defsindent]{\hfill$|\pi|$}
 		--- the length of the transition sequence, $n$;}
 	\item{\makebox[\defsindent]{\hfill$\textit{pre}(\pi, i)$}
-		--- the state $\sigma_i$ (i.e. the
-		state immediately before transition $\pi_i$); and}
+		--- the state $\sigma_i$ immediately preceding $\pi_i$; and}
 	\item{\makebox[\defsindent]{\hfill$\textit{last}(\pi)$}
 		--- the final state, $\sigma_n$.}
 \end{itemize}
