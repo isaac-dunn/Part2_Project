@@ -212,8 +212,8 @@ The idea of applying Tarski
 fixed-point techniques \cite{tar55}
 to automatically check that a
 program, expressed as a finite-state
-concurrent system, meets a specification
-expressed in a propositional branching-time
+system, meets a specification
+expressed in a propositional
 temporal logic was independently introduced
 by Clarke and Emerson \cite{cla82} and
 Queille and Sifakis \cite{que82}. Vardi and
@@ -223,7 +223,6 @@ for the other main type of temporal
 logic, which treats time in terms
 of continuous paths rather than branching
 trees \cite{var96}.
-
 Other important
 milestones in the history of model
 checking include McMillan's
@@ -261,7 +260,7 @@ ultra-modern satellite platform'' \cite{est12}.
 
 One of the advantages of model checking is
 that it can be used to verify that concurrent
-systems are free of deadlocks, livelocks, or
+programs are free of deadlocks, livelocks, or
 obscure race conditions that could result in
 an error, whereas such exposing such defects
 using solely conventional testing is notoriously
@@ -337,12 +336,10 @@ However, despite the state explosion problem, model
 checking is still used in practice, thanks
 to various techniques that
 reduce the number of interleavings that must
-be explored to show that the system has the
-desired property. Partial-order reduction
+be explored. Partial-order reduction
 is a category of such techniques which
-exploit the fact that, in some cases, it
-does not matter which instruction executes
-first.
+exploit the fact that, in some cases, the
+order of instruction execution is irrelevant.
 
 For example, if the next instruction
 of thread 0 is to write a value to shared
@@ -367,11 +364,9 @@ instances of partial-order reduction; the
 latter two were explored as extensions to
 my project.
 
-
-
-\begin{figure}
+\begin{figure}[t]
 	\centering
-	\includegraphics*[height=10.5cm]{por}
+	\includegraphics*[height=13cm]{por}
 	\caption[Illustration of partial-order reduction.]
 	{If the order of execution of four instructions or
 		events makes no difference to the end result, it
@@ -385,31 +380,45 @@ my project.
 %partial-order reduction algorithm, and
 %the nature of my project.
 
-Dynamic partial-order reduction is a
-specific partial-order reduction algorithm,
-which uses information gathered during its
-exploration of the state space to allow it
-to identify which instructions can be
-executed in a different order and still give the
-same result. In fact, it initially assumes that
-all possible interleavings of instructions will
+In 2005, Flanagan and Godefroid presented
+a paper titled Dynamic Partial-Order Reduction
+for Model Checking Software  \cite{flan05}
+at the Principles
+of Programming Languages (POPL) conference,
+introducing an algorithm
+which uses information gathered dynamically
+during its
+exploration of a state space to allow it
+to perform partial-order reduction more
+effectively than existing algorithms.
+In particular, it assumes that
+all possible interleavings of
+instructions in a concurrent program will
 give the same result, and only explores
-more interleavings if it learns that
-they are necessary.
+alternative executions when it discovers
+pairs of instructions that might give
+different results when executed in a
+different order.
 
 The original aim of my project was to
-implement the dynamic partial-order
-reduction algorithm. This was successfully
-achieved, and various other model checking
+fully implement the dynamic partial-order
+reduction algorithm presented in the POPL
+paper from scratch, and to evaluate its performance
+against a simple benchmark implementation.
+While implementations of variants of the
+DPOR algorithm exist \cite{yang09, vo09},
+I did not look at them.
+The goals of the project were successfully
+achieved, and several other model-checking
 algorithms and techniques were also
-implemented as extensions.
+implemented and evaluated as extensions.
 
 I chose this
 project because I was interested to see
 how theoretical developments in computer
-science have significant practical benefits,
+science have significant practical implications,
 and also to see how high-level mathematical
-algorithms can be implemented as real
+algorithms can be translated into
 executable programs.
 
 \chapter{Preparation}
