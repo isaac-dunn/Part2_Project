@@ -2133,20 +2133,19 @@ a guarantee of its
 soundness is useless, this
 is not at all the case.
 
-Proof can be seen as a social process
-by which a consensus arises that
-a statement is true, and it has been
-argued that, compared to the informal
-proofs typically used in mathematics,
-formal proofs are a
+Proof of a statement
+can be seen as a social process
+by which a consensus arises in its
+truth.
+Formal proofs are a relatively
 poor catalyst to this process, since
 they are so long and difficult to
-read \cite{demi79}. There are other,
-arguably better,
+read \cite{demi79}.
+There are other, arguably better,
 ways that the confidence in a program's
 correctness can be increased, including
 conventional testing, successful
-long-term use, and especially performing
+long-term use, and performing
 cross-checking with other (ideally
 independently developed) implementations
 \cite{tau02}.
@@ -2174,8 +2173,8 @@ in the direction of the bug if
 one is found.
 
 Perhaps the clearest indication of the
-practical value of unverified
-model-checking systems is in their widespread
+value of unverified
+model-checking systems is their widespread
 industrial use and resulting successes.
 \cite{kur08, brat04, low96, kars96, cof10, mill08, new15}
 It is also noteworthy that, as of 2006,
@@ -2215,14 +2214,14 @@ obtained by counting the number of recursive calls made.
 The execution times were measured using the \texttt{time}
 function in the Sys module packaged with OCaml. It returns
 measurements of time only in quanta of 0.004 seconds,
-so the accuracy and precision of the time measurements is poor for
+so the accuracy of the time measurements is poor for
 executions not much longer than this time.
 The precision of measurements
 is good, though, with very similar results being returned
 for multiple executions of the same program.
 Having established this,
 I took only one measurement
-for each execution time, preferring
+for each, preferring
 to focus effort on collecting data
 from more examples.
 
@@ -2248,9 +2247,9 @@ Each thread in this example is assigned a particular
 shared object, which it accesses a
 fixed number of times. There are three test parameters:
 the total number of threads, the number of threads
-assigned to access each shared object, and the
+assigned to each shared object, and the
 number of accesses that each thread
-makes. Varying the second parameter
+makes. Varying the second parameter allows
 the amount of dependence between the threads
 to be controlled.
 
@@ -2360,17 +2359,16 @@ to be controlled.
 \end{figure}
 
 \subsubsection{Example 2 -- Bounded Buffer}
-This example is the classic bounded-buffer problem
+In Dijksta's classic bounded-buffer problem
 \cite{dijk74},
 in which two threads operate on a shared fixed-length
-array of items, with one thread ``producing'' items
-and writing them to the buffer and the other
-``consuming'' them and removing them from the buffer.
-In this example program, the buffer is of size 8,
-race conditions are prevented by using a lock per
-item to effect mutual exclusion, and the number
-of items that the threads produce and consume is
-the test variable.
+array of items, with the ``producer''
+writing new items to the buffer and the
+``consumer'' removing them.
+I used a buffer of size 8, effected mutual
+exclusion using per-item locks, and varied
+the number of items that each thread processes
+as the test variable.
 
 \begin{figure}
 	\centering
@@ -2388,15 +2386,13 @@ the test variable.
 \end{figure}
 
 \subsubsection{Example 3 -- Indexer}
-This example is taken from
-the paper that introduced DPOR,
-where the code can be seen \cite[Figure~1]{flan05}.
-Each thread ``receives'' a number of
-``messages'' from a \texttt{getmsg}
-procedure, each of which is inserted
-into a shared hash table. If the
-hash table slot is already taken, the
-next free slot is used instead.
+Taken from the paper introducing DPOR
+\cite[Figure~1]{flan05}, each
+thread ``receives'' a number of
+``messages'' each of which is inserted
+into a shared hash table. If a slot
+is already occupied, the
+next free slot is tried instead.
 
 \begin{figure}
 	\centering
@@ -2415,14 +2411,13 @@ next free slot is used instead.
 \end{figure}
 
 \subsubsection{Example 4 -- File System}
-This example is taken from
-the paper that introduced DPOR,
-where the code can be seen \cite[Figure~7]{flan05}.
-Based an idiom found in the Frangipani file
-system \cite{thek97}, each thread searches for a free
+Also from the DPOR paper
+\cite[Figure~7]{flan05}, this example is
+based an idiom found in the Frangipani file
+system \cite{thek97}.
+Each thread searches for a free
 ``disk block'' for an ``inode'' to point
-to. Mutual exclusion is again achieved using
-locks.
+to.
 
 \begin{figure}
 	\def\svgwidth{\textwidth}
