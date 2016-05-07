@@ -2067,113 +2067,91 @@ you should understand:
 
 \section{Soundness}
 
-Even though the algorithms
-used in this project have all been proven sound,
-this is irrelevant if there are bugs in my
-implementations which render the algorithms incorrect.
-After reading this section, you should
-therefore understand the extent to which I believe
-my project consists of sound implementations
-of the model-checking algorithms, the
-evidence leading to this belief, and why
-model checking systems are useful in
-practice without being known to be
-sound.
+Although the various model-checking algorithms
+have all been proven sound, bugs in my
+project could easily render my implementations
+of them incorrect.
+After reading this section, you should understand
+the extent to which I believe
+my project is correct and why, and how
+verification systems are useful despite
+not being verified themselves.
 
 \subsection{Evidence for Soundness}
-Any program of a reasonable size is very
-likely to contain bugs. Industry average
+Almost every program contains bugs---industry average
 is about 1 to 25 errors per 1,000 lines
-of delivered code \cite{mccon04}, my project
-consists of at least 3,250 lines of
-code\footnote{Computed using
-	\texttt{\,find src/ -name
-		\textquoteleft*.ml\textquoteright
-		| xargs wc -l}},
+of delivered code \cite{mccon04}.
+My project consists of
+at least 3,250 lines of code,
 and there is no reason to think that I would
 produce fewer errors than the average
-professional software developer.
+professional software developer, so
+it is likely it contains several defects.
 However, I believe that
-on the balance of probabilities,
 all remaining bugs in my project
-are likely to relate
+probably relate
 to functionality not necessary for
 soundness. For instance, I would
-not be surprised to learn that there
-is a bug in the \texttt{next\_transition}
-function for PL, whereas I would be
-surprised if such a bug existed in
-my implementation of the DPOR
-algorithm. There are two main reasons
+not be surprised if there was a bug
+in my implementation of PL,
+whereas I would not expect
+my implementation of DPOR to
+return an incorrect result.
+There are two main reasons
 for this belief: my review and understanding
 of the code, and my testing process.
 
 \subsubsection{Review of Source Code}
-OCaml is a very high-level language, so
-its use allowed me to keep the source code
-relatively simple. As a result,
-the correspondence between
-the published pseudocode for an algorithm
-and my source code implementing it is
-relatively simple, meaning that it
-is possible to greatly increase
-your confidence that
-the implementation is correct by simply
-comparing the two. In the development
-process, I spent a lot of time trying
-to find ways in which my programs did
-not match the pseudocode; at the end
-of the development process, I can be
-reasonably confident that any significant differences
-in semantics have been found.
-This is especially
-true for the simple model checker,
-due to its lack of complexity.
+OCaml is high-level enough that 
+side-by-side comparison of my code
+and the corresponding pseudocode reveals
+the mapping of one onto the other. This
+makes it relatively easy to perform
+thought experiments to try and find
+differences in semantics between the two.
+During development, I spent time doing this,
+successfully discovering some bugs; at
+the end of the process, I am more
+confident in the correctness of my implementations
+as a result
+(especially
+the simple model checker,
+due to its simplicity).
 
 \subsubsection{Tests}
 \label{sec:pl-checker-tests}
 As part of the development process,
 I wrote over forty varied test cases, each
-consisting of a transition system
-implemented as a PL program, and
+consisting of a PL program, and
 the expected
 $(\textit{error-free},\, \textit{deadlock-free})$
-result of model checking that program.
-Running an implementation of a
+result of model checking that transition
+system.
+Running a
 model-checking algorithm on the
 program should give the expected
-result: if not, then either
-the result I expected was wrong
-(usually due to an incorrect encoding
-of the transition system in PL),
+result:. If not, then either
+I expected the wrong result,
 or the implementation was incorrect.
-To ensure the former was not a possibility,
-I used the simple model checker---whose
-correctness I have confidence in---to check that my
-expectations of the results were correct.
+I used my confidence in the simple
+model checker to verify
+my expectations, leaving
+only the second option.
 
-The primary use of these tests was to
-reveal the presence of bugs in my
-project during its development, so
-that I could track them down and
-remove them. However, they have the
-secondary benefit of providing
-evidence that my implementations are
-correct: if a bug is not applicable
-in any of the test cases, then,
-assuming that these test cases cover a
-varied and representative selection
-of systems to be verified,
-the bug must be obscure.
+Although the tests were designed
+to help me find bugs during
+development, they have the
+secondary benefit of increasing the
+confidence in my implementations---only
+obscure bugs could
+elude my tests, assuming that the
+code coverage is as good as I think.
 
 \subsection{Model Checking In Practice}
 Even if I think it unlikely, it is
-certainly possible that there is a subtle
-bug in my project which results in its
-unsoundness, since my project has not
-been verified (verification of such
-large programs takes
-considerable effort).
+certainly possible that my project is
+unsound, since it has not
+been verified.
 Although it may initially seem
 that a model-checking system without
 a guarantee of its
@@ -2188,47 +2166,46 @@ proofs typically used in mathematics,
 formal proofs are a
 poor catalyst to this process, since
 they are so long and difficult to
-read \cite{demi79}. There are other
+read \cite{demi79}. There are other,
+arguably better,
 ways that the confidence in a program's
-correctness can be increased, which
-are arguably better at convincing people, including
-running tests, gaining experience from
+correctness can be increased, including
+conventional testing, successful
 long-term use, and especially performing
-cross-checking with other, ideally
-independently developed, implementations
+cross-checking with other (ideally
+independently developed) implementations
 \cite{tau02}.
 
-There are also more important factors
-which determine the practical use of
-verification systems, including their
-performance and usability. A system that
+In practice, factors such as
+performance and usability are at least
+as important as soundness. A system that
 catches 90\% of bugs can still be a
-useful tools, especially if it catches
-those which are difficult to expose
+useful tool, especially if it catches
+errors which are difficult to expose
 using conventional testing, such as
-those caused by race conditions. On
-the other hand, if a system
+those caused by race conditions. 
+Conversely, if a system
 is guaranteed to be sound, but takes an
 impractically long time for any realistic
-program, or if it requires users to have
-weeks of training and a deep mathematical
-understanding, then it will not be used in
+program, or if it requires
+weeks of training before use,
+then it will not be used in
 practice.
 Similarly, a system that
 returns only a single Boolean result
-is much less useful than one such as my project,
-which can give information indicating where
-the problem lies in the event that the
-program does not meet its specification.
+is less useful
+than one that points the developer
+in the direction of the bug if
+one is found.
 
 Perhaps the clearest indication of the
 practical value of unverified
 model-checking systems is in their widespread
-practical use and resulting successes.
+industrial use and resulting successes.
 \cite{kur08, brat04, low96, kars96, cof10, mill08}
 It is also noteworthy that, as of 2006,
 there were only
-two verified model checking
+two verified model-checking
 systems, neither of which was widely
 used, despite model
 checking having been in use for
@@ -2258,36 +2235,32 @@ explosion problem for the given case, and also
 the execution time, which is what ultimately
 matters in practice.
 
-The number of transitions for each algorithm was easily
+The numbers of transitions explored were easily
 obtained by counting the number of recursive calls made.
 The execution times were measured using the \texttt{time}
 function in the Sys module packaged with OCaml. It returns
 measurements of time only in quanta of 0.004 seconds,
-so the accuracy of the time measurements is poor for
-executions shorter than around 0.04 seconds.
+so the accuracy and precision of the time measurements is poor for
+executions not much longer than this time.
 The precision of measurements
 is good, though, with very similar results being returned
 for multiple executions of the same program.
 Having established this,
-I therefore took only one measurement
-of each execution time, preferring
-to collect more data on different examples than to collect
-redundant data on the same example.
+I took only one measurement
+for each execution time, preferring
+to focus effort on collecting data
+from more examples.
 
 \subsection{Results}
-This section presents the performance measurements.
 For each example program, the results for all eight
-algorithms are plotted on the same graph, in the
+algorithms are presented on the same graph, in the
 style indicated in Figure~\ref{fig:key}.
-As the results are
-presented on logarithmic graphs, if the timing function
-returned 0s, I plotted a point at 0.002s
-to represent the fastest possible execution, since
+If the timing function
+returned 0.000s, I plotted a point at 0.002s
+for clarity, since
 $\log(0)$ is undefined.
-If an algorithm failed to terminate after around
-100 seconds, I abandoned its execution,
-resulting in incomplete data
-for some algorithms in some cases.
+I stopped collecting data when execution
+times approached 100 seconds.
 
 \begin{figure}
 	\includegraphics[width=\textwidth]{key}
@@ -2297,19 +2270,14 @@ for some algorithms in some cases.
 
 \subsubsection{Example 1 -- Repeated Accesses}
 Each thread in this example is assigned a particular
-shared object, and simply accesses this object a
+shared object, which it accesses a
 fixed number of times. There are three test parameters:
-the number of threads, the number of threads that are
-assigned to access the same shared object, and the fixed
-number of accesses to the shared object that each thread
-makes. If, for example, these were set to 6, 2 and 5
-respectively, then threads 0 and 1 would access object A,
-threads 2 and 3 would access object B and threads 4 and 5
-would access object C, and each thread would make 5 accesses
-to its assigned object. This allows a controlled amount of
-dependence between the threads -- if each thread has its own
-object, then all transitions are independent; if all threads
-access the same object, then all transitions are dependent.
+the total number of threads, the number of threads
+assigned to access each shared object, and the
+number of accesses that each thread
+makes. Varying the second parameter
+the amount of dependence between the threads
+to be controlled.
 
 \begin{figure}
 	\centering
@@ -2417,7 +2385,8 @@ access the same object, then all transitions are dependent.
 \end{figure}
 
 \subsubsection{Example 2 -- Bounded Buffer}
-This example is the classic bounded-buffer problem,
+This example is the classic bounded-buffer problem
+\cite{dijk74},
 in which two threads operate on a shared fixed-length
 array of items, with one thread ``producing'' items
 and writing them to the buffer and the other
