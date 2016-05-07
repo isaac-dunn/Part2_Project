@@ -1596,62 +1596,59 @@ into an executable OCaml function, \texttt{check}.
 
 To decide the happens-before relation,
 $\hookrightarrow_\pi$, I used the method
-of clock vectors, as outlined by Flanagan
-and Godefroid \cite{flan05}.
+of clock vectors. Although Flanagan
+and Godefroid show how this method
+can be used \cite{flan05},
+they do not give the
+following detail concerning why
+the clock vectors are updated to
+the values they give.
 
 \subsubsection{Using Clock Vectors}
 
 As explained above, although
 the last function, $L$, gives the index
 of the last transition that accessed a given shared
-object, and so the index of the potential backtracking
-point to be added, we only need to add it if it
-didn't happen-before the current transition.
+object, which is the index of the potential backtracking
+point, we only need to add it if it
+did not happen-before the current transition.
 That is, if
-$(L(\alpha(t_{p,s})), p)\!\not\hookrightarrow_\pi$.
-
+$L(\alpha(t_{p,s})) \not\hookrightarrow_\pi p$.
 
 If, for each process
 $q$, we know the index $k$ of the last transition of that
-process such that $(k, p)\!\hookrightarrow_\pi$,
-then given any other transition of
-process $q$, $\pi_i$, we know that
-$(i, p)\!\hookrightarrow_\pi$ if and only if
+process such that $k \hookrightarrow_\pi p$,
+then given any other transition $\pi_i$ of
+process $q$, we know that
+$i \hookrightarrow_\pi p$ if and only if
 $i \leq k$. A clock vector $c$ is
 a function from processes $q$ to such
 indices into the transition sequence, $k$,
 and we maintain one clock vector, $c_p$, per
 process $p$. To decide whether
-$(i, p)\!\hookrightarrow_\pi$ for
-any $i$ and $p$, is simply to decide
+$i \hookrightarrow_\pi p$ for
+any $i$ and $p$ is simply to decide
 whether $i \leq c_p(q)$, where $q$ is
 the process of transition $\pi_i$.
+This takes constant time.
 
 \subsubsection{Updating Process Clock Vectors}
-By passing clock vectors as arguments to
+By passing correct clock vectors as arguments to
 \texttt{check}, then, it is straightforward
-to decide whether
-$(L(\alpha(t_{p,s})), p)\!\hookrightarrow_\pi$.
-For this to work, the correct clock values need
-to be passed to each call of \texttt{check}.
+to decide whether we need to add each potential
+backtracking point.
 Assuming that the correct value is passed for
 the initial call,
-(each $k$ set to anything less than 0)
+(namely each $c_p(q) < 0$)
 we need to ensure that the
 clock vectors are correctly updated when
-making a recursive call, when a new
-transition, $t_{p,s}$, is being explored.
+a recursive call exploring a new transition,
+$t_{p,s}$, is made.
 
 The only clock vector that needs to be updated
-is $c_p$, the clock vector for the process
-of the transition being explored, because
-a transition of process $p'$ must happen-before
-the end of the extended transition
-sequence, $\pi' = \pi.t_{p,s}$, if and
-only if it must happen-before the end
-of the original transition sequence,
-$\pi$, assuming that $p' \neq p$.
-
+is $c_p$, since $i \hookrightarrow_\pi p'$ if
+and only if $i \hookrightarrow_{\pi'} p'$,
+where $\pi' = \pi.t_{p,s}$ and $p' \neq p$.
 Let us denote the updated clock vector
 by $c_p'$, and consider $c_p'(q)$, which
 must be at least $c_p(q)$, as if process
