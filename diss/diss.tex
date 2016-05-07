@@ -1170,15 +1170,15 @@ particular signature to structures matching another.
 
 \begin{figure}
 	\centering
-	\begin{subfigure}{.4\textwidth}
+	\begin{subfigure}{.43\textwidth}
 		\centering
 		\includegraphics[height=9cm]{interfaces}
 		\caption{Diagram showing which signatures declare
 			which other signatures as nested sub-structures.}
 		\label{fig:interfaces}
 	\end{subfigure}%
-	\quad
-	\begin{subfigure}{.5\textwidth}
+	\qquad
+	\begin{subfigure}{.43\textwidth}
 		\centering
 		\includegraphics[height=12cm]{functors}
 		\caption{Diagram showing generation of
@@ -1213,8 +1213,8 @@ In the project, there are five main signatures:
 	contains a function which performs model checking.
 \end{enumerate}
 
-While I did implement a simple programming language
-(see Section~\ref{sec:language}), the model checking
+While I did implement a simple programming language,
+the model checking
 algorithms that are the focus of this project are of
 course entirely independent of any particular language.
 I therefore ensured that, in order to use
@@ -1245,43 +1245,50 @@ thread-based programming language
 could be used to express transition systems for model
 checking, I chose to design and implement a simple
 ML-like language, PL (Project Language), to avoid
-the unnecessary complexity of implementing a full
-industrial language.
-The grammar for valid PL expressions is given in
-Figure~\ref{fig:pl-expressions}.
+dealing with the full complexity of a
+industrial language. When designing PL, my aim
+was to create a high-level language that had enough features
+to easily write practical concurrent programs,
+but was not unnecessarily complex.
 
-As required by the \emph{Thread} interface, each
-PL thread has access to both its local store
-$s$\footnote{Note that
-	here, $s$ is not the full local state
-	as defined in Chapter~\ref{cha:prep},
-	because it does not include the instructions
-	for the thread. An (expression, store) pair
-	gives the full local state.}
-and the shared store $g$. Both $s$ and $g$ are
-maps from locations to expressions.
-To express the semantics
-of PL, then, we need to decide whether an
-expression $e$ reduces for local store $s$ and
-global store $g$, and if it does, we need to give
-the expression $e'$ that it reduces to in one ``step'',
-as well as any updates to $s$ and $g$ that result.
-Each such step is assumed to be atomic, so care
-must be taken to ensure that each step really is
-atomic, else race conditions could exist that would
-not be found by a model checker.
-The semantics of PL expressions are as you would expect
-(see Appendix~\ref{app:pl-def} for a full definition), but
-the rules for the reduction of expressions that interact
-with the global store $g$ are given in Figure~\ref{fig:pl-rules}.
+PL is a Turing-complete functional
+language with first-class
+functions, which operates on integers and
+Booleans.
+Thread-local reference cells provide some
+procedural functionality, and the usual
+structures manage flow control. There is
+an error construct, which allows easy syntactic
+checking of whether a thread has encountered
+an error. The shared
+state is a collection of variables that are
+shared between all threads, some of which
+can be locks, used to enforce mutual exclusion.
+There are four atomic operations
+that interact with shared variables:
+\begin{enumerate}
+	\item a read operation takes the current value
+	of a shared variable;
+	\item a compare-and-swap operation
+	compares the value of a shared variable to a
+	given value, and if they are the same, updates
+	the shared variable to another given value;
+	\item a lock operation takes the given lock if
+	available, else blocks until it becomes available; and
+	\item an unlock operation makes the given lock
+	available.
+\end{enumerate}
+Since the locking operation is the only
+one that can block, it is a trivial syntactic
+check to decide whether a given thread is
+blocked or not.
 
-There is no type system for PL. Although it would have been
-beneficial to design and implement a type system for PL
-(a type checker could catch type errors early, rather than a runtime
-failure with non-obvious causes occurring), I thought that the total
-time I would have spent on creating the type system would be more than
-the time taken in dealing with the problems resulting from having
-no type system. With the benefit of hindsight, I think this was the
+There is no type system for PL. Although a type system
+would have saved time by catching type errors before
+runtime, and making it clear exactly what the error was,
+I thought that the time saved would be less than the
+time it would take me to implement it.
+With the benefit of hindsight, I think this was the
 correct decision.
 
 \subsection{Parser}
@@ -1353,6 +1360,8 @@ the list removing stale pairs, used to
 prevent the list from growing too long,
 or in situations when there must be
 no stale values in the list.
+There are also various other auxiliary functions
+used in implementing later modules.
 
 More efficient store implementations are of
 course possible (for example, one based on
@@ -1361,9 +1370,6 @@ I decided on the simplest reasonable
 implementation I could think of, to
 be confident of its correctness.
 
-There are again various auxiliary functions
-used in implementing later modules.
-
 \subsubsection{The Thread Module}
 The \emph{Thread} module consists primarily of
 the \texttt{next\_step} and \texttt{next\_transition}
@@ -1371,7 +1377,16 @@ functions, which define the semantics of PL.
 Given an expression, \texttt{next\_step} uses pattern
 matching to determine what the next atomic
 operation (if any) is for the reduction
-of that expression. Given the definition
+of that expression.
+Care must be taken to
+ensure that operation each really is
+atomic, else race conditions could exist
+in real executions of programs that would
+not be found by a model checker---this
+is not a concern for PL, but would be if
+an industrial language was used.
+
+Given the definition
 of a transition (cf.\@ Section~\ref{sec:trans-prep}),
 the \texttt{next\_transition}
 function repeatedly calls the \texttt{next\_step}
@@ -3119,86 +3134,6 @@ than recursion.
 	\State
 	\State Initially: \Call{Check}{$\sigma_0,\, \emptyset$}
 \end{algorithmic}
-
-\chapter{Project Language Definitions}
-\section{Syntax}
-\begin{tabular}{rl}
-	\textit{expr} $:=$ & \textit{int} $\vert$ \textit{bool} $\vert$ \textit{var} \\
-	$\vert$ & \textit{local} $\vert$ \textit{global}
-	$\vert$ \textit{spinlock} \\
-	$\vert$ & \textit{expr op expr} $\vert$ $\neg\,$\textit{expr} \\
-	$\vert$ & \textbf{skip} $\vert$ \textit{expr; expr}\\
-	$\vert$ & \textbf{if} \textit{expr}
-	\textbf{then} \textit{expr} \textbf{else} \textit{expr} \\
-	$\vert$ & \textbf{while} \textit{expr}
-	\textbf{do} \textit{expr} \\
-	$\vert$ & \textit{expr} $:=$ \textit{expr} $\vert$ !\textit{expr}
-	$\vert$ \textbf{ref} \textit{expr} \\
-	$\vert$ & \textbf{fn} \textit{var}
-	$\Rightarrow$ \textit{expr} $\vert$ \textit{expr expr} \\
-	$\vert$ & \textbf{let} \textit{var} $=$
-	\textit{expr} \textbf{in} \textit{expr} \\
-	$\vert$ & \textbf{let rec} \textit{var} $=$
-	\textbf{fn} \textit{var} $\Rightarrow$
-	\textit{expr} \textbf{in} \textit{expr} \\
-	$\vert$ & \textbf{lock} \textit{expr} $\vert$
-	\textbf{unlock} \textit{expr} \\
-	$\vert$ & \textbf{cas}(\textit{expr}, \textit{expr}, \textit{expr}) \\
-	$\vert$ & \textbf{error}(\textit{message}) \\
-	& \\
-	\textit{int} $\in$ & $\{\ldots, -1, 0, 1, \ldots\}$ \\
-	\textit{bool} $\in$ & $\{\textbf{true}, \textbf{false}\}$ \\
-
-\end{tabular}
-\qquad\quad
-\begin{tabular}{rcl}
-	\textit{op} $:=$ & $+$ &\\
-	$\vert$ & $-$ &\\
-	$\vert$ & $\ast$ &\\
-	$\vert$ & $/$ &\\
-	$\vert$ & $\%$ &\\
-	$\vert$ & $>$ &\\
-	$\vert$ & $<$ &\\
-	$\vert$ & $=$ &\\
-	$\vert$ & $\&$ &\\
-	$\vert$ & $\mid$ &\\
-	& &\\
-	\textit{local} & $\in$ &
-	$\{\textit{loc}_0, \textit{loc}_1, \textit{loc}_2, \ldots\}$ \\
-	\textit{global} & $\in$ &
-	$\{\textit{glo}_0, \textit{glo}_1, \textit{glo}_2, \ldots\}$ \\
-	\textit{lock} & $\in$ &
-	$\{\textit{lock}_0, \textit{lock}_1, \textit{lock}_2, \ldots\}$ \\
-	\textit{var} & $\in$ & $\{x, y, z, \ldots\}$ \\
-	& & \\
-\end{tabular}
-
-\section{Semantics}
-
-\begin{gather*}
-\frac{g(\textit{glo}_i) = e}
-{(!\textit{glo}_i,\ s,\ g) \longrightarrow (e,\ s,\ g)} \\
-\\
-\frac{g(\textit{glo}_i) = e_\textit{curr}}
-{(\textbf{cas}(\textit{glo}_i,\, e_\textit{curr},\, e_\textit{new})
-	,\ s,\ g) \longrightarrow (\textbf{true},\ s,
-	\ g[\textit{glo}_i \mapsto e_\textit{new}])} \\
-\\
-\frac{g(\textit{glo}_i) \neq e_\textit{curr}}
-{(\textbf{cas}(\textit{glo}_i,\, e_\textit{curr},\, e_\textit{new})
-	,\ s,\ g) \longrightarrow
-	(\textbf{false},\ s,\ g)} \\
-\\
-\frac{g(\textit{lock}_i) = \textbf{false}}
-{(\textbf{lock}\ \textit{lock}_i,\ s,\ g)
-	\longrightarrow (\textbf{skip},\ s,\
-	g[\textit{lock}_i \mapsto \textbf{true}])} \\
-\\
-\frac{g(\textit{lock}_i) = \textbf{true}}
-{(\textbf{unlock}\ \textit{lock}_i,\ s,\ g)
-	\longrightarrow (\textbf{skip},\ s,\
-	g[\textit{lock}_i \mapsto \textbf{false}])} \\
-\end{gather*}
 
 \chapter{Example PL Programs}
 
