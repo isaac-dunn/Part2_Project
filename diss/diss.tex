@@ -1996,16 +1996,12 @@ you should understand:
 	\item why being certain of the
 	soundness of a model-checking
 	system is not essential for it
-	to be of practical use;
+	to be of practical use; and
 	\item how the model-checking
 	algorithms I implemented perform
 	in comparison to one another,
-	in terms of the reduction in the
-	size of the explored state space; and
-	\item how my implementations
-	of the model-checking algorithms
-	perform, in terms of their
-	execution times.
+	in terms of the number of transitions
+	explored and execution times.
 \end{understandinglist}
 
 \section{Soundness}
@@ -2022,7 +2018,7 @@ not being verified themselves.
 
 \subsection{Evidence for Soundness}
 Almost every program contains bugs---industry average
-is about 1 to 25 errors per 1,000 lines \textbf{QUOTE MARKS FOR DIRECT QUOTATION}
+is about 1 to 25 errors per 1,000 lines
 of delivered code \cite{mccon04}.
 My project consists of
 at least 3,250 lines of code,
@@ -2063,7 +2059,7 @@ due to its simplicity.
 \subsubsection{Tests}
 \label{sec:pl-checker-tests}
 As part of the development process,
-I wrote over forty \textbf{ACTUAL NUMBER}varied test cases, each
+I wrote 45 varied test cases, each
 consisting of a PL program, and
 the expected
 $(\textit{error-free},\, \textit{deadlock-free})$
@@ -2075,10 +2071,12 @@ program should give the expected
 result. If not, then either
 I expected the wrong result,
 or the implementation was incorrect.
-\textbf{I used my confidence in the simple
+Because of my confidence in its
+correctness, I used the simple
 model checker to verify
-my expectations, leaving
-only the second option.}
+my expectations, so that any
+unexpected result implied the
+existence of a bug.
 
 Although the tests were designed
 to help me find bugs during
@@ -2100,22 +2098,22 @@ a guarantee of its
 soundness is useless, this
 is not the case.
 
-Proof of a statement
-can be seen as a social process
+It can be argued \cite{demi79}
+that proof of a statement
+is best understood as a social process
 by which a consensus arises in its
-truth.
-Formal proofs are a relatively
+truth, and that formal proofs are a relatively
 poor catalyst to this process, since
 they are so long and difficult to
-read \cite{demi79}. \textbf{Make clear someone else claims this}
-There are other, arguably better,
+read.
+There are other
 ways that the confidence in a program's
 correctness can be increased, including
 conventional testing, successful
 long-term use, and performing
 cross-checking with other (ideally
 independently developed) implementations
-\cite{tau02}.
+\cite{beck06, tau02}.
 
 In practice, factors such as
 performance and usability are at least
@@ -2157,8 +2155,8 @@ over two decades \cite{beck06}.
 After reading this section, you should
 understand how good the different
 model-checking algorithms are at
-reducing the \textbf{size of the state
-space explored}, and how efficient
+reducing the number of transitions
+explored, and how efficient
 my implementations of them are.
 
 \subsection{Methodology}
@@ -2166,13 +2164,12 @@ Unfortunately, there is no concurrent program
 that is ``typical'' for verification by model
 checking. I have therefore had to pick some
 example programs for which to analyse the performance
-of the algorithms. For each of these programs, I varied
-some test parameter---normally the number of threads
-used---and recorded for each algorithm
+of the algorithms. For each of these examples, I varied
+some test parameter and recorded for each algorithm
 both the number of (not necessarily unique) transitions
 explored, which is a measure of how successful
 the algorithm is in addressing the state
-explosion problem for the given case, and also
+explosion problem, and also
 the execution time, which is what ultimately
 matters in practice.
 
@@ -2192,6 +2189,55 @@ for each, preferring
 to focus effort on collecting data
 from more examples.
 
+\subsubsection{Example 1 -- Repeated Accesses}
+Each thread in this example is assigned a particular
+shared object, which it accesses a
+fixed number of times. There are three test parameters:
+the total number of threads, the number of threads
+assigned to each shared object, and the
+number of accesses that each thread
+makes. This example allows
+the amount of dependence between the threads
+to be controlled by varying this second parameter.
+
+\subsubsection{Example 2 -- Bounded Buffer}
+In Dijksta's classic bounded-buffer problem
+\cite{dijk74},
+in which two threads operate on a shared fixed-length
+array of items, with the ``producer''
+writing new items to the buffer and the
+``consumer'' removing them.
+I used a buffer of size 8 and effected mutual
+exclusion using per-item locks. By varying
+the number of items that each thread processes
+as the test variable, this example explores
+how the algorithms perform as the number
+of instructions per thread increases on a
+more realistic example.
+
+\subsubsection{Example 3 -- Indexer}
+Taken from the paper introducing DPOR
+\cite[Figure~1]{flan05}, each
+thread ``receives'' a number of
+``messages'' each of which is inserted
+into a shared hash table. If a slot
+is already occupied, the
+next free slot is tried instead.
+This example was chosen to allow
+comparison with the published
+results, and to evaluate the algorithms
+on a realistic use case.
+
+\subsubsection{Example 4 -- File System}
+Also from the DPOR paper
+\cite[Figure~7]{flan05}, this example is
+based an idiom found in the Frangipani file
+system \cite{thek97}.
+Each thread searches for a free
+``disk block'' for an ``inode'' to point
+to. This example was chosen for
+the same reasons as Example 3.
+
 \subsection{Results}
 For each example program, the results for all eight
 algorithms are presented on the same graph, in the
@@ -2208,18 +2254,6 @@ times approached 100 seconds.
 	\caption{Key for model-checking algorithm performance graphs.}
 	\label{fig:key}
 \end{figure}
-
-\textbf{MOVE TO METHODOLOGY \& explain WHY examples chosen}
-\subsubsection{Example 1 -- Repeated Accesses}
-Each thread in this example is assigned a particular
-shared object, which it accesses a
-fixed number of times. There are three test parameters:
-the total number of threads, the number of threads
-assigned to each shared object, and the
-number of accesses that each thread
-makes. Varying the second parameter allows
-the amount of dependence between the threads
-to be controlled.
 
 \begin{figure}
 	\centering
@@ -2326,18 +2360,6 @@ to be controlled.
 	\label{fig:repeated-access-time}
 \end{figure}
 
-\subsubsection{Example 2 -- Bounded Buffer}
-In Dijksta's classic bounded-buffer problem
-\cite{dijk74},
-in which two threads operate on a shared fixed-length
-array of items, with the ``producer''
-writing new items to the buffer and the
-``consumer'' removing them.
-I used a buffer of size 8, effected mutual
-exclusion using per-item locks, and varied
-the number of items that each thread processes
-as the test variable.
-
 \begin{figure}
 	\centering
 
@@ -2352,15 +2374,6 @@ as the test variable.
 		bounded-buffer example.}
 	\label{fig:prod-cons-time}
 \end{figure}
-
-\subsubsection{Example 3 -- Indexer}
-Taken from the paper introducing DPOR
-\cite[Figure~1]{flan05}, each
-thread ``receives'' a number of
-``messages'' each of which is inserted
-into a shared hash table. If a slot
-is already occupied, the
-next free slot is tried instead.
 
 \begin{figure}
 	\centering
@@ -2377,15 +2390,6 @@ next free slot is tried instead.
 		for the indexer example.}
 	\label{fig:indexer-time}
 \end{figure}
-
-\subsubsection{Example 4 -- File System}
-Also from the DPOR paper
-\cite[Figure~7]{flan05}, this example is
-based an idiom found in the Frangipani file
-system \cite{thek97}.
-Each thread searches for a free
-``disk block'' for an ``inode'' to point
-to.
 
 \begin{figure}
 	\def\svgwidth{\textwidth}
@@ -2547,12 +2551,11 @@ the large numbers of transitions explored
 would not be affected.
 
 \subsubsection{Sleep Sets}
-\textbf{SIMPLE clarify}
-In every example,
+For the simple model-checker,
 sleep sets significantly reduce the
 rate of exponential increase in
-the number of transitions explored by the
-simple algorithm, by preventing the
+the number of transitions explored in every example,
+by preventing the
 unnecessary re-exploration of sections
 of the state space (more effectively
 than the simple stateful algorithm).
@@ -2575,7 +2578,7 @@ depends on the particular program being
 verified, it seems that on more realistic
 examples, it is highly effective.
 
-There is a small time and space cost in
+There is a time and space cost in
 applying the sleep-set technique.
 In the repeated-accesses example,
 using sleep sets does not reduce the number
@@ -2584,7 +2587,7 @@ to DPOR, so this time cost can be clearly
 seen in Figure~\ref{fig:repeated-access-time}.
 However, in the other examples, and all
 realistic programs, these
-small costs are insignificant compared
+costs are insignificant compared
 to the considerable benefits available.
 
 \subsubsection{Static Partial-Order Reduction}
