@@ -116,7 +116,6 @@ module SDPORChecker (Prog : Interfaces.Program) =
 
         if do_stateful && ProgHashtbl.mem ht (tds, g) then (
         (* For each transition enabled from s *)
-        let addbs = ref 0 in
         for p = 0 to Array.length tds - 1 do
             let (e, s) = Array.get tds p in
             match ProgImp.ThrImp.next_transition (e, s, g) with
@@ -128,7 +127,6 @@ module SDPORChecker (Prog : Interfaces.Program) =
                     if Hashtbl.mem visited t then () else (
                     Hashtbl.add visited t true;
                     update_backtrack_sets t;
-                    addbs := !addbs + 1;
                     let next_ts = if Hashtbl.mem vodg t then Hashtbl.find vodg t
                                     else [] in
                     List.iter search_and_update next_ts)
