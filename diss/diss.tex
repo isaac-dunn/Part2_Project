@@ -2526,7 +2526,9 @@ that when a state is re-encountered,
 a larger saving is typically made,
 while the number of backtracking
 points introduced does not increase
-in the same way.
+in the same way. It would be interesting
+to investigate exactly when the SDPOR
+algorithm outperforms stateless DPOR.
 
 However, as seen in Figures
 \ref{fig:indexer-time} and \ref{fig:fs-time},
@@ -2629,26 +2631,26 @@ statically compute reasonably small persistent sets.
 
 \section{Successes}
 
-\textbf{Mention algorithms performance}
-
 As well as meeting the aims of the
 project ahead of schedule, I also
 managed to implement several
-extensions, allowing an
-interesting quantitative
-comparison of various
-model-checking algorithms
-and partial-order techniques.
+extensions. The performance
+of the implemented algorithms
+was quantitatively evaluated,
+revealing that DPOR is often
+very effective at mitigating
+the state explosion problem,
+especially when used in
+conjunction with sleep sets.
 I also gained experience of
-reading relatively dense academic
-writing, learnt the skill of
-translating such writing into
+reading relatively difficult academic
+papers, learnt the skill of
+translating algorithms in such papers into
 executable programs, and
-improved my understanding
-of how theoretical developments
-in computer science affect the
-everyday realities of the
-software industry.
+improved my understanding of
+the relationship between
+theoretical and practical
+computer science.
 
 Perhaps most importantly,
 I am glad I decided on the
@@ -2658,7 +2660,7 @@ developing a significant
 software system independently
 for the first time.
 
-\section{Potential Extensions}
+\section{Further Work}
 Instead of assuming that any
 two processes that access the
 same object must be dependent,
@@ -2687,7 +2689,9 @@ is the implementation of the
 \textit{Expression} and
 \textit{Thread} modules.
 
-\textbf{SDPOR}
+An investigation into when the
+SDPOR algorithm is worth using
+could be useful.
 
 Dynamic partial-order reduction
 was introduced in 2005. I would
