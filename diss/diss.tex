@@ -33,9 +33,9 @@
 	basicstyle={\small\ttfamily},
 	numbers=none,
 	numberstyle=\tiny\color{grey},
-	keywordstyle=\color{blue},
-	commentstyle=\color{dkgreen},
-	stringstyle=\color{mauve},
+%	keywordstyle=\color{blue},
+%	commentstyle=\color{dkgreen},
+%	stringstyle=\color{mauve},
 	breaklines=true,
 	breakatwhitespace=true,
 	tabsize=4
@@ -1162,13 +1162,13 @@ language in which the programs to
 be model checked are written.
 
 \subsection{Language Design}
-Although, \textbf{as mentioned above,} any concurrent
+Although any concurrent
 thread-based programming language
 could be used to express transition systems for model
 checking, I chose to design and implement a simple
 ML-like language, PL (Project Language), to avoid
 dealing with the full complexity of a
-industrial language. \textbf{When designing PL,} my aim
+industrial language. When designing PL, my aim
 was to create a high-level language that had enough features
 to easily write practical concurrent programs,
 but was not unnecessarily complex.
@@ -1189,12 +1189,13 @@ can be locks, used to enforce mutual exclusion.
 There are four atomic operations
 that interact with shared variables:
 \begin{enumerate}
-	\item a read operation takes the current value
+	\item a read operation returns the current value
 	of a shared variable;
 	\item a compare-and-swap operation
 	compares the value of a shared variable to a
 	given value, and if they are the same, updates
-	the shared variable to another given value;
+	the shared variable to another given value and returns
+	``true'', else it returns ``false'';
 	\item a lock operation takes the given lock if
 	available, else blocks until it becomes available; and
 	\item an unlock operation makes the given lock
@@ -1205,25 +1206,20 @@ one that can block, it is a trivial syntactic
 check to decide whether a given thread is
 blocked or not.
 
-\textbf{There is no type system for PL. Although a type system
-would have saved time by catching type errors before
-runtime, and making it clear exactly what the error was,
-I thought that the time saved would be less than the
-time it would take me to implement it.
-With the benefit of hindsight, I think this was the
-correct decision.}
-No type system was included as the development time 
-]would have exceeded the time saved catching type rrors.
+I did not write a type system for PL because
+I thought that the time to implement one would
+be greater than the time saved as a result. In hindsight,
+I think this was correct.
 
 \subsection{Parser}
-\textbf{On the other hand, I decided that investing time in creating a
+I decided that investing time in creating a
 parser for PL would pay itself off over the course of the project.
-A parser allowed me to write, for example,}
+A parser allowed me to write, for example,
 \begin{align*}
 	\texttt{let y = ref 1 in cas(Gx, 7 * !y - 3, 0)},
 \end{align*}
 instead of having to type the OCaml meta-language abstract
-syntax tree representing the structure of the PL expression:
+syntax tree representing the structure of the PL expression,
 \begin{align*}
 	\texttt{Let (Ref (Integer}& \texttt{ 1), Cas (Global "x",
 		Op (Op (Integer 7,} \\ \texttt{Mult,}& \texttt{ Deref (Var 0)), Minus, Integer 3),
@@ -1233,15 +1229,15 @@ Writing such expressions is not only extremely time-consuming but
 also error-prone. For the language to be of any practical use,
 a parser was a necessity.
 
-\textbf{To create a parser for PL, two program generators were used:
-OCamllex and Menhir. When presented with a
-file giving a mapping from strings of characters to tokens,
+To create a parser for PL, two program generators were used:
+OCamllex and Menhir. When given a
+file detailing a mapping from strings of characters to tokens,
 OCamllex produces a lexical analyser, which converts a sequence
-of characters into a sequence of tokens. When presented with a
+of characters into a sequence of tokens. When given a
 grammar and a set of precedence rules, Menhir produces a parser,
 which converts a sequence of tokens into an abstract syntax tree
 of the grammar. These were used in conjunction, as shown in
-Figure~\ref{fig:parsing}, to produce a full PL parser.}
+Figure~\ref{fig:parsing}, to produce a full PL parser.
 
 \begin{figure}
 	\centering
@@ -1255,9 +1251,9 @@ Figure~\ref{fig:parsing}, to produce a full PL parser.}
 \subsection{Implementation}
 
 \subsubsection{The Expression Module}
-\textbf{There are actually} two datatypes \textbf{which} are used to
-represent PL expressions: the ``raw'' expression, which
-uses strings to represent variables (\textbf{this is the}
+Two datatypes are used to
+represent PL expressions: a ``raw'' expression, which
+uses strings to represent variables (this is the
 datatype that the parser produces), and a datatype
 which uses De Bruijn indices \cite{debr72} to
 represent variables, allowing
@@ -1270,10 +1266,9 @@ modules, and either return a simple piece
 of information or perform a simple manipulation.
 
 \subsubsection{The Store Module}
-\textbf{As mentioned above}, I implemented a functor
-called ListStore, which takes an
-\emph{Expression} implementation and
-gives a \emph{Store} implementation, which
+A functor, ListStore, is used. Given an
+\emph{Expression} implementation, it
+returns a \emph{Store} implementation, which
 represents stores using lists of
 (location,~expression) pairs. Mappings
 are introduced by adding a new pair to
@@ -1284,18 +1279,15 @@ the list removing stale pairs, used to
 prevent the list from growing too long,
 or in situations when there must be
 no stale values in the list.
-\textbf{There are also various other auxiliary functions
-used in implementing later modules.}
 
-More efficient store implementations are \textbf{of
-course} possible (\textbf{for example, one} based on
+More efficient store implementations are
+possible (for example, one based on
 a hash table rather than a list), but
-\textbf{I decided on the simplest reasonable
-implementation I could think of, to
-be confident of its correctness.}
+I valued simplicity over efficiency,
+to increase my confidence in its correctness.
 
 \subsubsection{The Thread Module}
-The \emph{Thread} module \textbf{consists primarily of} COMPRISES
+The \emph{Thread} module consists primarily of
 the \texttt{next\_step} and \texttt{next\_transition}
 functions, which define the semantics of PL.
 Given an expression, \texttt{next\_step} uses pattern
@@ -1306,7 +1298,7 @@ Care must be taken to
 ensure that each operation really is
 atomic, else race conditions could exist
 in real executions of programs that would
-not be found by a model checker\textbf{---t}.This
+not be found by a model checker---this
 is not a concern for PL, but would be if
 an industrial language was used.
 
@@ -1331,24 +1323,23 @@ represented by an instance of the \texttt{state} type:
 
 \subsubsection{Testing}
 To ensure that the implementation of the PL
-language was correct, I wrote approximately
+language was correct, I wrote around
 twenty unit tests for
 the \texttt{next\_transition} and
 \texttt{next\_step} functions. These had good
-code coverage, and seemed to catch most of the bugs
-in the implementation of PL.
+code coverage, and caught most of the bugs I
+found in the implementation of PL.
 
 
 \section{Dynamic Partial-Order Reduction}
-An overview of the \textbf{dynamic partial-order reduction (DPOR)}
-algorithm was presented in Section~\ref{sec:dpor-prep},
+An overview of the DPOR
+algorithm was given in Section~\ref{sec:dpor-prep},
 with a full explanation
 given in Appendix~\ref{app:dpor-walkthrough}.
-\textbf{Several aspects of the algorithm mean that it
-is not obvious how it can be implemented
-as an executable program; after reading
-this section, you should understand
-how this was achieved.} READS FUNNY
+Several aspects of the implementation of DPOR
+are not obvious; after reading this section
+you should understand how I implemented
+all aspects of DPOR.
 
 \subsection{Implementation}
 This section explains how I translated
@@ -1388,7 +1379,7 @@ into an executable OCaml function, \texttt{check}.
 	\texttt{next\_transition} does return a
 	transition.
 
-	\item[Lines 15--17] \textbf{In my project,}
+	\item[Lines 15--17] In my project,
 	each transition $t$ accesses only one shared
 	object, denoted $\alpha(t)$,
 	and it is assumed that two transitions are
@@ -1460,11 +1451,11 @@ into an executable OCaml function, \texttt{check}.
 	set of a state, implemented as a list of processes
 	whose next transitions are to be explored.
 	
-	\item[Lines 8--11] \textbf{Instead of using a
-	procedural while-loop,}
+	\item[Lines 8--11] Instead of using a
+	procedural while-loop,
 	I implemented the iteration through
 	the backtracking points
-	\textbf{by} using a tail-recursive
+	using a tail-recursive
 	function, taking a list of processes
 	representing the \textit{done} set as
 	its argument. An auxiliary
@@ -1520,19 +1511,18 @@ into an executable OCaml function, \texttt{check}.
 \label{sec:clock-vectors}
 
 To decide the happens-before relation,
-$\hookrightarrow_\pi$, I used \textbf{the method
-of }clock vectors. Although Flanagan
-and Godefroid show how this method
+$\hookrightarrow_\pi$, I used clock vectors.
+Although Flanagan
+and Godefroid show how clock vectors
 can be used \cite{flan05},
 they do not give the
-following detail concerning why
-the clock vectors are updated to
-the values they give.
+following detail in the
+reasoning.
 
 \subsubsection{Using Clock Vectors}
 
-\textbf{As explained above,} although
-the last function, $L$, gives the index
+As explained above, although
+the function $L$ gives the index
 of the last transition that accessed a given shared
 object, which is the index of the potential backtracking
 point, we only need to add it if it
@@ -1613,8 +1603,8 @@ full update for the clock vector is therefore
 \subsubsection{Updating Object Clock Vectors}
 
 We have seen how to use object clock vectors to
-update the process clock vectors, but \textbf{of course}
-the object clock vectors themselves must be
+update the process clock vectors, but
+the object clock vectors themselves must also be
 updated whenever a new transition is explored.
 In particular, if the clock vector for the
 object accessed by the transition must be
@@ -1673,7 +1663,6 @@ more efficient implementation of
 the updates.
 
 \section{Counter-Example Traces} \label{sec:traces}
-\textbf{ABBREVIATE?}
 One of the advantages of model checking
 is that, if
 an error is found, it is easy to
@@ -1709,15 +1698,14 @@ belonging to the same process, and one
 from the last transition accessing the
 same shared object.
 
-\textbf{I thought that displaying the partial
-order visually would be easiest to
-understand, so I wrote a procedure} which
-automatically outputs the graph as
-a GraphViz file, with each node
+To show the partial order graph in an
+easily-interpretable way, I
+output a GraphViz file displaying the
+graph, with each node
 labelled with its process and the
 shared object it accesses.
-\textbf{GraphViz is an open-source program which
-draws graphs.}
+GraphViz is an open-source program which
+draws graphs.
 Figure~\ref{fig:trace-example} gives a program
 and shows an example of such an
 automatically-generated GraphViz graph.
@@ -1778,14 +1766,14 @@ algorithms.
 
 \subsection{Simple Model Checker}
 \label{sec:simple-imp}
-\textbf{I actually implemented and tested
-the simple
-model checker before the DPOR
-algorithm, to allow me to
-sanity-check my PL implementation
-and to later verify
-that my DPOR implementation
-gave correct results.}
+Implementing and testing
+the simple model checker
+before DPOR allowed me to
+sanity-check my PL implementation,
+practise with an easy
+model-checking algorithm first,
+and later verify the results of
+my DPOR implementation.
 As outlined in
 Section~\ref{sec:simple-prep}, it
 performs an exhaustive depth-first
@@ -1821,7 +1809,6 @@ constant, so I used the OCaml library implementation
 of hash tables for this purpose.
 
 \subsubsection{Dynamic Partial-Order Reduction}
-\textbf{Could boil first 2 paras.}
 Suppose that we applied this approach
 to the DPOR algorithm,
 and executed the resulting algorithm
@@ -1888,8 +1875,8 @@ so conservatively that all practical benefits are lost.
 One such method is to use a \emph{visible operation dependency
 graph}, proposed by Yang et al.\@ in an
 algorithm known as stateful dynamic
-partial-order reduction \textbf{consistent CAPS}(SDPOR) \cite{yang08}.
-\textbf{The idea is that, }when we first explore
+partial-order reduction (SDPOR) \cite{yang08}.
+The idea is that when we first explore
 a section of the state space,
 we make a note of the visible operations
 that may be executed, so that if we encounter that section again,
@@ -1898,8 +1885,8 @@ visible operations that may have been
 executed if the search was continued
 to add backtracking points as necessary.
 
-In particular, a \emph{visible operation dependency
-graph} \textbf{VODG? Italics once only.} is a graph $G = \langle V, E \rangle$ whose
+More precisely, a visible operation dependency
+graph is a graph $G = \langle V, E \rangle$ whose
 nodes represent visible operations, and whose edges
 represent the ordering of those transitions; whenever
 a transition sequence of the form
@@ -1935,20 +1922,15 @@ In order to evaluate the improvement in performance
 allowed by building persistent sets dynamically
 instead of statically, I decided to research and
 implement a static partial-order reduction
+(SPOR\footnote{Not to be confused with SDPOR!})
 algorithm. However, I struggled to find one
 in the literature that I could
-understand and implement in \textbf{the short amount
-of time I had THE TIME AVAILABLE}. I therefore designed my own
-\textbf{rudimentary static partial-order reduction algorithm,
-which I will refer to as the static partial-order reduction
-(SPOR, not to be confused with SDPOR) algorithm}.
-While it is easy to understand and implement,
-the trade-off is that it returns large persistent sets.
+understand and implement in the available time.
+I therefore designed my own
+rudimentary static persistent-set algorithm, which,
+while easy to understand and implement,
+usually returns unfortunately large persistent sets.
 
-The algorithm explores the state space using a
-depth-first search, but exploring only those
-transitions in a persistent set from each
-state, as outlined in section \ref{sec:persistent}.
 Before the algorithm begins its search, it compiles a table
 listing all the shared objects that each process may
 access, then, during the search, persistent sets $T$ are
@@ -1957,23 +1939,23 @@ every process whose next transition is
 not in $T$ never accesses any
 object that any process whose next
 transition is in $T$ accesses.
-The pseudocode for this algorithm is
+The pseudocode for this procedure is
 given in Appendix~\ref{sapp:spor-code}.
+While it may seem that computing
+the objects the threads can access
+should be done at every state rather than
+just once, this is prohibitively
+expensive and offers only modest
+reductions in the sizes of the
+persistent sets.
 
-\textbf{This algorithm assumes that every thread only
-accesses shared objects mentioned in its own
-local state, as opposed to being communicated
-through the shared state, giving it a more
-limited scope than the other model-checking
-algorithms I implemented.}
-
-\textbf{My initial idea was to compute the objects that
-each thread could access at every state encountered.
-While this would result in marginally smaller
-persistent sets as the threads progress, the cost
-of performing this expensive computation at
-every state was prohibitively high.}
-
+A limitation of my algorithm is that
+it assumes that accesses shared objects
+explicitly mentioned in its own
+local state so using shared objects
+to communicate references to other shared
+objects may result in unsound persistent
+sets being chosen.
 
 \subsection{Sleep Sets}
 
@@ -2009,10 +1991,10 @@ After reading this chapter,
 you should understand:
 \begin{understandinglist}
 	\item the extent to which I believe
-	\textbf{my project is correct CLARIFY}, and the evidence
+	my implementations are correct, and the evidence
 	motivating that belief;
 	\item why being certain of the
-	correctness of a model-checking
+	soundness of a model-checking
 	system is not essential for it
 	to be of practical use;
 	\item how the model-checking
