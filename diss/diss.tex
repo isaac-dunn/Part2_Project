@@ -444,16 +444,16 @@ algorithm for comparison with
 the results and performance of DPOR.
 
 \subsection{Using OCaml}
-\textbf{I implemented the project in OCaml.
-However, I had only written very small
-programs in SML previously, so I needed to
-understand both the differences between
-SML and OCaml, and how large programs
+I implemented the project in OCaml.
+However, having only written very small
+programs in SML previously, I needed to
+understand both how OCaml differs from SML
+and how large programs
 should be structured
 using the OCaml module system.
 I achieved these
 by making use of online resources and
-experimenting with small test programs.}
+experimenting with small test programs.
 
 \section{Background Definitions} \label{sec:background-defs}
 After reading this section, you should understand the
@@ -469,16 +469,15 @@ Each thread has its own local state, $s \in \mathcal{S}$, and there
 is some shared, globally-accessible state, $g \in \mathcal{G}$. The overall
 state of the system at any instant is therefore a member of the set
 $ \textit{State} = (\mathcal{P} \to \mathcal{S}) \times \mathcal{G} $.
-Local states $s$ \textbf{can be thought of as comprising} the instructions
-and data for each process, and the shared state $g$ \textbf{can be thought
-of} as a shared memory which the processes use for communication.
+Local states $s$ can be thought of as comprising the instructions
+and data for each process, and shared states $g$
+as a shared memory which the processes use for communication.
 
-Each process executes a sequence of operations, \textbf{each of which can
-operate }on the thread's local state $s$ or the shared
+Each process executes a sequence of operations, each of which can
+operate on the thread's local state $s$ or the shared
 state $g$. If an operation
 accesses $g$, it is said to be \emph{visible}, else it is said to be
-\emph{invisible}. \textbf{For example, reading from a shared variable is
-visible, but writing to a thread-local variable is invisible.}
+\emph{invisible}.
 
 \subsection{Transitions}
 \label{sec:trans-prep}
@@ -490,21 +489,21 @@ interleavings of invisible operations, so that
 non-determinism in our model of concurrency
 arises only from the asynchronous interleavings of
 atomic visible operations.
-If process $p$ has local state $s$, then the transition $t_{p,s}$
-that $p$ can make is defined to be a partial function taking the current
+If process $p$ has local state $s$, then its next transition $t_{p,s}$
+is defined to be a partial function taking the current
 global state $g$ and giving $(s', g')$, the next local state for $p$
 and the next shared state for the system. Let $\mathcal{T}$ denote the
-set of all transitions, so that
+set of all transitions,
 	\[\mathcal{T} = \mathcal{G} \rightharpoonup
 				(\mathcal{S} \times \mathcal{G}).\]
 
-A transition $t_{p,s}$ is said to be \emph{enabled} in a state
+A transition $t_{p,s}$ is \emph{enabled} in a state
 $(l, g)$ if $l(p) = s$ and $t_{p,s}(g)$ is defined.
 If $t_{p,s}$ is enabled in $(l, g)$ but not $(l, g')$,
-then thread $p$ is said to be \emph{blocked} in
+then thread $p$ is \emph{blocked} in
 state $(l, g')$.
 If $t_{p,s}$ is enabled in $\sigma = (l, g)$ and 
-$t_{p,s}(g) = (s', g')$, then \textbf{we say that }the
+$t_{p,s}(g) = (s', g')$, then the
 execution of $t_{p,s}$ from $\sigma$ results in the unique successor
 state $\sigma' = (l', g')$, where
 
@@ -517,20 +516,18 @@ state $\sigma' = (l', g')$, where
 In this case we write $\sigma \xrightarrow{t_{p,s}} \sigma'$.
 We write $\longrightarrow^*$ to denote the transitive reflexive
 closure of $\longrightarrow$.
-A state $\sigma$ is called a \emph{stopped state} when there is no transition
-$t$ such that $t$ is enabled in $\sigma$.
 
-In any state $\sigma = (l, g)$, let
-$\textit{next}(\sigma, p) = t_{p,l(p)}$ denote the unique next transition
-to be executed by process $p$, and let
+In any state $\sigma = (l, g)$,
+$\textit{next}(\sigma, p) = t_{p,l(p)}$ denotes the unique next transition
+to be executed by process $p$, and
 \[
 	\textit{enabled}(\sigma) = \{t_{p,s} \in \mathcal{T} \mid
 	t_{p,s} = \textit{next}(\sigma, p)
 	\wedge t_{p,s} \text{ is enabled in } \sigma\}
 \]
-denote the set of enabled transitions that can be executed from $\sigma$.
-For any transition $t_{p,s}$, let $\textit{proc}(t_{p,s}) = p$
-denote the unique process executing that transition.
+denotes the set of enabled transitions that can be executed from $\sigma$.
+A state $\sigma$ is a \emph{stopped state} if
+$\textit{enabled}(\sigma) = \emptyset$.
 
 \subsection{Systems}
 The behaviour of an entire concurrent program is represented by a
@@ -569,8 +566,8 @@ be error-free, we extend each transition system
 with a relation
 $\textit{err} : \mathcal{S} \to \mathbb{B}$, which decides
 whether, in some given state, a particular
-thread has encountered an error---\textbf{for example,
-an assertion failing to hold.}
+thread has encountered an error---for example,
+an assertion failing to hold.
 We then say that a transition system
 $(\textit{State},\, \Delta,\, \sigma_0,\, \textit{err})$
 is
@@ -617,11 +614,9 @@ thread is blocked.
 
 The exhaustive search is usually
 implemented as a stateless depth-first search,
-and therefore can only be applied to acyclic state spaces; if
-a cycle was encountered, the algorithm
-would not notice and would loop indefinitely
-around the cycle, \textbf{under the impression it
-was heading towards the branches of a tree.}
+and therefore can only be applied to acyclic state spaces;
+the presence of a cycle would cause the non-termination
+of the search.
 
 \section{Partial-Order Reduction}
 
@@ -637,11 +632,12 @@ algorithm and other algorithms that I
 implemented.
 
 \subsection{Independence} \label{sec:independence}
-\textbf{In plain English}, two transitions are independent if executing one
-can never disable the other, and if their effects are commutative.
-More formally, \textbf{suppose that} $\mathcal{T}$ is the set of
+Two transitions are independent if their
+effects are commutative, and if executing one
+can never disable the other.
+More formally, suppose that $\mathcal{T}$ is the set of
 transitions for some transition system, and
-\textbf{that} $I \subseteq \mathcal{T} \times \mathcal{T}$
+that $I \subseteq \mathcal{T} \times \mathcal{T}$
 is a reflexive and symmetric relation. We say
 that $I$ is a valid \emph{independence relation}
 whenever the following two conditions hold for
@@ -698,35 +694,32 @@ search of the reachable state space, but at each
 state $\sigma$ they explore only a subset
 $T \subseteq \textit{enabled}(\sigma)$
 of the possible transitions.
-\textbf{Of course, }the subsets
-$T$ must be computed in a way such that the search
-is still sound; \textbf{it must always
-produce the correct result.}
+The use of \textit{persistent sets},
+by Godefroid and Pirottin \cite{god93},
+is such a technique.
 
 \subsubsection{Definition}
-One partial-order reduction technique for
-computing s\textbf{uch subsets is known
-G \& P's p-s technique.
-as the \emph{persistent-set} technique, introduced
-by Godefroid and Pirottin \cite{god93}.} Informally,
-a subset of transitions $T$ from a state $\sigma$
-is called \emph{persistent} in $\sigma$ if every
-possible transition $t \not \in T$ that is reachable
+
+Informally,
+a set $T \subseteq \textit{enabled}(\sigma)$
+is persistent if every
+transition $t \not \in T$ reachable
 from $\sigma$ by exploring only transitions not in
 $T$ does not interact with the transitions
-in $T$. Formally, a subset of transitions $T \subseteq \mathcal{T}$
-from a state $\sigma_1$
+in $T$. Formally, a set
+$T \subseteq \textit{enabled}(\sigma_1)$
 is called \emph{persistent} in $\sigma_1$ if
 for all sequences of transitions
 \[
 	\sigma_1 \xrightarrow{\ t_1\ } \sigma_2 \xrightarrow{\ t_2\ } \ldots
 	\xrightarrow{t_{n-1}} \sigma_n,
 \]
-if for all $1 \leq i < n$, $t_i \not \in T$, then each $t_i$ is
+such that $\forall i.\; t_i \not \in T$,
+each $t_i$ is
 independent with every transition in $T$.
 
 \subsubsection{An Example}
-\textbf{For illustration, }in the state space shown in
+In the state space shown in
 Figure~\ref{fig:persistent}, $T = \{t_1\}$ is
 a persistent set in the initial state, as every
 transition reachable following only transitions
@@ -767,17 +760,17 @@ Likewise, all reachable
 local states of each process are reachable
 in a persistent-set search
 \cite[Theorem~6.14]{god96}.
-Therefore, because of our
-definition of model checking
-(cf.\@ Section~\ref{sec:model-checking-dfn}),
+Therefore,
 a persistent-set search is sufficient for
-model checking.
+our definition of model checking
+(cf.\@ Section~\ref{sec:model-checking-dfn}).
 
 \subsection{Sleep Sets}
 \label{sec:sleep-prep}
-Another technique for addressing the state explosion
-problem \textbf{is that of \emph{sleep sets}, again introduced
-by Godefroid }\cite{god91}. Suppose that
+Another technique that addresses
+the state explosion problem is
+that of \emph{sleep sets}, again by Godefroid \cite{god91}.
+Suppose that
 we are at state $\sigma$ when performing a search
 of the state space (see Figure~\ref{fig:sleep}).
 Suppose we first explore $t_1$, reaching $\sigma_1$,
@@ -826,7 +819,7 @@ partial-order reduction algorithm works.
 
 \subsubsection{Transition Sequences}
 Instead of keeping track of just the current state,
-the \textbf{dynamic partial-order reduction} (DPOR) algorithm
+the DPOR algorithm
 keeps track of a \emph{transition
 sequence} $\pi \in \mathcal{T}^*$. This transition
 sequence is implicitly executed from the initial state of
@@ -875,10 +868,10 @@ It follows that any transition sequence obtained
 by making a finite number of swaps of adjacent
 independent transitions is equivalent in the same
 sense. Such equivalence classes are known as
-Mazurkiewicz traces \cite{maz87}, \textbf{and are
-precisely what we are interested in}---it is
+Mazurkiewicz traces \cite{maz87}, and are
+the basis of DPOR, since it is
 sufficient to explore only one member of
-a given equivalence class.
+each equivalence class.
 
 \begin{figure}
 	\centering
@@ -892,9 +885,9 @@ It is useful to consider a
 pairs of transitions which
 cannot be swapped with one another
 to form an equivalent sequence.
-In particular, we define the \emph{happens-before}
+In particular, the \emph{happens-before}
 relation $\longrightarrow_\pi$ for a transition
-sequence $\pi$ to be the smallest relation on
+sequence $\pi$ is the smallest relation on
 $\textit{dom}(\pi)$ such that
 \begin{enumerate}
 	\item if $i \leq j$ and $\pi_i$ is dependent with
@@ -905,20 +898,20 @@ By construction, the happens-before relation is a
 partial-order relation on the transitions in $\pi$,
 and the linearisations of $\longrightarrow_\pi$
 are precisely the transition sequences equivalent
-to $pi$.
+to $\pi$.
 
 The DPOR algorithm makes use of a variant of the
 happens-before relation, which guarantees that a
 process must execute its next transition by the
 end of the current transition sequence.
 Informally, if $i \hookrightarrow_\pi p$ then
-the process of some transition $\pi_j$ with $i \leq j$
+for some $j \geq i$,
+the process of $\pi_j$ 
 is $p$, both in $\pi$ and any
-equivalence transition sequence.
+equivalent transition sequence.
 Formally, 
 if $i \in \textit{dom}(\pi)$ and $p \in
-\mathcal{P}$ then we
-say that $i \hookrightarrow_\pi p$ if
+\mathcal{P}$ then $i \hookrightarrow_\pi p$ if
 either
 \begin{enumerate}
 	\item $\textit{proc}(\pi_i) = p$, or
@@ -930,17 +923,15 @@ either
 
 \subsection{The Dynamic Partial-Order Reduction Algorithm}
 
-The \textbf{dynamic partial-order reduction} algorithm
-uses information dynamically gathered during its
+The DPOR algorithm
+uses information gathered dynamically during its
 exploration of a state space to explore only
 transitions in a persistent set from each state
-encountered on the search---a partial-order
-reduction technique. \textbf{The idea is that the}
-extra information which is available because
-the persistent sets are created dynamically
-allows smaller (and therefore more efficient)
-persistent sets to be chosen than an algorithm
-computing its persistent sets statically.
+encountered on the search. The idea is that the
+extra information allows smaller
+persistent sets to be computed than would
+otherwise be possible, thereby making the
+search more efficient.
 
 In particular, at each state $\sigma$, the
 next transition
