@@ -1035,64 +1035,59 @@ size, and what the high-level
 structure of the project software is.
 
 \subsection{Development Strategy}
-I used \textbf{what can be described as} an
+I used an
 \textit{incremental} approach to the
-development of my project. \textbf{That is,
-I broke the end goal down} into
-several subgoals, then \textbf{I effectively
-used miniature versions of the waterfall
-strategy to implement each subgoal}. \textbf{That
-is, for my next target, I would make sure
-I knew exactly what the target was, then
-I would implement it, and then I would
-test it.}
-I chose this incremental approach
-because it allowed me to focus on one
-\textbf{small goal at a time, made it easy for
-me t}o frequently test new components as
-they were built, and gradually built up
-to a working project.
+development of my project.
+This involved breaking down the
+goal of the project into several
+subgoals, each of which I implemented
+and immediately tested in turn. The subgoals were
+to:
+\begin{itemize}
+	\item design a concurrent programming
+	language and create an interpreter for it;
+	\item create a parser for that language;
+	\item implement the simple model-checking
+	algorithm;
+	\item implement DPOR, assuming
+	a language without locks for simplicity; and
+	\item add locks to the DPOR implementation.
+\end{itemize}
+Each of the several extensions I completed
+was also created as a new incremental subgoal.
 
-\textbf{My first subgoal was to design
-a simple programming language and write an interpreter
-for it; my next was to design and implement
-a concurrent language
-by using the sequential language to
-specify code for different threads;
-my next (which was not in my original plan but
-the need for it became apparent) was to write
-a parser for the language; next was to implement
-the simple model-checking algorithm; and the
-last task before reaching the goal was to
-implement the DPOR algorithm. I also implemented
-each extension as an increment.}
-
+The benefits of this approach include the frequent
+testing of each new component, the manageable
+size of each subgoal, and the creation of
+working software from the beginning.
 
 \subsection{Structure of the Project}
 The project was implemented in OCaml, which
 offers a few key advantages:
 \begin{itemize}
 	\item a clean, functional
-	style, which is \textbf{particularly appropriate} for
-	this project, given its mathematical nature;
-	\item a strong, safe type system, which \textbf{makes
-	impossible} a large class of runtime errors;
+	style, particularly appropriate for
+	this project;
+	\item a strong, safe type system, which prevents
+	a large class of runtime errors;
 	\item parametric polymorphism, a module system,
 	and other higher-order programming features,
 	facilitating abstraction and generalisation; and
 	\item established libraries, providing efficient
 	implementations of basic data structures and algorithms.
 \end{itemize}
-\textbf{I took particular advantage of the module system when
-designing and implementing the project.} OCaml modules
+
+OCaml modules
 are used to encapsulate related definitions and hide
-information---\emph{signatures} are software interfaces
+information, and were used in my project to provide
+appropriate abstraction.
+\emph{Signatures} are software interfaces
 providing declarations,
 and \emph{structures} are implementations which 
 provide definitions. A structure \emph{matches} a
 signature if it has a definition for each declaration
-in the signature. \emph{Functors} \textbf{can be thought of
-as} functions from structures matching a
+in the signature. \emph{Functors} act as
+functions from structures matching a
 particular signature to structures matching another.
 
 \begin{figure}
@@ -1121,42 +1116,42 @@ particular signature to structures matching another.
 	\label{fig:design}
 \end{figure}
 
-In the project, there are five main signatures:
+In my project, there are five main signatures:
 \begin{enumerate}
-	\item \textbf{a structure that matches} \emph{Expression}
-	contains information about the structure of expressions
+	\item \emph{Expression}	contains information
+	about the structure of expressions
 	in the programming language of interest;
-	\item \textbf{a structure that matches} \emph{Store}
-	implements a mapping from locations
-	to expressions for some implementation of \emph{Expression};
-	\item \textbf{a structure that matches} \emph{Thread} contains
-	the information about the semantics
+	\item \emph{Store} implements
+	a mapping from locations
+	to expressions for some
+	implementation of \emph{Expression};
+	\item \emph{Thread} contains the
+	information about the semantics
 	of the programming language;
-	\item \textbf{a structure that matches} \emph{Program}
-	contains declarations relating to
+	\item \emph{Program} contains declarations relating to
 	transition systems as expressed in some programming
 	language; and
-	\item a structure that matches \emph{Checker}
-	contains a function which performs model checking.
+	\item \emph{Checker} declares a function
+	which performs model checking.
 \end{enumerate}
 
-\textbf{While I did implement a simple programming language,
-the model checking
-algorithms that are the focus of this project are of
-course entirely independent of any particular language.}
-\textbf{I therefore ensured that, in order to use
-my project to perform model checking for programs
-in any other language, the work that would have to
-be done would be minimal.} In particular, given implementations
-of \emph{Expression} and \emph{Thread} (effectively
-specifying the syntax and semantics of a programming
-language), my system uses
-functors to automatically generate implementations of
-\emph{Store}, \emph{Program} and \emph{Checker}, the
-\textbf{last LATTER of which can then be used} to immediately perform
-model checking. This process is shown explicitly in
+Since model checking is independent of any
+particular programming language, I used functors
+to minimise the work needed to use my project
+for a new language.
+From two structures matching \emph{Expression} and \emph{Thread},
+functors automatically generate implementations of
+\emph{Store}, \emph{Program} and \emph{Checker},
+because I wrote
+each model-checking algorithm as a functor.
+A working implementation of each model-checking
+algorithm in my project can therefore be
+obtained for a new language just by
+specifying its syntax and semantics.
+This process is shown explicitly in
 Figure~\ref{fig:functors} for
 a hypothetical language called NL.
+
 
 \section{Development of the Project Language}
 \label{sec:language}
