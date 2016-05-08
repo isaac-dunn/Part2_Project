@@ -1,7 +1,7 @@
 open Pl_expression
 
-type out_style = Verbose | Time | Calls
-let style = Calls
+type out_style = Verbose | Time | Calls | Both
+let style = Both
 
 module PLCorrectnessTest (Chk :
     Interfaces.Checker with module ProgImp = Program.PLProgram) = struct
@@ -126,7 +126,7 @@ module PLCorrectnessTest (Chk :
                 done
             done" in
 
-        (Array.init 2 test13_thread, (intloc_array_zero_store 128),
+        (Array.init 4 test13_thread, (intloc_array_zero_store 128),
         (true, true)));
 
         (* Test 14 *)
@@ -501,7 +501,7 @@ module PLCorrectnessTest (Chk :
             else skip);
             unlock (locki @ i)" in
 
-        (Array.init 2 test34_thread,
+        (Array.init 3 test34_thread,
               (array_store 32 (fun i -> "i"^(string_of_int i))
                         (fun _ -> Boolean false))
             @ (array_store 26 (fun i -> "b"^(string_of_int i))
@@ -536,7 +536,7 @@ module PLCorrectnessTest (Chk :
         (* Test 37 *)
         (* Multiple producer & consumers, using locks *)
         (let buf_size = 8 in
-         let limit = 3 in
+         let limit = 6 in
          let num_each = 1 in
          let common_prefix = (
            "let bufsize = " ^ (string_of_int buf_size) ^ " in
@@ -706,9 +706,9 @@ module PLCorrectnessTest (Chk :
 
         (* Test 43 *)
         (* Hopefully we will see the benefits of SPOR *)
-        (let num_of_threads = 3 in
-         let threads_per_loc = 2 in
-         let ops_per_thread = 2 in
+        (let num_of_threads = 8 in
+         let threads_per_loc = 4 in
+         let ops_per_thread = 3 in
          let test43_thread n i =
             let op = "(if cas(G" ^ (string_of_int (i/threads_per_loc))
                         ^ ", skip, skip) then skip else skip)" in
@@ -761,7 +761,10 @@ module PLCorrectnessTest (Chk :
                     (Sys.time() -. init_time)) ^ "\n"
                 ^" Depth: " ^ (string_of_int !C.max_depth) ^ "\n")
          |  Time -> print_string ((string_of_float (Sys.time() -. init_time)) ^ ",")
-         |  Calls -> print_string ((string_of_int !C.calls) ^ ","));
+         |  Calls -> print_string ((string_of_int !C.calls) ^ ",")
+         |  Both -> print_string ((string_of_int !C.calls) ^ "+"
+                        ^ (string_of_float (Sys.time() -. init_time)
+                        ^ ",")));
         success
 
     let run_nth_test_case n = let _ = run_test (List.nth test_cases n) in ()
