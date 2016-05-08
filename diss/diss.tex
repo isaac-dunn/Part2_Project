@@ -2014,10 +2014,10 @@ After reading this chapter,
 you should understand:
 \begin{understandinglist}
 	\item the extent to which I believe
-	my project is correct, and the evidence
+	\textbf{my project is correct CLARIFY}, and the evidence
 	motivating that belief;
 	\item why being certain of the
-	correctness of a model checking
+	correctness of a model-checking
 	system is not essential for it
 	to be of practical use;
 	\item how the model-checking
@@ -2045,7 +2045,7 @@ not being verified themselves.
 
 \subsection{Evidence for Soundness}
 Almost every program contains bugs---industry average
-is about 1 to 25 errors per 1,000 lines
+is about 1 to 25 errors per 1,000 lines \textbf{QUOTE MARKS FOR DIRECT QUOTATION}
 of delivered code \cite{mccon04}.
 My project consists of
 at least 3,250 lines of code,
@@ -2073,21 +2073,20 @@ side-by-side comparison of my code
 and the corresponding pseudocode reveals
 the mapping of one onto the other. This
 makes it relatively easy to perform
-thought experiments to try and find
+thought experiments to try to find
 differences in semantics between the two.
 During development, I spent time doing this,
 successfully discovering some bugs; at
 the end of the process, I am more
 confident in the correctness of my implementations
-as a result
-(especially
+as a result---especially
 the simple model checker,
-due to its simplicity).
+due to its simplicity.
 
 \subsubsection{Tests}
 \label{sec:pl-checker-tests}
 As part of the development process,
-I wrote over forty varied test cases, each
+I wrote over forty \textbf{ACTUAL NUMBER}varied test cases, each
 consisting of a PL program, and
 the expected
 $(\textit{error-free},\, \textit{deadlock-free})$
@@ -2096,13 +2095,13 @@ system.
 Running a
 model-checking algorithm on the
 program should give the expected
-result:. If not, then either
+result. If not, then either
 I expected the wrong result,
 or the implementation was incorrect.
-I used my confidence in the simple
+\textbf{I used my confidence in the simple
 model checker to verify
 my expectations, leaving
-only the second option.
+only the second option.}
 
 Although the tests were designed
 to help me find bugs during
@@ -2122,7 +2121,7 @@ Although it may initially seem
 that a model-checking system without
 a guarantee of its
 soundness is useless, this
-is not at all the case.
+is not the case.
 
 Proof of a statement
 can be seen as a social process
@@ -2131,7 +2130,7 @@ truth.
 Formal proofs are a relatively
 poor catalyst to this process, since
 they are so long and difficult to
-read \cite{demi79}.
+read \cite{demi79}. \textbf{Make clear someone else claims this}
 There are other, arguably better,
 ways that the confidence in a program's
 correctness can be increased, including
@@ -2181,8 +2180,8 @@ over two decades \cite{beck06}.
 After reading this section, you should
 understand how good the different
 model-checking algorithms are at
-reducing the size of the state
-space explored, and how efficient
+reducing the \textbf{size of the state
+space explored}, and how efficient
 my implementations of them are.
 
 \subsection{Methodology}
@@ -2233,6 +2232,7 @@ times approached 100 seconds.
 	\label{fig:key}
 \end{figure}
 
+\textbf{MOVE TO METHODOLOGY \& explain WHY examples chosen}
 \subsubsection{Example 1 -- Repeated Accesses}
 Each thread in this example is assigned a particular
 shared object, which it accesses a
@@ -2476,7 +2476,7 @@ one execution path, with negligible cost.
 In the other cases in
 Figure~\ref{fig:repeated-access-trans},
 adding an extra thread is either of
-negligible cost (if the new thread
+negligible cost (if and only if the new thread
 is independent of the others), or
 contributes a multiplicative
 increase to the cost of the search.
@@ -2570,6 +2570,7 @@ the large numbers of transitions explored
 would not be affected.
 
 \subsubsection{Sleep Sets}
+\textbf{SIMPLE clarify}
 In every example,
 sleep sets significantly reduce the
 rate of exponential increase in
@@ -2625,11 +2626,11 @@ algorithm decrease.
 In particular, if the threads of
 a program cannot be partitioned
 such that the objects accessed by different
-partitions are disjoint, my SDPOR algorithm
+partitions are disjoint, my SPOR algorithm
 offers no benefits. Unfortunately, this
 is the case for most concurrent programs,
 including my other examples, from which
-the SDPOR results have therefore been omitted.
+the SPOR results have therefore been omitted.
 
 The extra work done per transition
 in implementing my SPOR
@@ -2647,6 +2648,8 @@ statically compute reasonably small persistent sets.
 \chapter{Conclusions}
 
 \section{Successes}
+
+\textbf{Mention algorithms performance}
 
 As well as meeting the aims of the
 project ahead of schedule, I also
@@ -2704,10 +2707,12 @@ is the implementation of the
 \textit{Expression} and
 \textit{Thread} modules.
 
+\textbf{SDPOR}
+
 Dynamic partial-order reduction
-was introduced in 2005. It would
-be interesting to research,
-implement and evaluate more
+was introduced in 2005. I would
+be interested in researching,
+implementing and evaluating more
 recent developments.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
