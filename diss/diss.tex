@@ -2703,6 +2703,8 @@ recent developments.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the appendices
 \appendix
+% Hide subappendices from contents
+\addtocontents{toc}{\setcounter{tocdepth}{-1}}
 
 \chapter{Explanation of the DPOR Algorithm}
 \label{app:dpor-walkthrough}
@@ -2801,7 +2803,7 @@ recent developments.
 
 \end{description}
 
-\chapter{Extension Model-Checking Algorithms}
+\chapter{Other Model-Checking Algorithms}
 \label{app:pseudocode}
 \section{Simple Model Checker}
 \label{sapp:simple-code}
