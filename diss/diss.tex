@@ -192,7 +192,7 @@ few defects as possible. Failure of a
 safety- or mission-critical system can
 have devastating consequences, but even the
 presence of bugs in everyday commercial systems has
-serious economic consequences; in 2002,
+serious economic consequences. In 2002,
 software bugs were estimated to cost
 the U.S. economy \$59.5 billion per year \cite{tass02}.
 
@@ -1080,9 +1080,8 @@ offers a few key advantages:
 \end{itemize}
 
 OCaml modules
-are used to encapsulate related definitions and hide
-information, and were used in my project to provide
-appropriate abstraction.
+provide abstraction by encapsulating
+related definitions and hiding implementation details.
 \emph{Signatures} are software interfaces
 providing declarations,
 and \emph{structures} are implementations which 
@@ -1159,9 +1158,9 @@ a hypothetical language called NL.
 \label{sec:language}
 After reading this section, you should
 understand how I designed
-and implemented the programming
-language in which the programs to
-be model checked are written.
+and implemented a programming
+language for the expression
+of programs to model check.
 
 \subsection{Language Design}
 Although any concurrent
@@ -1283,8 +1282,8 @@ or in situations when there must be
 no stale values in the list.
 
 More efficient store implementations are
-possible (for example, one based on
-a hash table rather than a list), but
+possible---for example, one based on
+a hash table rather than a list---but
 I valued simplicity over efficiency,
 to increase my confidence in its correctness.
 
@@ -1300,7 +1299,7 @@ Care must be taken to
 ensure that each operation really is
 atomic, else race conditions could exist
 in real executions of programs that would
-not be found by a model checker---this
+not be found by a model checker. This
 is not a concern for PL, but would be if
 an industrial language was used.
 
@@ -2647,7 +2646,7 @@ conjunction with the
 sleep-set technique.
 
 Despite the considerable
-challenges, particularly in 
+challenges, particularly in
 understanding
 the model-checking algorithms
 and their underlying theory, the
