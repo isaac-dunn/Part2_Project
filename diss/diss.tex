@@ -1,5 +1,5 @@
 % Isaac Dunn Part II Computer Science Dissertation
-\documentclass[12pt,a4paper,twoside,openright]{report}
+\documentclass[12pt,a4paper,twoside,openany]{report}
 \usepackage[pdfborder={0 0 0}]{hyperref}    % turns references into hyperlinks
 \usepackage[margin=25mm]{geometry}  % adjusts page layout
 \usepackage[T1]{fontenc}
@@ -19,6 +19,7 @@
 \usepackage{subcaption}
 \usepackage[labelfont=bf]{caption}
 \usepackage[sort,nocompress]{cite} % sort multiple citations, but don't group
+\usepackage{afterpage} % for adding blank page
 
 \definecolor{dkgreen}{rgb}{0,0.6,0}
 \definecolor{grey}{rgb}{0.5,0.5,0.5}
@@ -103,12 +104,15 @@ Name:           &  Isaac Dunn                            			 \\
 College:        &  Clare College                    				     \\
 Project Title:	&  Dynamic Partial-Order Reduction for Model Checking \\
 Examination:    &  Computer Science Tripos -- Part II, June 2016      \\
-Word Count:     &  N    												 \\
-Originator: &  Isaac Dunn\footnotemark[1] 					 \\
+Word Count:     &  11,624\footnotemark[1]					 \\
+Originator: &  Isaac Dunn\footnotemark[2] 					 \\
 Supervisors:	&  Dr. Jonathan Hayman \& Prof. Glynn Winskel         \\
 \end{tabular}
 }
-\footnotetext[1]{with guidance from Dr. Jonathan Hayman}
+\footnotetext[1]{The program \texttt{wc} was run on a plain-text
+	file of Chapters 1--5, with diagram text manually removed.}
+\stepcounter{footnote}
+\footnotetext[2]{With guidance from Dr. Jonathan Hayman.}
 \stepcounter{footnote}
 
 
@@ -317,6 +321,13 @@ how $N$ grows for $k = 1$.
 		{Diagrams showing the possible interleavings of
 			one, two, three and four events.}
 	\label{fig:state-explosion}
+	
+	\includegraphics*[height=11cm]{por}
+	\caption[Illustration of partial-order reduction.]
+	{If the order of execution of four instructions or
+		events makes no difference to the end result, it
+		suffices to only look at one interleaving.}
+	\label{fig:por}
 \end{figure}
 
 \section{Partial-Order Reduction}
@@ -346,16 +357,6 @@ instances of partial-order reduction;
 incidentally, the
 latter two were explored as extensions to
 my project.
-
-\begin{figure}[t]
-	\centering
-	\includegraphics*[height=13cm]{por}
-	\caption[Illustration of partial-order reduction.]
-	{If the order of execution of four instructions or
-		events makes no difference to the end result, it
-		suffices to only look at one interleaving.}
-	\label{fig:por}
-\end{figure}
 
 \section{My Project}
 %After reading this section, you should
@@ -412,10 +413,6 @@ you should understand:
 \end{understandinglist}
 
 \section{Preparatory Work}
-After reading this section,
-you should understand the work I
-did before beginning to implement
-my project.
 
 \subsection{Research and Understanding}
 
@@ -739,18 +736,6 @@ $T = \textit{enabled}(\sigma)$, is always a
 persistent set since there are no transitions
 that are reachable without executing one in $T$.
 
-\begin{figure}
-	\centering
-	\includegraphics[height=9cm]{persistent1}
-	\caption[Diagram of an example state space, for
-	the illustration of persistent sets.]
-		{Diagram of an example state space, for
-		the illustration of persistent sets. Transition
-		$t_1$ is independent with the others, which are
-		all dependent with one another.}
-	\label{fig:persistent}
-\end{figure}
-
 \subsubsection{Soundness}
 It can be shown that if a stopped
 state is reachable by an exhaustive
@@ -767,8 +752,33 @@ a persistent-set search is sufficient for
 our definition of model checking
 (cf.\@ Section~\ref{sec:model-checking-dfn}).
 
+\begin{figure}
+	\centering
+	\begin{minipage}{.45\textwidth}
+		\centering
+		\includegraphics[height=9cm]{persistent1}
+		\caption[Diagram of an example state space, for
+		the illustration of persistent sets.]
+		{Diagram of an example state space, for
+			the illustration of persistent sets. Transition
+			$t_1$ is independent with the others, which are
+			all dependent with one another.}
+		\label{fig:persistent}
+	\end{minipage}%
+	\qquad
+	\begin{minipage}{.45\textwidth}
+		\centering
+		\includegraphics[height=9cm]{sleep}
+		\caption{Diagram illustrating of the motivation
+			of sleep sets.}
+		\label{fig:sleep}
+	\end{minipage}
+	
+\end{figure}
+
 \subsection{Sleep Sets}
 \label{sec:sleep-prep}
+
 Another technique that addresses
 the state explosion problem is
 that of \emph{sleep sets}, again by Godefroid \cite{god91}.
@@ -803,18 +813,10 @@ A sleep-set algorithm is one that maintains a
 set of transitions which, by the above argument,
 need not be explored from the current state.
 
-\begin{figure}
-	\centering
-	\includegraphics[height=8cm]{sleep}
-	\caption{Diagram illustrating of the motivation
-		of sleep sets.}
-	\label{fig:sleep}
-\end{figure}
-
 \section{Dynamic Partial-Order Reduction}
 \label{sec:dpor-prep}
 After reading this section, you should
-also understand roughly how the dynamic
+understand roughly how the dynamic
 partial-order reduction algorithm works.
 
 \subsection{Background Definitions}
@@ -875,7 +877,7 @@ the basis of DPOR, since it is
 sufficient to explore only one member of
 each equivalence class.
 
-\begin{figure}
+\begin{figure}[b]
 	\centering
 	\includegraphics[width=\textwidth]{seqequiv}
 	\caption{Illustration of equivalent transition sequences.}
@@ -1093,17 +1095,17 @@ particular signature to structures matching another.
 
 \begin{figure}
 	\centering
-	\begin{subfigure}{.43\textwidth}
+	\begin{minipage}{.47\textwidth}
 		\centering
-		\includegraphics[height=9cm]{interfaces}
+		\includegraphics[height=11cm]{interfaces}
 		\caption{Diagram showing which signatures declare
 			which other signatures as nested sub-structures.}
 		\label{fig:interfaces}
-	\end{subfigure}%
+	\end{minipage}%
 	\qquad
-	\begin{subfigure}{.43\textwidth}
+	\begin{minipage}{.47\textwidth}
 		\centering
-		\includegraphics[height=12cm]{functors}
+		\includegraphics[height=15cm]{functors}
 		\caption{Diagram showing generation of
 			structures using functors.
 			The shaded files must be provided,
@@ -1111,10 +1113,7 @@ particular signature to structures matching another.
 			and the remaining files
 			are generated using the functors.}
 		\label{fig:functors}
-	\end{subfigure}
-	\caption{Diagrams showing the interactions between
-		the software modules.}
-	\label{fig:design}
+	\end{minipage}
 \end{figure}
 
 In my project, there are five main signatures:
@@ -1243,9 +1242,8 @@ Figure~\ref{fig:parsing}, to produce a full PL parser.
 \begin{figure}
 	\centering
 	\includegraphics[height=10cm]{parsing}
-	\caption{Diagram showing the flow and processing of
-		information in the generation of a PL abstract
-		syntax tree.}
+	\caption{Diagram showing the parsing of
+		a PL program.}
 	\label{fig:parsing}
 \end{figure}
 
@@ -1342,18 +1340,18 @@ are not obvious; after reading this section
 you should understand how I implemented
 all aspects of DPOR.
 
+\begin{figure}[h]
+	\dporpseudocode
+	\caption{The DPOR pseudocode}
+	\label{fig:dpor-imp-pscode}
+\end{figure}
+
 \subsection{Implementation}
 This section explains how I translated
 the pseudocode in Figure~\ref{fig:dpor-imp-pscode}
 into an executable OCaml function, \texttt{check},
 which is given in Appendix~\ref{sapp:dpor-imp}
 for reference.
-
-\begin{figure}
-	\dporpseudocode
-	\caption{The DPOR pseudocode}
-	\label{fig:dpor-imp-pscode}
-\end{figure}
 
 \begin{description}
 	\item[Line 2] When implementing the simple
@@ -1426,7 +1424,7 @@ for reference.
 	set of a state, by iterating through the processes
 	and looking at whether the next transition of each
 	is enabled.
-
+	
 	\item[Lines 5--6] If, while iterating through the
 	processes in lines 3 and 4, any transition is found to be
 	enabled, then a reference is set to it. If at line 5,
@@ -2213,7 +2211,7 @@ number of accesses that each thread
 makes. This example allows
 the amount of dependence between the threads
 to be controlled by varying this second parameter.
-
+\newpage
 \subsubsection{Example 2 -- Bounded Buffer}
 In Dijksta's classic bounded-buffer problem
 \cite{dijk74},
@@ -2263,7 +2261,7 @@ $\log(0)$ is undefined.
 I stopped collecting data when execution
 times approached 100 seconds.
 
-\begin{figure}
+\begin{figure}[h]
 	\includegraphics[width=\textwidth]{key}
 	\caption{Key for model-checking algorithm performance graphs.}
 	\label{fig:key}
@@ -2419,6 +2417,7 @@ times approached 100 seconds.
 	\label{fig:fs-time}
 \end{figure}
 
+\newpage
 \subsection{Performance of the Algorithms}
 
 \subsubsection{Simple Model Checker}
@@ -2715,6 +2714,10 @@ looking at the developments
 that have been made since
 the introduction of DPOR.
 
+\newpage
+\null
+\thispagestyle{plain}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the bibliography
 \addcontentsline{toc}{chapter}{Bibliography}
@@ -2724,9 +2727,10 @@ the introduction of DPOR.
 % the appendices
 \appendix
 % Hide subappendices from contents
-\addtocontents{toc}{\setcounter{tocdepth}{-1}}
+\addtocontents{toc}{\setcounter{tocdepth}{0}}
 
 \chapter{Details of DPOR}
+\vspace{-0.5cm}
 \section{Explanation of Theory}
 \label{app:dpor-walkthrough}
 \dporpseudocode
@@ -3031,5 +3035,6 @@ than recursion.
 \chapter{Project Proposal}
 
 \input{proposal_without_title}
+\enlargethispage{1\baselineskip}
 
 \end{document}
