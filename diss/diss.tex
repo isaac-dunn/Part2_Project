@@ -173,9 +173,8 @@ you should understand:
 	\item what model checking is and why it is useful;
 	\item what the state explosion problem is;
 	\item how partial-order reduction
-	techniques address the state explosion problem;
-	\item the aims of my project; and
-	\item the aims of this dissertation.
+	techniques address the state explosion problem; and
+	\item the aims of my project.
 \end{understandinglist}
 
 \section{Model Checking}
@@ -343,7 +342,8 @@ Valmari's stubborn sets \cite{val90},
 Peled's ample sets \cite{pel94},
 and Godefroid's persistent and sleep sets
 \cite{god91} are
-instances of partial-order reduction; the
+instances of partial-order reduction;
+incidentally, the
 latter two were explored as extensions to
 my project.
 
@@ -860,7 +860,7 @@ transition sequence $\pi$ to give a new
 transition sequence, and that
 $\pi_i$ and $\pi_{i+1}$ are independent.
 Because the order of execution of a
-pair of independent transition is
+pair of independent transitions is
 irrelevant in the sense that it
 results in the same state, the result
 of executing the two transition
@@ -1345,7 +1345,9 @@ all aspects of DPOR.
 \subsection{Implementation}
 This section explains how I translated
 the pseudocode in Figure~\ref{fig:dpor-imp-pscode}
-into an executable OCaml function, \texttt{check}.
+into an executable OCaml function, \texttt{check},
+which is given in Appendix~\ref{sapp:dpor-imp}
+for reference.
 
 \begin{figure}
 	\dporpseudocode
@@ -2032,7 +2034,7 @@ all remaining bugs in my project
 probably relate
 to functionality not necessary for
 soundness. For instance, I would
-not be surprised if there was a bug
+not be surprised if there were a bug
 in my implementation of PL,
 whereas I would not expect
 my implementation of DPOR to
@@ -2089,13 +2091,13 @@ elude my tests, assuming that the
 code coverage is as good as I think.
 
 \subsection{Model Checking In Practice}
-Even if I think it unlikely, it is
-certainly possible that my project is
-unsound, since it has not
-been verified.
+Verification of my implementations
+would take months of
+effort, and is significantly out
+of the scope of my project.
 Although it may initially seem
 that a model-checking system without
-a guarantee of its
+such a guarantee of its
 soundness is useless, this
 is not the case.
 
@@ -2173,6 +2175,17 @@ the algorithm is in addressing the state
 explosion problem, and also
 the execution time, which is what ultimately
 matters in practice.
+
+The examples
+I chose (explained below) feature a lot
+of interaction between threads relative
+to many real-world programs, in which
+each thread will often perform a lot
+of work without interacting with any
+other threads. This means that the
+algorithms are likely to be more
+effective on such programs, especially
+the DPOR algorithm.
 
 The numbers of transitions explored were easily
 obtained by counting the number of recursive calls made.
@@ -2683,17 +2696,24 @@ original DPOR algorithm.
 I would also like
 to use my system to check
 programs written in a widely-used
-language. As mentioned previously,
+language; as mentioned previously,
 the only work necessary for this
 is the implementation of the
 \textit{Expression} and
 \textit{Thread} modules.
+Given the complexity of some modern
+programming languages, though,
+this would not be trivial. A better
+approach for Java, for example,
+might be to implement a JVM which
+performs DPOR, inspired by
+Java PathFinder \cite{viss03}.
 
-Finally, the DPOR algorithm
-was introduced in 2005. I would
-be interested in researching,
-implementing and evaluating more
-recent developments.
+Finally, I would be
+be interested in spending time
+looking at the developments
+that have been made since
+the introduction of DPOR.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the bibliography
@@ -2706,7 +2726,8 @@ recent developments.
 % Hide subappendices from contents
 \addtocontents{toc}{\setcounter{tocdepth}{-1}}
 
-\chapter{Explanation of the DPOR Algorithm}
+\chapter{Details of DPOR}
+\section{Explanation of Theory}
 \label{app:dpor-walkthrough}
 \dporpseudocode
 \begin{description}
@@ -2802,6 +2823,18 @@ recent developments.
 	sequence of transitions, $\emptyset$.
 
 \end{description}
+
+\section{OCaml Implementation}
+\label{sapp:dpor-imp}
+Below is my OCaml implementation of the DPOR
+algorithm. Note that many of the comments are
+references to the original pseudocode
+\cite[Figures~3--5]{flan05}, rather than the
+pseudocode in this dissertation, which is
+simplified for ease of understanding.
+
+\lstinputlisting[firstline=57, lastline=188]
+{../src/plain_checker.ml}
 
 \chapter{Other Model-Checking Algorithms}
 \label{app:pseudocode}
