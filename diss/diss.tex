@@ -1824,6 +1824,10 @@ we re-encounter a state, we can cut short
 the search in the knowledge that we have
 already explored from that state, improving
 time efficiency at the cost of extra space.
+This technique also allows cyclic state spaces
+to be verified, because if a cycle occurs, the
+search will notice the repeated state at the
+beginning of the cycle.
 
 \subsubsection{Simple Model Checker}
 
