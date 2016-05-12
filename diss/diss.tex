@@ -1043,41 +1043,42 @@ you should understand:
 	\item the design and implementation of
 	the programming language used
 	as the object language for the
-	project; and
+	project;
 	\item the details of my
-	implementations of the
-	algorithms in the project.
+	implementation of the DPOR algorithm; and
+	\item how I implemented some other
+	model-checking algorithms.
 \end{understandinglist}
 
 
 \section{Software Engineering}
 After reading this section, you should
 understand how I approached the
-development of a project of this
-size, and what the high-level
-structure of the project software is.
+development of my project, and what its high-level
+structure is.
 
 \subsection{Development Strategy}
 I used an
-\textit{incremental} approach to the
+incremental approach to the
 development of my project.
-This involved breaking down the
-goal of the project into several
+This involved breaking down 
+the project into several
 subgoals, each of which I implemented
-and immediately tested in turn. The subgoals were
+and tested in turn, before moving on to the next.
+The subgoals were
 to:
 \begin{itemize}
 	\item design a concurrent programming
 	language and create an interpreter for it;
 	\item create a parser for that language;
-	\item implement the simple model-checking
+	\item implement a simple model-checking
 	algorithm;
 	\item implement DPOR, assuming
 	a language without locks for simplicity; and
 	\item add locks to the DPOR implementation.
 \end{itemize}
 Each of the several extensions I completed
-was also created as a new incremental subgoal.
+was also developed as a new incremental subgoal.
 
 The benefits of this approach include the frequent
 testing of each new component, the manageable
@@ -1089,8 +1090,7 @@ The project was implemented in OCaml, which
 offers a few key advantages:
 \begin{itemize}
 	\item a clean, functional
-	style, particularly appropriate for
-	this project;
+	style;
 	\item a strong, safe type system, which prevents
 	a large class of runtime errors;
 	\item parametric polymorphism, a module system,
@@ -1109,8 +1109,7 @@ and \emph{structures} are implementations which
 provide definitions. A structure \emph{matches} a
 signature if it has a definition for each declaration
 in the signature. \emph{Functors} act as
-functions from structures matching a
-particular signature to structures matching another.
+functions between modules.
 
 \begin{figure}
 	\centering
@@ -1145,13 +1144,14 @@ In my project, there are five main signatures:
 	to expressions for some
 	implementation of \emph{Expression};
 	\item \emph{Thread} contains the
-	information about the semantics
-	of the programming language;
-	\item \emph{Program} contains declarations relating to
-	transition systems as expressed in some programming
-	language; and
+	information about the reduction of
+	expressions for one thread;
+	\item \emph{Program} contains declarations
+	combining threads to express a full concurrent
+	program; and
 	\item \emph{Checker} declares a function
-	which performs model checking.
+	which performs model checking on a given
+	concurrent program.
 \end{enumerate}
 
 Since model checking is independent of any
@@ -1169,7 +1169,7 @@ obtained for a new language just by
 specifying its syntax and semantics.
 This process is shown explicitly in
 Figure~\ref{fig:functors} for
-a hypothetical language called NL.
+a hypothetical new language, NL.
 
 
 \section{Development of the Project Language}
@@ -1186,16 +1186,15 @@ thread-based programming language
 could be used to express transition systems for model
 checking, I chose to design and implement a simple
 ML-like language, PL (Project Language), to avoid
-dealing with the full complexity of a
+dealing with the full complexity of an
 industrial language. When designing PL, my aim
 was to create a high-level language that had enough features
 to easily write practical concurrent programs,
 but was not unnecessarily complex.
 
 PL is a Turing-complete functional
-language with first-class
-functions, which operates on integers and
-Booleans.
+language which operates on integers,
+Booleans and first-class functions.
 Thread-local reference cells provide some
 procedural functionality, and the usual
 structures manage flow control. There is
@@ -1256,7 +1255,7 @@ of characters into a sequence of tokens. When given a
 grammar and a set of precedence rules, Menhir produces a parser,
 which converts a sequence of tokens into an abstract syntax tree
 of the grammar. These were used in conjunction, as shown in
-Figure~\ref{fig:parsing}, to produce a full PL parser.
+Figure~\ref{fig:parsing}, to produce a full parser for PL.
 
 \begin{figure}
 	\centering
@@ -1289,7 +1288,7 @@ A functor, ListStore, is used. Given an
 returns a \emph{Store} implementation, which
 represents stores using lists of
 (location,~expression) pairs. Mappings
-are introduced by adding a new pair to
+are adding by appending a new pair to
 the front of the list, causing any old
 mapping for that location to become stale.
 A function is provided that walks through
@@ -1301,7 +1300,8 @@ no stale values in the list.
 More efficient store implementations are
 possible---for example, one based on
 a hash table rather than a list---but
-I valued simplicity over efficiency,
+I valued simplicity over efficiency
+in this case,
 to increase my confidence in its correctness.
 
 \subsubsection{The Thread Module}
@@ -1313,11 +1313,13 @@ matching to determine what the next atomic
 operation (if any) is for the reduction
 of that expression.
 Care must be taken to
-ensure that each operation really is
+ensure that each step given here really is
 atomic, else race conditions could exist
 in real executions of programs that would
-not be found by a model checker. This
-is not a concern for PL, but would be if
+not be found by model checking. This
+is not a concern for PL, since its only
+implementation is the one used for the
+model checker, but would be if
 an industrial language was used.
 
 Given the definition
@@ -1352,7 +1354,7 @@ found in the implementation of PL.
 \section{Dynamic Partial-Order Reduction}
 An overview of the DPOR
 algorithm was given in Section~\ref{sec:dpor-prep},
-with a full explanation
+with a more detailed explanation
 given in Appendix~\ref{app:dpor-walkthrough}.
 Several aspects of the implementation of DPOR
 are not obvious; after reading this section
@@ -1361,7 +1363,7 @@ all aspects of DPOR.
 
 \begin{figure}[h]
 	\dporpseudocode
-	\caption{The DPOR pseudocode}
+	\caption{The DPOR algorithm.}
 	\label{fig:dpor-imp-pscode}
 \end{figure}
 
@@ -1376,12 +1378,12 @@ for reference.
 	\item[Line 2] When implementing the simple
 	model checker (cf.\@ Section~\ref{sec:simple-imp}),
 	I used the \texttt{fold\_left}
-	function from the provided List module to
+	function from the library List module to
 	repeatedly use the \texttt{apply\_transition}
 	from the \textit{Program} module to apply
 	the transitions in the transition sequence
 	to the initial state. However, in this case
-	I wrote a function, \texttt{pre},
+	I wrote a more general function, \texttt{pre},
 	which applies only the first
 	$n$ transitions in the sequence,
 	thereby returning the state
@@ -1500,7 +1502,7 @@ for reference.
 	have to be computed are the new transition
 	sequence, $\pi' = \pi.t$,
 	and the new function, $L'$,
-	tracking which transitions accessed each 
+	tracking which transitions have accessed each 
 	object:
 	\[ L'(o) =
 	\begin{cases}
@@ -1533,7 +1535,7 @@ for reference.
 To decide the happens-before relation,
 $\hookrightarrow_\pi$, I used clock vectors.
 Although Flanagan
-and Godefroid show how clock vectors
+and Godefroid outline how clock vectors
 can be used \cite{flan05},
 they do not give the
 following detail in the
@@ -1558,7 +1560,7 @@ process $q$, we know that
 $i \hookrightarrow_\pi p$ if and only if
 $i \leq k$. A clock vector $c$ is
 a function from processes $q$ to such
-indices into the transition sequence, $k$,
+indices $k$ in the transition sequence,
 and we maintain one clock vector, $c_p$, per
 process $p$. To decide whether
 $i \hookrightarrow_\pi p$ for
@@ -1586,7 +1588,7 @@ and only if $i \hookrightarrow_{\pi'} p'$,
 where $\pi' = \pi.t_{p,s}$ and $p' \neq p$.
 Let us denote the updated clock vector
 by $c_p'$, and consider $c_p'(q)$, which
-must be at least $c_p(q)$, as if process
+must be at least $c_p(q)$, because if process
 $p$ must happen-before the end of $\pi$
 then it must happen-before the end of $\pi'$.
 However, if there is a more recent transition
@@ -1703,7 +1705,7 @@ Section~\ref{sec:happens-before}. As
 two transitions are dependent if and only
 if they belong to the same thread or if
 they access the same shared object, my
-algorithm simply executes the given transition
+algorithm executes the given transition
 sequence, using functions from processes
 and shared objects to positions in
 the sequence to track the last
@@ -1712,7 +1714,7 @@ to access each shared object respectively.
 For each
 transition executed, two ``happens-before''
 edges are added
-to the graph representing the partial
+to a graph representing the partial
 order: one from the last transition
 belonging to the same process, and one
 from the last transition accessing the
@@ -1726,9 +1728,9 @@ labelled with its process and the
 shared object it accesses.
 GraphViz is an open-source program which
 draws graphs.
-Figure~\ref{fig:trace-example} gives a program
-and shows an example of such an
-automatically-generated GraphViz graph.
+Figure~\ref{fig:trace-example}
+shows an example of such an
+automatically-generated graph.
 
 \begin{figure}
 	\centering
@@ -1788,12 +1790,17 @@ algorithms.
 \label{sec:simple-imp}
 Implementing and testing
 the simple model checker
-before DPOR allowed me to
+before DPOR
+(although not an extension)
+allowed me to
 sanity-check my PL implementation,
 practise with an easy
 model-checking algorithm first,
 and later verify the results of
 my DPOR implementation.
+It also provides a performance
+baseline for the evaluation of
+the other algorithms.
 As outlined in
 Section~\ref{sec:simple-prep}, it
 performs an exhaustive depth-first
@@ -1822,9 +1829,9 @@ a state is visited, add it to some data structure,
 then explore only those states which are not
 present in that data structure. As querying
 this structure and inserting a state to it
-happens at almost every state, we would like these
+happens at every state, we would like these
 operations to be efficient. The typical amortised costs
-of these operations for a hash table are both
+of both these operations for a hash table are
 constant, so I used the OCaml library implementation
 of hash tables for this purpose.
 
@@ -1852,12 +1859,12 @@ the diagram), meaning that the algorithm is unsound;
 any error or deadlock in a dotted state would go
 undetected.
 The reason for the unsoundness is the failure to
-introduce backtracking points when necessary. If the
+introduce necessary backtracking points. If the
 search had not been cut short, then a backtracking point
 would have been added in the second state (1200), causing the
 dotted section to be explored.
 
-Solving this by simply adding
+Solving this by na\"{\i}vely adding
 all possible backtracking points
 whenever the search is cut short turns out to
 give worse performance than plain DPOR.
@@ -1942,7 +1949,7 @@ In order to evaluate the improvement in performance
 allowed by building persistent sets dynamically
 instead of statically, I decided to research and
 implement a static partial-order reduction
-(SPOR\footnote{Not to be confused with SDPOR!})
+(SPOR\footnote{Not to be confused with SDPOR.})
 algorithm. However, I struggled to find one
 in the literature that I could
 understand and implement in the available time.
@@ -1964,13 +1971,14 @@ given in Appendix~\ref{sapp:spor-code}.
 While it may seem that computing
 the objects the threads can access
 should be done at every state rather than
-just once, this is prohibitively
+just once, this is actually prohibitively
 expensive and offers only modest
 reductions in the sizes of the
 persistent sets.
 
 A limitation of my algorithm is that
-it assumes that accesses shared objects
+it assumes that each threads accesses
+only shared objects
 explicitly mentioned in its own
 local state so using shared objects
 to communicate references to other shared
@@ -1989,7 +1997,7 @@ As usual, I used a
 library hash table implementation,
 and used lists of process identifiers
 to represent sleep sets, since one
-integer takes up much less memory
+integer takes up less memory
 than one representation of a transition,
 while providing sufficient information
 for this purpose.
@@ -2002,7 +2010,7 @@ adding backtracking points for
 processes that are in the sleep set
 of the relevant state. This is
 sound, although not as obviously as
-it might first seem \cite{flan05addm}.
+it might first seem \cite[Theorem~1]{flan05addm}.
 
 \chapter{Evaluation}
 \label{cha:evaluation}
