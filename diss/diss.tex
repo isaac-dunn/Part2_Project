@@ -415,9 +415,8 @@ you should understand:
 	the implementation of my project;
 	\item the background theory of model checking
 	relevant to my project;
-	\item how the persistent-set
-	and sleep-set techniques address the state explosion
-	problem; and
+	\item the persistent-set
+	and sleep-set partial-order reduction techniques; and
 	\item the basic operation of the DPOR algorithm.
 \end{understandinglist}
 
@@ -436,20 +435,26 @@ This exploration
 of a new area of computer science was the
 main preparation that was necessary
 before I could begin implementing
-my project.
+my project. The remaining sections
+of this chapter explain the core
+of this material that is essential
+to understand my project.
 
 \subsection{Requirements Analysis}
 Having understood the necessary theory,
 I refined the goals of my project to
 make them as concrete as possible.
-As well as implementing DPOR,
-I needed to implement
+I decided on exactly what the
+model-checking algorithms would
+take as their inputs and give
+as their outputs, and
+explicitly set out the need
+to implement
 a programming language
 to express concurrent programs
-for model checking. I also decided
-to write a simple model-checking
-algorithm for comparison with
-the results and performance of DPOR.
+for model checking. I also
+wrote a detailed schedule for
+the development process.
 
 \subsection{Using OCaml}
 I implemented the project in OCaml.
@@ -466,8 +471,8 @@ experimenting with small test programs.
 \section{Background Definitions} \label{sec:background-defs}
 After reading this section, you should understand the
 definitions of the mathematical objects and structures
-manipulated by the algorithms in my project. Most
-of these are given in the POPL paper \cite{flan05}.
+manipulated by the algorithms in my project. 
+These are adapted from the POPL paper \cite{flan05}.
 
 \subsection{Processes and States}
 We consider programs consisting of a finite set, $\mathcal{P}$,
@@ -536,6 +541,8 @@ to be executed by process $p$, and
 denotes the set of enabled transitions that can be executed from $\sigma$.
 A state $\sigma$ is a \emph{stopped state} if
 $\textit{enabled}(\sigma) = \emptyset$.
+We write $\textit{proc}(t_{p,s})$ for $p$, the
+process of the given transition.
 
 \subsection{Systems}
 The behaviour of an entire concurrent program is represented by a
@@ -553,12 +560,12 @@ is the \emph{transition relation} defined by
 After reading this section, you should
 understand exactly what I mean by a
 model-checking algorithm in the context
-of this project and how a simple
-such algorithm works.
+of my project, and how a simple
+model-checking algorithm works.
 
 \subsection{Definition of Model Checking}
 \label{sec:model-checking-dfn}
-In the context of this project,
+As far as my project is concerned,
 model checking is the process of deciding
 whether a
 given transition system is \emph{error-free} and
@@ -569,12 +576,12 @@ to these two properties, because the algorithms we
 consider sacrifice richness of specification
 for efficiency of verification.
 
-To specify exactly what it means for a system to
+To specify what it means for a system to
 be error-free, we extend each transition system
 with a relation
 $\textit{err} : \mathcal{S} \to \mathbb{B}$, which decides
-whether, in some given state, a particular
-thread has encountered an error---for example,
+whether any thread has encountered an
+error in some given state---for example,
 an assertion failing to hold.
 We then say that a transition system
 $(\textit{State},\, \Delta,\, \sigma_0,\, \textit{err})$
@@ -614,9 +621,10 @@ for some predicate $\Phi$, the simplest strategy is to
 perform an exhaustive search of the reachable state space,
 checking whether $\Phi_\text{error}(\sigma) \wedge
 \Phi_\text{deadlock}(\sigma)$
-holds at each state $\sigma$ encountered,
-where $\Phi_\text{error}$ is that
-no thread has encountered an error, and $\Phi_\text{deadlock}$ is
+holds at each state $\sigma$ encountered.
+The predicate $\Phi_\text{error}$ is that
+no thread has encountered an error,
+and $\Phi_\text{deadlock}$ is
 that if the state is a stopped state then no
 thread is blocked.
 
@@ -642,7 +650,7 @@ implemented.
 \subsection{Independence} \label{sec:independence}
 Two transitions are independent if their
 effects are commutative, and if executing one
-can never disable the other.
+can never disable the other (see Figure~\ref{fig:independence}).
 More formally, suppose that $\mathcal{T}$ is the set of
 transitions for some transition system, and
 that $I \subseteq \mathcal{T} \times \mathcal{T}$
@@ -691,7 +699,7 @@ all $(t_1, t_2) \in I$:
 \end{figure}
 Two transitions $t_1$ and $t_2$ are said to be \emph{independent}
 if there is a valid independence relation $I$ such that $(t_1, t_2) \in I$,
-else they are said to be \emph{dependent}.
+else they are said to be \emph{dependent}. \cite{flan05}
 
 \subsection{Persistent Sets}
 \label{sec:persistent}
@@ -711,16 +719,16 @@ is such a technique.
 Informally,
 a set $T \subseteq \textit{enabled}(\sigma)$
 is persistent if every
-transition $t \not \in T$ reachable
+transition not in $T$ reachable
 from $\sigma$ by exploring only transitions not in
 $T$ does not interact with the transitions
 in $T$. Formally, a set
 $T \subseteq \textit{enabled}(\sigma_1)$
-is called \emph{persistent} in $\sigma_1$ if
+is \emph{persistent} in $\sigma_1$ if
 for all sequences of transitions
 \[
 	\sigma_1 \xrightarrow{\ t_1\ } \sigma_2 \xrightarrow{\ t_2\ } \ldots
-	\xrightarrow{t_{n-1}} \sigma_n,
+	\xrightarrow{t_{n-1}} \sigma_n
 \]
 such that $\forall i.\; t_i \not \in T$,
 each $t_i$ is
@@ -740,7 +748,7 @@ and $t_1$ is independent with both $t_2$ and $t_3$.
 However, $T = \{t_2\}$ is not a persistent set in the
 initial state, as $t_3$ is reachable without
 executing $t_2$, but $t_2$ and $t_3$ are not independent.
-Note that the set of all enabled transitions,
+The set of all enabled transitions,
 $T = \textit{enabled}(\sigma)$, is always a
 persistent set since there are no transitions
 that are reachable without executing one in $T$.
@@ -778,8 +786,8 @@ our definition of model checking
 	\begin{minipage}{.45\textwidth}
 		\centering
 		\includegraphics[height=9cm]{sleep}
-		\caption{Diagram illustrating of the motivation
-			of sleep sets.}
+		\caption{Diagram illustrating the
+			idea behind sleep sets.}
 		\label{fig:sleep}
 	\end{minipage}
 	
@@ -814,8 +822,8 @@ explore $t_1$ from $\sigma_2$.
 In fact, there is no need to consider executing
 $t_1$ in our recursive exploration from $\sigma_2$
 until we execute some transition $t'$ which is
-\emph{not} independent of $t_1$, as after
-the execution of such a $t'$, exploring $t_1$ may
+\emph{not} independent with $t_1$, since only after
+the execution of such a $t'$ may exploring $t_1$
 then lead to an unexplored area of the state space.
 
 A sleep-set algorithm is one that maintains a
@@ -827,6 +835,8 @@ need not be explored from the current state.
 After reading this section, you should
 understand roughly how the dynamic
 partial-order reduction algorithm works.
+The information in this section is
+adapted from the POPL paper \cite{flan05}.
 
 \subsection{Background Definitions}
 
@@ -852,7 +862,7 @@ we use the following notation:
 		--- the transition $t_i$;}
 	\item{\makebox[\defsindent]{\hfill$\pi.t$}
 		--- the transition sequence $\pi$ extended with
-		transition, $t$;}
+		transition $t$;}
 	\item{\makebox[\defsindent]{\hfill$\textit{dom}(\pi)$}
 		--- the set $\{i \in \mathbb{N} \mid 0 \leq i < n \}$;}
 	\item{\makebox[\defsindent]{\hfill$|\pi|$}
@@ -928,9 +938,9 @@ if $i \in \textit{dom}(\pi)$ and $p \in
 either
 \begin{enumerate}
 	\item $\textit{proc}(\pi_i) = p$, or
-	\item $\exists k \in \textit{dom}(\pi).\;
-	i < k \,\wedge\, \textit{proc}(\pi_k) = p
-	\,\wedge\, i \longrightarrow_\pi k $.
+	\item $\exists j \in \textit{dom}(\pi).\;
+	i < j \,\wedge\, \textit{proc}(\pi_j) = p
+	\,\wedge\, i \longrightarrow_\pi j $.
 \end{enumerate}
 
 
@@ -951,7 +961,7 @@ next transition
 to execute, $t$, is chosen arbitrarily, and it is
 initially assumed that $t$ will
 be the only transition to be explored from
-that state. However, this is a persistent
+that state. However, $\{t\}$ is a persistent
 set only if $t$ is
 independent of every transition reachable
 by exploring any transitions
