@@ -1869,6 +1869,31 @@ introduce necessary backtracking points. If the
 search had not been cut short, then a backtracking point
 would have been added in the second state (1200), causing the
 dotted section to be explored.
+\bigskip
+\begin{figure}[H]
+	\begin{subfigure}{\textwidth}
+		\begin{tabular}{lp{1cm}lp{0cm}l}
+			Shared variables: &&Thread 0: &&Thread 1: \\
+			\qquad \texttt{m} and \texttt{n}, initially \texttt{1}
+			&&\qquad\texttt{m := 2;}
+			&& \qquad\texttt{n := 2;} \\
+			\qquad \texttt{x} and \texttt{y}, initially \texttt{0}
+			&&\qquad\texttt{x := n}
+			&& \qquad\texttt{y := m}
+		\end{tabular}
+	\end{subfigure}
+	\begin{subfigure}{\textwidth}
+		\vspace{-0.7cm}
+		\includegraphics[width=\textwidth]{sdpor}
+	\end{subfigure}
+	\caption[An example illustrating the need for the
+	Stateful DPOR algorithm.]
+	{An example showing that na\"{\i}vely
+		cutting short the DPOR algorithm is
+		unsound. Each state in the diagram shows
+		the values of \textit{mnxy}.}
+	\label{fig:sdpor-motivation}
+\end{figure}
 
 Solving this by na\"{\i}vely adding
 all possible backtracking points
@@ -1878,30 +1903,6 @@ To use this technique,
 we need a method of conservatively deciding which
 backtracking points must be added for soundness, but not
 so conservatively that all practical benefits are lost.
-
-\begin{figure}
-	\begin{subfigure}{\textwidth}
-		\begin{tabular}{lp{1cm}lp{0cm}l}
-		Shared variables: &&Thread 0: &&Thread 1: \\
-		\qquad \texttt{m} and \texttt{n}, initially \texttt{1}
-			&&\qquad\texttt{m := 2;}
-			&& \qquad\texttt{n := 2;} \\
-		\qquad \texttt{x} and \texttt{y}, initially \texttt{0}
-			&&\qquad\texttt{x := n}
-			&& \qquad\texttt{y := m}
-		\end{tabular}
-	\end{subfigure}
-	\begin{subfigure}{\textwidth}
-		\includegraphics[width=\textwidth]{sdpor}
-	\end{subfigure}
-	\caption[An example illustrating the need for the
-		Stateful DPOR algorithm.]
-		{An example showing that na\"{\i}vely
-		cutting short the DPOR algorithm is
-		unsound. Each state in the diagram shows
-	the values of \textit{mnxy}.}
-	\label{fig:sdpor-motivation}
-\end{figure}
 
 \subsubsection{Stateful Dynamic Partial-Order Reduction}
 
