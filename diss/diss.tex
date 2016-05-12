@@ -839,8 +839,6 @@ need not be explored from the current state.
 After reading this section, you should
 understand roughly how the dynamic
 partial-order reduction algorithm works.
-The information in this section is
-adapted from the POPL paper \cite{flan05}.
 
 \subsection{Background Definitions}
 
@@ -1292,7 +1290,7 @@ A functor, ListStore, is used. Given an
 returns a \emph{Store} implementation, which
 represents stores using lists of
 (location,~expression) pairs. Mappings
-are adding by appending a new pair to
+are added by appending a new pair to
 the front of the list, causing any old
 mapping for that location to become stale.
 A function is provided that walks through
@@ -1724,7 +1722,7 @@ belonging to the same process, and one
 from the last transition accessing the
 same shared object.
 
-To show the partial order graph in an
+To show the partial-order graph in an
 easily-interpretable way, I
 output a GraphViz file displaying the
 graph, with each node
