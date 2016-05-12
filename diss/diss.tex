@@ -77,8 +77,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Title page
 
-
-\pagestyle{empty}
+\thispagestyle{empty}
 
 \rightline{\LARGE \textbf{Isaac Dunn}}
 
@@ -88,7 +87,7 @@
 \textbf{Dynamic Partial-Order Reduction for Model Checking} \\[7mm]
 Computer Science Tripos -- Part II \\[6mm]
 Clare College \\[7mm]
-\LARGE \today  % today's date
+\LARGE May 2016  % today's date
 \end{center}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2027,9 +2026,7 @@ you should understand:
 	to be of practical use; and
 	\item how the model-checking
 	algorithms I implemented perform
-	in comparison to one another,
-	in terms of the number of transitions
-	explored and execution times.
+	in relation to one another.
 \end{understandinglist}
 
 \section{Soundness}
@@ -2040,8 +2037,8 @@ project could easily render my implementations
 of them incorrect.
 After reading this section, you should understand
 the extent to which I believe
-my project is correct and why, and how
-verification systems are useful despite
+my implementations are correct and why, and how
+verification systems can be useful despite
 not being verified themselves.
 
 \subsection{Evidence for Soundness}
@@ -2088,7 +2085,7 @@ due to its simplicity.
 \label{sec:pl-checker-tests}
 As part of the development process,
 I wrote 45 varied test cases, each
-consisting of a PL program, and
+consisting of a PL program and
 the expected
 $(\textit{error-free},\, \textit{deadlock-free})$
 result of model checking that transition
@@ -2106,7 +2103,7 @@ my expectations, so that any
 unexpected result implied the
 existence of a bug.
 
-Although the tests were designed
+Although the tests were primarily designed
 to help me find bugs during
 development, they have the
 secondary benefit of increasing the
@@ -2153,7 +2150,7 @@ using conventional testing, such as
 those caused by race conditions. 
 Conversely, if a system
 is guaranteed to be sound, but takes an
-impractically long time for any realistic
+impractically long time to check any realistic
 program, or if it requires
 weeks of training before use,
 then it will not be used in
@@ -2161,7 +2158,7 @@ practice.
 Similarly, a system that
 returns only a single Boolean result
 is less useful
-than one that points the developer
+than one like my project, which points the developer
 in the direction of the bug if
 one is found.
 
@@ -2173,18 +2170,19 @@ industrial use and resulting successes.
 It is also noteworthy that, as of 2006,
 there were only
 two verified model-checking
-systems, neither of which was widely
-used, despite model
+systems despite model
 checking having been in use for
-over two decades \cite{beck06}.
+over two decades,
+neither of which was widely
+used \cite{beck06}.
 
 
 \section{Performance}
 After reading this section, you should
-understand how good the different
+understand how effective the different
 model-checking algorithms are at
-reducing the number of transitions
-explored, and how efficient
+addressing the state explosion
+problem, and how efficient
 my implementations of them are.
 
 \subsection{Methodology}
@@ -2208,12 +2206,11 @@ to many real-world programs, in which
 each thread will often perform a lot
 of work without interacting with any
 other threads. This means that the
-algorithms are likely to be more
-effective on such programs, especially
-the DPOR algorithm.
+algorithms, particularly DPOR, are likely to be more
+effective on such programs.
 
 The numbers of transitions explored were easily
-obtained by counting the number of recursive calls made.
+obtained by counting the numbers of recursive calls made.
 The execution times were measured using the \texttt{time}
 function in the Sys module packaged with OCaml. It returns
 measurements of time only in quanta of 0.004 seconds,
@@ -2240,7 +2237,7 @@ the amount of dependence between the threads
 to be controlled by varying this second parameter.
 \newpage
 \subsubsection{Example 2 -- Bounded Buffer}
-In Dijksta's classic bounded-buffer problem
+This is an instance of Dijksta's classic bounded-buffer problem
 \cite{dijk74},
 in which two threads operate on a shared fixed-length
 array of items, with the ``producer''
@@ -2258,13 +2255,13 @@ more realistic example.
 Taken from the paper introducing DPOR
 \cite[Figure~1]{flan05}, each
 thread ``receives'' a number of
-``messages'' each of which is inserted
+``messages'', each of which is inserted
 into a shared hash table. If a slot
 is already occupied, the
 next free slot is tried instead.
 This example was chosen to allow
 comparison with the published
-results, and to evaluate the algorithms
+results \cite[Figure~8]{flan05}, and to evaluate the algorithms
 on a realistic use case.
 
 \subsubsection{Example 4 -- File System}
@@ -2455,7 +2452,6 @@ exactly once. Due to the state explosion
 problem, this number increases
 exponentially with the complexity
 of the program being verified.
-
 As constant work is done per thread per transition
 explored, the execution times of the simple
 algorithm are
@@ -2502,7 +2498,7 @@ is independent of the others), or
 contributes a multiplicative
 increase to the cost of the search.
 These multiplicative increases are
-not as severe as in the
+still not as severe as in the
 simple algorithm, though, because the new
 thread is independent of at least some of
 the existing threads.
@@ -2518,8 +2514,8 @@ exponential cost caused by the
 state explosion problem.
 
 The remaining two examples are more
-realistic in scale, and exemplify the
-benefits that DPOR offers.
+realistic in nature, and exemplify the
+benefits that DPOR can offer.
 In the indexer example
 (Figure~\ref{fig:indexer-trans}),
 dependence between
@@ -2560,7 +2556,7 @@ least as many transitions as the plain
 DPOR algorithm. However, in the examples
 given by Yang et al.\@ \cite{yang08},
 SDPOR consistently performs better.
-The explanation seems to be that
+The explanation for this seems to be that
 their examples are much larger, meaning
 that when a state is re-encountered,
 a larger saving is typically made,
@@ -2590,7 +2586,7 @@ Had I implemented this additional
 technique, the average cost of the hash-table
 operations would have decreased, although
 the large numbers of transitions explored
-would not be affected.
+would not have been affected.
 
 \subsubsection{Sleep Sets}
 For the simple model-checker,
@@ -2649,7 +2645,7 @@ In particular, if the threads of
 a program cannot be partitioned
 such that the objects accessed by different
 partitions are disjoint, my SPOR algorithm
-offers no benefits. Unfortunately, this
+offers no improvements at all. Unfortunately, this
 is the case for most concurrent programs,
 including my other examples, from which
 the SPOR results have therefore been omitted.
@@ -2664,7 +2660,7 @@ to the number of transitions explored.
 Once again, attempting to implement
 an SPOR algorithm mostly served to give
 me a greater understanding
-of the complexities involved in trying to
+of the difficulty of trying to
 statically compute reasonably small persistent sets.
 
 \chapter{Conclusions}
@@ -2674,7 +2670,11 @@ statically compute reasonably small persistent sets.
 As well as meeting the aims of the
 project, I also
 managed to implement several
-extensions. The performance
+extensions, allowing a fuller
+analysis of the benefits of
+DPOR in relation to other
+related techniques.
+The performance
 of the implemented algorithms
 was quantitatively evaluated,
 revealing that DPOR is often
@@ -2705,9 +2705,10 @@ two processes that access the
 same object must be dependent,
 it is possible to distinguish
 between reads and writes to
-shared object, allowing
-two reads to be identified
-as independent.
+shared objects, allowing
+two consecutive reads to be identified
+as independent (in the sense of
+Section~\ref{sec:independence}).
 Flanagan and Godefroid suggest
 that this could be implemented
 by keeping two clock vectors per
@@ -2720,16 +2721,16 @@ performance in relation to the
 original DPOR algorithm.
 
 I would also like
-to use my system to check
+to use my system to verify
 programs written in a widely-used
 language; as mentioned previously,
 the only work necessary for this
-is the implementation of the
+is an implementation of the
 \textit{Expression} and
 \textit{Thread} modules.
 Given the complexity of some modern
 programming languages, though,
-this would not be trivial. A better
+this might not be trivial. A better
 approach for Java, for example,
 might be to implement a JVM which
 performs DPOR, inspired by
@@ -2737,7 +2738,8 @@ Java PathFinder \cite{viss03}.
 
 Finally, I would be
 be interested in spending time
-looking at the developments
+looking at recent developments
+in model checking
 that have been made since
 the introduction of DPOR.
 
