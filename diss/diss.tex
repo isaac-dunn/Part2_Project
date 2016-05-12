@@ -168,8 +168,8 @@ agreeing to nominally supervise me,
 in case Dr.\@ Hayman could not continue
 for the entire year. Finally, I would
 like to express my gratitude to anyone
-who has ever taught me anything, for
-helping me to come this far.
+who has ever taught me anything, without
+whom I would know nothing.
 
 \setcounter{tocdepth}{1} % hide subsections
 \tableofcontents
@@ -204,11 +204,11 @@ few defects as possible. Failure of a
 safety- or mission-critical system can
 have devastating consequences, but even the
 presence of bugs in everyday commercial systems has
-serious economic consequences. In 2002,
+serious economic implications. In 2002,
 software bugs were estimated to cost
 the U.S. economy \$59.5 billion per year \cite{tass02}.
 
-Complementary to traditional testing methods
+Complementary to traditional testing
 and peer review, formal verification methods have been
 increasingly used
 to minimise the number of defects in a
@@ -224,9 +224,9 @@ motivated by the desire to automatically
 verify concurrent programs \cite{cla08}.
 A model-checking algorithm performs
 an exhaustive enumeration of a given
-system's behaviour to verify that it
+system's behaviour to show that it
 satisfies some property, usually
-expressed in temporal logic.
+expressed in a temporal logic.
 
 The idea of applying Tarski
 fixed-point techniques \cite{tar55}
@@ -335,7 +335,7 @@ how $N$ grows for $k = 1$.
 	\caption[Illustration of partial-order reduction.]
 	{If the order of execution of four instructions or
 		events makes no difference to the end result, it
-		suffices to only look at one interleaving.}
+		suffices to check only one interleaving.}
 	\label{fig:por}
 \end{figure}
 
@@ -364,7 +364,7 @@ and Godefroid's persistent and sleep sets
 \cite{god91} are
 instances of partial-order reduction;
 incidentally, the
-latter two were explored as extensions to
+latter two are explored as extensions to
 my project.
 
 \section{My Project}
@@ -373,18 +373,18 @@ my project.
 %partial-order reduction algorithm, and
 %the nature of my project.
 
-In 2005, Flanagan and Godefroid presented
-a paper titled Dynamic Partial-Order Reduction
-for Model Checking Software  \cite{flan05}
-at the Principles
+At the 2005 Principles
 of Programming Languages (POPL) conference,
+Flanagan and Godefroid presented
+a paper titled Dynamic Partial-Order Reduction
+for Model Checking Software  \cite{flan05},
 introducing an algorithm
 which uses information gathered dynamically
 during its
 exploration of a state space
 to perform partial-order reduction more
 effectively than existing algorithms.
-In particular, it assumes that
+In particular, it initially assumes that
 all possible interleavings of
 instructions in a concurrent program will
 give the same result, and only explores
@@ -397,14 +397,14 @@ The original aim of my project was to
 fully implement the dynamic partial-order
 reduction (DPOR) algorithm presented in the POPL
 paper from scratch, and to evaluate its performance
-against a simple benchmark implementation.
-While implementations of
-DPOR exist \cite{yang09, vo09},
-I did not look at them.
-The goals of the project were successfully
+against a simple model-checker
+that performs no partial-order reduction.
+These goals were successfully
 achieved, and several other model-checking
 algorithms and techniques were also
-implemented and evaluated as extensions.
+implemented as extensions. This allowed
+a fuller evaluation of the performance
+of DPOR in comparison to other techniques.
 
 \chapter{Preparation}
 \label{cha:prep}
