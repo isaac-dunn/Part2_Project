@@ -1984,10 +1984,10 @@ reductions in the sizes of the
 persistent sets.
 
 A limitation of my algorithm is that
-it assumes that each threads accesses
+it assumes that each thread accesses
 only shared objects
 explicitly mentioned in its own
-local state so using shared objects
+local state, so using shared objects
 to communicate references to other shared
 objects may result in unsound persistent
 sets being chosen.
@@ -2042,7 +2042,7 @@ you should understand:
 Although the various model-checking algorithms
 have all been proven sound, bugs in my
 project could easily render my implementations
-of them incorrect.
+of them unsound.
 After reading this section, you should understand
 the extent to which I believe
 my implementations are correct and why, and how
