@@ -1,0 +1,212 @@
+
+\documentclass[12pt,a4paper,twoside]{article}
+\usepackage[pdfborder={0 0 0}]{hyperref}
+\usepackage[margin=21mm]{geometry}
+\usepackage{graphicx}
+\usepackage{amsfonts}
+\newcommand{\M}{\mathcal{M}}
+\begin{document}
+
+\centerline{\Large Computer Science Tripos Project Proposal}
+\vspace{0.4in}
+\centerline{\LARGE\bf Dynamic Partial-Order Reduction for Model Checking}
+\vspace{0.4in}
+\centerline{\large Isaac Dunn, Clare College}
+\vspace{0.3in}
+\centerline{\large 22 October 2015}
+
+\vfil
+
+
+\noindent
+{\bf Project Supervisors:} Dr. Jonathan Hayman \& Prof. Glynn Winskel
+\vspace{0.2in}
+
+\noindent
+{\bf Director of Studies:} Prof. Lawrence Paulson
+\vspace{0.2in}
+\noindent
+ 
+\noindent
+{\bf Project Overseers:} Dr. Stephen Clark  \& Prof. Alan Mycroft
+
+
+% Main document
+
+\section*{Introduction}
+
+Model checking is category of formal methods used to show that systems
+(such as hardware components and software modules) fit their specification.
+Unlike standard testing or simulation, model checking ensures that the given
+system will \emph{always} behave as expected. This is achieved by constructing
+an abstract model of the system, and then automatically showing that this
+model has properties which are equivalent to the system specification.
+
+However, especially when verifying concurrent software, model checking suffers
+from the \emph{state explosion problem}---the size of the state space of the model
+grows exponentially with the number of components in the system. There have been
+several attempts to address this problem, but this project will explore one in particular:
+dynamic partial-order reduction.
+
+Partial-order reduction attempts to reduce the size of the state space explored by
+considering only a subset of the possible interleavings of events, such that any interleaving
+not explored is, as far as the specification is concerned, equivalent to an interleaving
+that is explored \cite{cgmp98}. However, it can be difficult to work out which sets of
+interleavings are equivalent, so statically computed approximations of such sets are necessarily
+conservative. In some cases, this can lead to only a modest reduction in the size of the
+state space.
+
+Dynamic partial-order reduction completes one full execution of the
+program, picking an arbitrary interleaving of events, while dynamically making note
+of backtracking points at which an alternative state transition leads to a path potentially not
+``equivalent" to that already traversed. These paths are explored until all backtracking
+points are exhausted; at this point, the program is shown to have met its specification
+as if the entire state space had been explored \cite{popl05}. The extra information gained
+from doing the computation dynamically means that often a significant reduction in the
+size of the state space explored can be achieved. The aim of this project is to build a
+system which carries out dynamic partial-order reduction model checking.
+
+\section*{Starting Point}
+
+The project will be written from scratch, although all the fundamental
+theory and algorithms will be taken from published work.
+
+\section*{Substance and Structure of the Project}
+
+The project breaks down into the following three sub-tasks:
+
+\begin{enumerate}
+	\item Design and implement a simple language for the writing of
+	concurrent software programs and the specification of simple
+	safety constraints.
+	
+	\item Understand and implement the core algorithm which identifies
+	the necessary backtracking points.
+	
+	\item Implement an algorithm which backtracks through the possible
+	executions of the given program, using the above procedure to explore the
+	interleavings of events which are necessary for soundness of verification.
+\end{enumerate}
+
+\section*{Main Success Criterion}
+
+To demonstrate, through a few well-chosen simple examples, that the project successfully
+performs dynamic partial-order reduction model checking. Quantitative comparison should
+be made either with a model checking algorithm that does not use partial-order reduction
+to show the improvement in performance, or ideally with an existing implementation of dynamic
+partial-order reduction model checking to show that the performance is similar.
+
+\section*{Possible Extensions}
+
+\begin{itemize}
+	\item Implement a static partial-order reduction model checker
+	and compare.
+	
+	\item If the system does not meet its specification, provide a trace
+	of a counterexample execution.
+	
+	\item Understand and implement various ameliorations (for example using
+	a stateful backtracking algorithm \cite{spin08}, the
+	``stack traversal" refinement \cite{popl05} or ``sleep sets" \cite{god95}),
+	and evaluate performance improvement.
+	
+	\item Design and build a tool to visualise the execution of the
+	backtracking state space exploration,
+	perhaps even making a visual
+	comparison between dynamic and static partial-order reduction on
+	the same problem.
+\end{itemize}
+
+\section*{Plan of Work}
+
+\subsubsection*{Michaelmas Weeks 3--6}
+
+Study and understand relevant literature (especially the paper introducing dynamic partial-
+order reduction \cite{popl05}). This is a significant part of this relatively
+theory-heavy project. Specify syntax and semantics of a simple language for writing
+concurrent software programs.
+
+\subsubsection*{Michaelmas Weeks 7--8}
+
+Implement, test and debug the language.
+
+\subsubsection*{Christmas Vacation}
+
+Design, write, test and debug the main structure of the system, in particular
+the backtracking algorithm. The procedure that computes which backtracking
+points are necessary is to be approximated by a function which suggests that every possible interleaving should
+be examined.
+
+
+\subsubsection*{Lent Weeks 1--3}
+
+Implement, test and debug algorithm that decides which backtracking points are
+necessary. Write and submit the required progress report.
+
+\subsubsection*{Lent Weeks 4--5}
+
+Evaluate project to show that the main success criterion has been met.
+
+\subsubsection*{Lent Weeks 6--8}
+
+If behind, catch up with timetable; otherwise, attempt
+extension tasks. Begin writing first draft of dissertation.
+
+\subsubsection*{Easter Vacation}
+
+Continue work on dissertation. Deliver full draft to supervisors and
+director of studies. Proofread and submit dissertation before beginning
+of Easter Term.
+
+\section*{Resources Required}
+
+For this project, I shall mainly use my own computer,
+an Acer laptop which runs Windows 10, has a 1.8 GHz dual-core processor,
+and 6 GB of memory. In the event of its failure, I will use
+the university's MCS machines. To mitigate the risk of loss of data,
+I will work in a Dropbox folder, so that my files are automatically
+backed up whenever my computer is connected to the Internet.
+I will also make at least weekly backups to both OneDrive
+and my university filespace.
+
+\begin{thebibliography}{9}
+	
+	\bibitem{cgmp98}
+	\href{https://www.cs.cmu.edu/~emc/15-820A/reading/partial-order.pdf}{
+		E. M. Clarke, O. Grumberg, M. Minea and D. Peled,
+		\emph{State Space Reduction using Partial Order Techniques},
+		International Journal on Software Tools for Technology Transfer,
+		1998.
+	}
+	
+	\bibitem{popl05}
+	\href{https://users.soe.ucsc.edu/~cormac/papers/popl05.pdf}{
+		C. Flanagan and P. Godefroid,
+		\emph{Dynamic Partial Order Reduction
+			for Model Checking Software},
+		Proceedings of the 32nd Symposium on Principles of Programming Languages,
+		2005.
+	}
+	
+	\bibitem{spin08}
+	\href{http://www.cs.utah.edu/~yuyang/papers/spin08.pdf}{
+		Y. Yang, X. Chen, G. Gopalakrishnan and R. M. Kirby,
+		\emph{Efficient Stateful Dynamic Partial Order Reduction},
+		Proceedings of the 15th International Workshop on Model Checking Software,
+		2008
+	}
+	
+	\bibitem{god95}
+	\href{http://link.springer.com/book/10.1007%2F3-540-60761-7}{
+		P. Godefroid,
+		\emph{Partial-Order Methods for the Verification of
+			Concurrent Systems -- An Approach to the State-Explosion
+			Problem},
+		 Volume 1032 of Lecture Notes in Computer
+		 Science, Springer-Verlag,
+		 1996
+	}
+
+\end{thebibliography}
+
+\end{document}

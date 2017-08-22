@@ -1,0 +1,107 @@
+
+\documentclass[12pt,a4paper,twoside]{article}
+\usepackage[pdfborder={0 0 0}]{hyperref}
+\usepackage[margin=17mm]{geometry}
+\usepackage{graphicx}
+\usepackage{amsfonts}
+\newcommand{\M}{\mathcal{M}}
+\begin{document}
+
+\centerline{\Large Computer Science Tripos Project Progress Report}
+\vspace{0.35in}
+\centerline{\LARGE\bf Dynamic Partial-Order Reduction for Model Checking}
+\vspace{0.3in}
+\centerline{\large Isaac Dunn, Clare College}
+\vspace{0.1in}
+\centerline{\href{mailto:ird28@cam.ac.uk}{ird28@cam.ac.uk}}
+\vspace{0.2in}
+\centerline{\large 28 January 2015}
+
+\vfil
+
+
+\noindent
+{\bf Project Supervisors:} Dr. Jonathan Hayman \& Prof. Glynn Winskel
+\vspace{0.2in}
+
+\noindent
+{\bf Director of Studies:} Prof. Lawrence Paulson
+\vspace{0.2in}
+\noindent
+ 
+\noindent
+{\bf Project Overseers:} Dr. Stephen Clark  \& Prof. Alan Mycroft
+
+
+% Main document
+
+\section*{Work Completed}
+
+A small ML-like language for the expression of
+concurrent programs has been designed, implemented and tested.
+In the language, multiple threads execute asynchronously,
+communicating via shared objects, for which an atomic \emph{compare-and-swap} operation is provided.
+
+A simple backtracking model checking algorithm has been implemented, which
+explores each possible execution path in turn. This is used to verify that
+the Dynamic Partial-Order Reduction (DPOR) algorithm gives the correct answers,
+and it also gives a reference to which the performance of that algorithm can be
+compared.
+
+The DPOR algorithm \cite{popl05} has been successfully implemented, fulfilling
+a significant part of the project's main success criterion, and putting the
+project one or two weeks ahead of the original work schedule. Pleasing performance
+improvements have been measured on a number of example programs that have
+been tested so far, suggesting that the project's main success criterion will be
+met once more meaningful performance analysis is done.
+
+A program has been written which generates graphs showing the reduction in the
+size of the explored state space achieved by the DPOR algorithm (see
+the Appendix for an example).
+This was not part of the original proposal, but serves well to illustrate
+my work.
+
+
+\section*{Unexpected Difficulties}
+
+No serious unexpected difficulties have arisen. A few non-trivial bugs
+have made an appearance so far, but this is of course to be expected,
+and they have been resolved without issue.
+
+\section*{Future Work}
+
+To fully meet the main success criterion of the project, a quantitative
+comparison will be made between the performances of the simple and the DPOR
+model checking algorithms. Beyond this, extensions to the project can be
+made, including implementing and evaluating ameliorations to the DPOR
+algorithm, adding
+mutual-exclusion locks to the language\footnote{Although it is true
+	that \texttt{lock(L)} is equivalent to \texttt{while not cas(L, false, true)}, the latter introduces a cycle to the state space, which is fatal for model checking, whereas inbuilt support for the former
+	does not.}, or implementing and comparing another model checking algorithm which attempts to address the state explosion problem.
+
+\begin{thebibliography}{9}
+	
+	\bibitem{popl05}
+	\href{https://users.soe.ucsc.edu/~cormac/papers/popl05.pdf}{
+		C. Flanagan and P. Godefroid,
+		\emph{Dynamic Partial Order Reduction
+			for Model Checking Software},
+		Proceedings of the 32nd Symposium on Principles of Programming Languages,
+		2005.
+	}
+
+\end{thebibliography}
+
+\appendix
+
+\section*{Appendix -- Example Graph}
+
+\begin{figure}[tbh]
+	\centerline{\includegraphics[width=\textwidth,keepaspectratio]{egfig.png}}
+	\caption{Graph showing which states (in grey) and transitions
+		(dashed lines) are never explored by the DPOR algorithm
+		on an example program}
+
+\end{figure}
+
+\end{document}

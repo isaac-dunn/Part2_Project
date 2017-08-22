@@ -1,0 +1,14 @@
+digraph Functors {
+    NLExpression, NLListStore, NLThread,
+    NLProgram, SimpleNLChecker, DPORNLChecker
+        [shape=note, fontname="Courier", height=0.75];
+    NLExpression, NLThread [fillcolor=lightblue, style=filled];
+    node [shape=box, style=rounded, fontname="Palatino"];
+    NLExpression -> "ListStore Functor";
+    "ListStore Functor" -> NLListStore;
+    NLExpression -> NLThread [style=dotted];
+    NLListStore -> NLThread [style=dotted];
+    NLThread -> "Program Functor" -> NLProgram -> "SimpleChecker Functor"
+        -> SimpleNLChecker;
+    NLProgram -> "DPORChecker Functor" -> DPORNLChecker;
+}
